@@ -170,8 +170,6 @@ class Game:
         if world_count >= max_world:
             world_count = max_world
 
-        print(world_count)
-
         world_data_level_checker = level_dictionary[f'level{level_count}_{world_count}']
         bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
         pos = level_pos_dictionary[f'level{level_count}_{world_count}']

@@ -1027,5 +1027,6 @@ class World:
             pygame.draw.circle(screen, (150, 0, 0), (x, y), dot_radius)
 
     def draw_eq_full(self, screen):
-        screen.blit(self.eq_full_txt, (swidth / 2 - self.eq_full_txt.get_width() / 2, sheight / 3))
+        if self.blit_eq_full:
+            screen.blit(self.eq_full_txt, (swidth / 2 - self.eq_full_txt.get_width() / 2, sheight / 3))
 
