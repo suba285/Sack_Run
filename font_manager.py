@@ -1,5 +1,4 @@
 import pygame
-import os
 from image_loader import img_loader
 
 
@@ -8,8 +7,8 @@ class Text:
         self.characters = []
         self.ready_characters = []
         self.char_dimentions = (5, 9)
-        list_of_tiles = os.listdir('/Users/johnsubocz/PycharmProjects/SackRun/data/font')
-        num_tiles = len(list_of_tiles)
+        num_of_charachters = 30
+        num_tiles = num_of_charachters
         for num in range(num_tiles):
             self.characters.append(img_loader(f'data/font/letter{num}.PNG',
                                                self.char_dimentions[0], self.char_dimentions[1]))
