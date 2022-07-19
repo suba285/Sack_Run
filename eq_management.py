@@ -80,7 +80,8 @@ class eqManager:
             self.x += 2.5*tile_size
 
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
-    def draw_eq(self, screen, eq_list, mouse_adjustement, events, power_list, tutorial, fps_adjust, level_count):
+    def draw_eq(self, screen, eq_list, mouse_adjustement, events, power_list, tutorial, fps_adjust, level_count,
+                blit_card_instructions):
 
         self.jump_boost_trigger = False
         self.regeneration_trigger = False
@@ -169,7 +170,7 @@ class eqManager:
             over = True
 
         # tutorial on how to use cards
-        if tutorial and self.eq_button_list and level_count != 3:
+        if tutorial and self.eq_button_list and level_count != 3 and blit_card_instructions:
             gap = 3
             img = self.mouse3
             if over:
@@ -216,4 +217,3 @@ class eqManager:
 
         return eq_list, self.jump_boost_trigger, self.regeneration_trigger, self.no_gravity_trigger,\
                self.no_harm_trigger, self.shockwave_trigger, over, power_list, paper_sound_trigger
-

@@ -97,7 +97,7 @@ class Game:
 
         # loading in sounds --------------------------------------------------------------------------------------------
         pygame.mixer.music.load('data/sounds/gameplay_song.wav')
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(0)
 
         # variables ----------------------------------------------------------------------------------------------------
         self.level_check = 1
@@ -138,6 +138,8 @@ class Game:
         self.start_y = -4
 
         self.restart_level = False
+
+        self.blit_card_instructions = False
 
         self.level_length = 0
 
@@ -188,6 +190,8 @@ class Game:
         play_card_pull_sound = False
         play_healing_sound = False
         play_paper_sound = False
+
+        chest_opened = False
 
         self.restart_level = False
 
@@ -255,11 +259,15 @@ class Game:
                                                                     self.camera_move_y, sack_rect, self.health)
         self.spit_harm_up = self.world.draw_spitting_plant_up(screen, fps_adjust, self.camera_move_x,
                                                               self.camera_move_y, sack_rect, self.health)
-        chosen_power, self.reinit_eq, play_lock_sound, self.power_list = self.world.draw_chest(screen, sack_rect,
-                                                                                               fps_adjust,
-                                                                                               self.power_list,
-                                                                                               tutorial,
-                                                                                               self.eq_power_list)
+        chosen_power, self.reinit_eq, play_lock_sound,\
+            self.power_list, chest_opened = self.world.draw_chest(screen, sack_rect,
+                                                                                 fps_adjust,
+                                                                                 self.power_list,
+                                                                                 tutorial,
+                                                                                 self.eq_power_list)
+
+        if chest_opened:
+            self.blit_card_instructions = True
 
         # updating the world data if new level -------------------------------------------------------------------------
         if self.level_check < level_count or self.restart_level:
@@ -269,9 +277,12 @@ class Game:
             self.right_border = self.left_border + self.level_length * 32
             self.particles = Particles(particle_num, slow_computer)
             self.reinit_eq = True
+            self.blit_card_instructions = False
             if not self.restart_level:
                 self.level_check = level_count
                 self.backup_eq_power_list = self.eq_power_list
+
+        # --------------------------------------------------------------------------------------------------------------
 
         self.world.draw_wheat(screen, sack_rect)
 
@@ -329,7 +340,8 @@ class Game:
                 play_card_pull_sound,\
                 self.power_list,\
                 play_paper_sound = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment, events,
-                                                          self.power_list, tutorial, fps_adjust, level_count)
+                                                           self.power_list, tutorial, fps_adjust, level_count,
+                                                           self.blit_card_instructions)
 
         # resetting shockwave ------------------------------------------------------------------------------------------
         if self.shockwave_trigger:

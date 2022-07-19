@@ -849,13 +849,13 @@ class World:
             if tile[2]:
                 tile[3].animate_card(screen, tile[1][0], tile[1][1], fps_adjust)
             screen.blit(output, tile[1])
-            if tutorial and tile[0] != self.chest2:
+            if tutorial and tile[0] != self.chest2 and not tile[4]:
                 if tile[1].colliderect(sack_rect):
                     self.key_press_counter, img = key_animation(self.key_x, self.key_x_press, self.key_press_counter, fps_adjust)
                     screen.blit(img, (swidth/2 - tile_size/4, sheight/3 - tile_size/4))
                 screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size / 2))
 
-        return chosen_power, reinit_eq, play_lock_sound, power_list
+        return chosen_power, reinit_eq, play_lock_sound, power_list, self.chest_press
 
     # ------------------------------------------------------------------------------------------------------------------
 
