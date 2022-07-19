@@ -241,7 +241,8 @@ class World:
 
         # text ---------------------------------------------------------------------------------------------------------
         eq_full_text = Text()
-        self.eq_full_txt = eq_full_text.make_text(['your eq is full, bin one of the cards to free up space'])
+        self.eq_full_txt = eq_full_text.make_text(['eq is full, bin cards to free up space'])
+        self.blit_eq_full = False
 
         # assigning tiles to corresponding coordinates by the level map ------------------------------------------------
         row_count = start_y
@@ -805,19 +806,23 @@ class World:
         key = pygame.key.get_pressed()
         chosen_power = "none"
         max_card_num = 3
+        eq_len = len(eq_list)
+        self.blit_eq_full = False
         for tile in self.chest_list:
             if tile[1].colliderect(sack_rect.x, sack_rect.y, self.sack_height, self.sack_width):
-                if len(eq_list) < max_card_num and not tile[4]:
+                if eq_len < max_card_num and not tile[4]:
                     output = self.chest_open
                 else:
                     output = tile[0]
                 if key[pygame.K_x] and tile[0] != self.chest2 and not tile[4] and\
-                        power_list and len(eq_list) < max_card_num:
+                        power_list and eq_len < max_card_num:
                     self.chest_press = True
                     tile[4] = True
                     play_lock_sound = True
-                if key[pygame.K_x] and len(eq_list) >= max_card_num:
+                if key[pygame.K_x] and eq_len >= max_card_num:
                     self.eq_full = True
+                if eq_len >= max_card_num and not tile[4]:
+                    self.blit_eq_full = True
                 if self.chest_press:
                     self.chest_counter += 1*fps_adjust
                     if self.chest_counter > 10:
@@ -1020,4 +1025,7 @@ class World:
             x = center_x - dot_x
             y = center_y - dot_y - dot_radius
             pygame.draw.circle(screen, (150, 0, 0), (x, y), dot_radius)
+
+    def draw_eq_full(self, screen):
+        screen.blit(self.eq_full_txt, (swidth / 2 - self.eq_full_txt.get_width() / 2, sheight / 3))
 

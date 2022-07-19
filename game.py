@@ -305,6 +305,9 @@ class Game:
         # control instructions -----------------------------------------------------------------------------------------
         self.player.draw_inst_buttons(screen, fps_adjust, level_count)
 
+        # eq full message ----------------------------------------------------------------------------------------------
+        self.world.draw_eq_full(screen)
+
         # updating player health and blitting health bar ---------------------------------------------------------------
         play_card_pull_sound3 = self.player.update_health(screen, fps_adjust, mouse_adjustment)
         self.world.draw_portal_compass(sack_rect, screen)
