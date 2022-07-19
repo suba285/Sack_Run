@@ -653,7 +653,7 @@ class World:
     # ------------------------------------------------------------------------------------------------------------------
     def draw_tile_list(self, screen):
         for tile in self.tile_list:
-            if - tile_size < tile[1][0] < swidth:
+            if - tile_size * 2 < tile[1][0] < swidth:
                 screen.blit(tile[0], tile[1])
 
     # functions for drawing animated or interactive tiles and enemies ==================================================

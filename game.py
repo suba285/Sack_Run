@@ -16,6 +16,7 @@ sheight = 264
 level_dictionary = {
     "level1_1": level1_1,
     "level2_1": level2_1,
+    "level3_1": level3_1,
     "level1_2": level1_2,
     "level2_2": level2_2,
     "level3_2": level3_2,
@@ -30,6 +31,7 @@ level_dictionary = {
 level_bg_dictionary = {
     "level1_1_bg": level1_1_bg,
     "level2_1_bg": level2_1_bg,
+    "level3_1_bg": level3_1_bg,
     "level1_2_bg": level1_2_bg,
     "level2_2_bg": level2_2_bg,
     "level3_2_bg": level3_2_bg,
@@ -43,7 +45,8 @@ level_bg_dictionary = {
 
 level_pos_dictionary = {
     "level1_1": (0, -4),
-    "level2_1": (0, -4),
+    "level2_1": (3, -2),
+    "level3_1": (3, -2),
     "level1_2": (0, -4),
     "level2_2": (4, -5),
     "level3_2": (0, -4),
