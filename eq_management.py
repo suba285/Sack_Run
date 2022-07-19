@@ -1,6 +1,7 @@
 import pygame
 from button import Button
 from image_loader import img_loader
+from font_manager import Text
 
 tile_size = 32
 
@@ -24,6 +25,8 @@ class eqManager:
         self.eq_button_list = []
 
         self.eq_button_counter = 0
+
+        self.completed_txt = Text().make_text(["congrats, you've completed the tutorial"])
 
         # card images --------------------------------------------------------------------------------------------------
         self.card_down_img = img_loader('data/images/card_down.PNG', card_tile_size, card_tile_size)
@@ -77,7 +80,7 @@ class eqManager:
             self.x += 2.5*tile_size
 
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
-    def draw_eq(self, screen, eq_list, mouse_adjustement, events, power_list, tutorial, fps_adjust):
+    def draw_eq(self, screen, eq_list, mouse_adjustement, events, power_list, tutorial, fps_adjust, level_count):
 
         self.jump_boost_trigger = False
         self.regeneration_trigger = False
@@ -166,7 +169,7 @@ class eqManager:
             over = True
 
         # tutorial on how to use cards
-        if tutorial and self.eq_button_list:
+        if tutorial and self.eq_button_list and level_count != 3:
             gap = 3
             img = self.mouse3
             if over:
@@ -207,6 +210,9 @@ class eqManager:
                     img = self.mouse0
 
                 screen.blit(img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
+
+        if tutorial and level_count == 3:
+            screen.blit(self.completed_txt, (swidth / 2 - self.completed_txt.get_width() / 2, sheight / 3))
 
         return eq_list, self.jump_boost_trigger, self.regeneration_trigger, self.no_gravity_trigger,\
                self.no_harm_trigger, self.shockwave_trigger, over, power_list, paper_sound_trigger

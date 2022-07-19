@@ -52,13 +52,15 @@ class LevelSelection:
         self.world2_txt = self.wrld2.make_text(["'world two'"])
 
         self.wrld2_desc = Text()
-        self.world2_description = self.wrld2_desc.make_text(["caves stretching below the farm, bats live there"])
+        self.world2_description = self.wrld2_desc.make_text(["coming soon..."])
+        # caves stretching below the farm, bats live there
 
         self.wrld3 = Text()
         self.world3_txt = self.wrld3.make_text(["'world three'"])
 
         self.wrld3_desc = Text()
-        self.world3_description = self.wrld3_desc.make_text(["an ancient forest with ancient inhabitants"])
+        self.world3_description = self.wrld3_desc.make_text(["coming soon..."])
+        # an ancient forest with ancient inhabitants
 
         spacing = 20
         self.button_y = sheight / 3
@@ -108,7 +110,8 @@ class LevelSelection:
             level_screen.blit(self.right_button_grey, (self.right_x, self.button_y))
 
         menu_press, over3 = self.menu_btn.draw_button(level_screen, False, mouse_adjustment, events)
-        play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, events)
+        if self.world_count <= 2:
+            play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, events)
 
         if left_press:
             update_value = -1

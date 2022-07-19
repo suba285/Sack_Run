@@ -329,7 +329,7 @@ class Game:
                 play_card_pull_sound,\
                 self.power_list,\
                 play_paper_sound = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment, events,
-                                                          self.power_list, tutorial, fps_adjust)
+                                                          self.power_list, tutorial, fps_adjust, level_count)
 
         # resetting shockwave ------------------------------------------------------------------------------------------
         if self.shockwave_trigger:
