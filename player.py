@@ -187,12 +187,12 @@ class Player:
         self.jumped = False
 
         # player sprite death animation frames -------------------------------------------------------------------------
-        self.dead1 = img_loader('data/images/dead_sack1.png', tile_size, tile_size)
-        self.dead2 = img_loader('data/images/dead_sack2.png', tile_size, tile_size)
-        self.dead3 = img_loader('data/images/dead_sack3.png', tile_size, tile_size)
-        self.dead4 = img_loader('data/images/dead_sack4.png', tile_size, tile_size)
-        self.dead5 = img_loader('data/images/dead_sack5.png', tile_size, tile_size)
-        self.dead6 = img_loader('data/images/dead_sack6.png', tile_size, tile_size)
+        self.dead1 = img_loader('data/images/dead_sack1.PNG', tile_size, tile_size)
+        self.dead2 = img_loader('data/images/dead_sack2.PNG', tile_size, tile_size)
+        self.dead3 = img_loader('data/images/dead_sack3.PNG', tile_size, tile_size)
+        self.dead4 = img_loader('data/images/dead_sack4.PNG', tile_size, tile_size)
+        self.dead5 = img_loader('data/images/dead_sack5.PNG', tile_size, tile_size)
+        self.dead6 = img_loader('data/images/dead_sack6.PNG', tile_size, tile_size)
 
         # teleportation particles frames -------------------------------------------------------------------------------
         self.particles1 = img_loader('data/images/particles1.PNG', tile_size, tile_size)
