@@ -97,7 +97,7 @@ class Game:
 
         # loading in sounds --------------------------------------------------------------------------------------------
         pygame.mixer.music.load('data/sounds/gameplay_song.wav')
-        pygame.mixer.music.set_volume(0)
+        pygame.mixer.music.set_volume(0.5)
 
         # variables ----------------------------------------------------------------------------------------------------
         self.level_check = 1
@@ -261,10 +261,11 @@ class Game:
                                                               self.camera_move_y, sack_rect, self.health)
         chosen_power, self.reinit_eq, play_lock_sound,\
             self.power_list, chest_opened = self.world.draw_chest(screen, sack_rect,
-                                                                                 fps_adjust,
-                                                                                 self.power_list,
-                                                                                 tutorial,
-                                                                                 self.eq_power_list)
+                                                                  fps_adjust,
+                                                                  self.power_list,
+                                                                  tutorial,
+                                                                  self.eq_power_list,
+                                                                  level_count)
 
         if chest_opened:
             self.blit_card_instructions = True

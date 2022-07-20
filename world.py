@@ -622,13 +622,15 @@ class World:
 
     def draw_foliage(self, screen):
         for tile in self.decoration_list:
-            if - tile_size < tile[1][0] < swidth:
-                screen.blit(tile[0], tile[1])
+            if - tile_size * 2 < tile[1][0] < swidth:
+                if - tile_size * 2 < tile[1][1] < sheight:
+                    screen.blit(tile[0], tile[1])
 
     def draw_toxic_flowers(self, screen):
         for tile in self.toxic_flower_list:
-            if - tile_size < tile[1][0] < swidth:
-                screen.blit(tile[0], tile[1])
+            if - tile_size * 2 < tile[1][0] < swidth:
+                if - tile_size * 2 < tile[1][1] < sheight:
+                    screen.blit(tile[0], tile[1])
 
     # updating the position of all tiles -------------------------------------------------------------------------------
     def update_tile_list(self, camera_move_x, camera_move_y):
@@ -654,8 +656,9 @@ class World:
     # ------------------------------------------------------------------------------------------------------------------
     def draw_tile_list(self, screen):
         for tile in self.tile_list:
-            if - tile_size * 2 < tile[1][0] < swidth:
-                screen.blit(tile[0], tile[1])
+            if - tile_size < tile[1][0] < swidth:
+                if - tile_size * 2 < tile[1][1] < sheight:
+                    screen.blit(tile[0], tile[1])
 
     # functions for drawing animated or interactive tiles and enemies ==================================================
 
@@ -800,7 +803,7 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_chest(self, screen, sack_rect, fps_adjust, power_list, tutorial, eq_list):
+    def draw_chest(self, screen, sack_rect, fps_adjust, power_list, tutorial, eq_list, level_count):
         reinit_eq = False
         play_lock_sound = False
         key = pygame.key.get_pressed()
@@ -834,8 +837,10 @@ class World:
                         output = self.chest2
                         if power_list:
                             chosen_power = random.choice(power_list)
-                            if tutorial:
+                            if tutorial and level_count == 1:
                                 chosen_power = 'jump boost'
+                            if tutorial and level_count == 2:
+                                chosen_power = 'no harm'
                             eq_list.append(chosen_power)
                             reinit_eq = True
 
@@ -862,8 +867,9 @@ class World:
     def draw_bush(self, screen):
         self.bush_img = self.bush
         for tile in self.bush_list:
-            if - tile_size < tile[1][0] < swidth:
-                screen.blit(self.bush_img, tile[1])
+            if - tile_size * 2 < tile[1][0] < swidth:
+                if - tile_size * 2 < tile[1][1] < sheight:
+                    screen.blit(self.bush_img, tile[1])
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -993,8 +999,9 @@ class World:
 
     def draw_tree(self, screen):
         for tile in self.tree_list:
-            if - tile_size < tile[1][0] < swidth:
-                screen.blit(tile[0], tile[1])
+            if - tile_size * 2 < tile[1][0] < swidth:
+                if - tile_size * 2 < tile[1][1] < sheight:
+                    screen.blit(tile[0], tile[1])
 
     # ------------------------------------------------------------------------------------------------------------------
 
