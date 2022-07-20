@@ -15,7 +15,7 @@ class LevelSelection:
 
         self.world_count = world_count
 
-        self.menu_background = img_loader('data/images/menu_background.png', swidth, sheight)
+        self.menu_background = img_loader('data/images/menu_background.PNG', swidth, sheight)
 
         self.left_button = img_loader('data/images/button_left.PNG', button_size, button_size)
         self.left_button_press = img_loader('data/images/button_left_press.PNG', button_size, button_size)

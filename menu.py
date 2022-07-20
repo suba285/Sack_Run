@@ -34,7 +34,7 @@ class mainMenu:
         self.resolution_big_button_press = img_loader('data/images/button_res_big2_press.PNG',
                                                       tile_size * 2, tile_size / 2)
 
-        self.menu_background_raw = pygame.image.load('data/images/menu_background.png').convert()
+        self.menu_background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
         self.menu_background = pygame.transform.scale(self.menu_background_raw, (360, 296))
 
         self.settings_background = img_loader('data/images/settings_background2.PNG', tile_size * 2, tile_size * 2)

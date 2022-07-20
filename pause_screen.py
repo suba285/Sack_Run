@@ -12,7 +12,7 @@ class PauseScreen:
     def __init__(self, pause_screen):
         self.pause_screen = pause_screen
 
-        self.background = img_loader('data/images/menu_background.png', swidth, sheight)
+        self.background = img_loader('data/images/menu_background.PNG', swidth, sheight)
 
         self.resume_button = img_loader('data/images/button_resume.PNG', tile_size * 1.5, tile_size * 0.75)
         self.resume_button_press = img_loader('data/images/button_resume_press.PNG', tile_size * 1.5, tile_size * 0.75)

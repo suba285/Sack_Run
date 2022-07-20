@@ -74,7 +74,7 @@ class Game:
     def __init__(self, x, y, slow_computer, screen, world_data, bg_data):
 
         # loading in images --------------------------------------------------------------------------------------------
-        background_raw = pygame.image.load('data/images/menu_background.png').convert()
+        background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
         self.background = pygame.transform.scale(background_raw, (360, 264))
 
         home_button_img = img_loader('data/images/button_pause.PNG', tile_size * 0.75, tile_size * 0.75)

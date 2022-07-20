@@ -209,16 +209,16 @@ class World:
 
         # spitting plant tile images -----------------------------------------------------------------------------------
         spitting_plant0_raw = pygame.image.load('data/images/spitting_plant0.PNG').convert()
-        self.spitting_plant0l = img_loader('data/images/spitting_plant0.png', tile_size, tile_size)
-        self.spitting_plant1l = img_loader('data/images/spitting_plant1.png', tile_size, tile_size)
-        self.spitting_plant2l = img_loader('data/images/spitting_plant2.png', tile_size, tile_size)
+        self.spitting_plant0l = img_loader('data/images/spitting_plant0.PNG', tile_size, tile_size)
+        self.spitting_plant1l = img_loader('data/images/spitting_plant1.PNG', tile_size, tile_size)
+        self.spitting_plant2l = img_loader('data/images/spitting_plant2.PNG', tile_size, tile_size)
         self.spitting_plant0r = pygame.transform.flip(self.spitting_plant0l, True, False)
         self.spitting_plant1r = pygame.transform.flip(self.spitting_plant1l, True, False)
         self.spitting_plant2r = pygame.transform.flip(self.spitting_plant2l, True, False)
-        spitting_plant_up0_raw = pygame.image.load('data/images/spitting_plant_up0.png').convert()
-        self.spitting_plant_up0 = img_loader('data/images/spitting_plant_up0.png', tile_size, tile_size)
-        self.spitting_plant_up1 = img_loader('data/images/spitting_plant_up1.png', tile_size, tile_size)
-        self.spitting_plant_up2 = img_loader('data/images/spitting_plant_up2.png', tile_size, tile_size)
+        spitting_plant_up0_raw = pygame.image.load('data/images/spitting_plant_up0.PNG').convert()
+        self.spitting_plant_up0 = img_loader('data/images/spitting_plant_up0.PNG', tile_size, tile_size)
+        self.spitting_plant_up1 = img_loader('data/images/spitting_plant_up1.PNG', tile_size, tile_size)
+        self.spitting_plant_up2 = img_loader('data/images/spitting_plant_up2.PNG', tile_size, tile_size)
 
         # log frames ---------------------------------------------------------------------------------------------------
         log0 = pygame.image.load('data/images/log0.PNG').convert()
@@ -856,7 +856,8 @@ class World:
             screen.blit(output, tile[1])
             if tutorial and tile[0] != self.chest2 and not tile[4]:
                 if tile[1].colliderect(sack_rect):
-                    self.key_press_counter, img = key_animation(self.key_x, self.key_x_press, self.key_press_counter, fps_adjust)
+                    self.key_press_counter, img = key_animation(self.key_x, self.key_x_press, self.key_press_counter,
+                                                                fps_adjust)
                     screen.blit(img, (swidth/2 - tile_size/4, sheight/3 - tile_size/4))
                 screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size / 2))
 

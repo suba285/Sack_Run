@@ -81,7 +81,7 @@ menu_transition = False
 menu_y = 0
 game_y = swidth
 
-background_raw = pygame.image.load('data/images/menu_background.png').convert()
+background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
 background = pygame.transform.scale(background_raw, (360, 296))
 
 # sounds ---------------------------------------------------------------------------------------------------------------
