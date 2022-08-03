@@ -340,6 +340,8 @@ while run:
     if play_paper_sound:
         sounds['paper_crumbling'].play()
 
+    play_music = False
+
     if play_music:
         pygame.mixer.music.play(-1, 0.0, 300)
         play_music = False

@@ -12,6 +12,8 @@ tile_size = 32
 player_size_y = 32
 player_size_x = 20
 
+jump_offset_amount = 5
+
 
 # hey particles coming off the player ----------------------------------------------------------------------------------
 class HeyParticle:
@@ -173,6 +175,12 @@ class Player:
         self.sack_lookf = img_loader('data/images/sack_side_look.PNG', player_size_x, player_size_y)
         self.sack_jumpf = img_loader('data/images/sack_jumping.PNG', player_size_x, player_size_y)
         self.sack_jumpb = pygame.transform.flip(self.sack_jumpf, True, False)
+        self.sack_jump1f = img_loader('data/images/sack_jumping1.PNG', tile_size, tile_size)
+        self.sack_jump2f = img_loader('data/images/sack_jumping2.PNG', tile_size, tile_size)
+        self.sack_jump3f = img_loader('data/images/sack_jumping3.PNG', tile_size, tile_size)
+        self.sack_jump1b = pygame.transform.flip(self.sack_jump1f, True, False)
+        self.sack_jump2b = pygame.transform.flip(self.sack_jump2f, True, False)
+        self.sack_jump3b = pygame.transform.flip(self.sack_jump3f, True, False)
         self.sack_blinkb = pygame.transform.flip(self.sack_blinkf, True, False)
         self.sack_lookb = pygame.transform.flip(self.sack_lookf, True, False)
         self.sack_img = self.sack0f
@@ -185,6 +193,7 @@ class Player:
         self.sack_height = self.sack0f.get_height()
         self.vel_y = 0
         self.jumped = False
+        self.sack_offset = 0
 
         # player sprite death animation frames -------------------------------------------------------------------------
         self.dead1 = img_loader('data/images/dead_sack1.PNG', tile_size, tile_size)
@@ -503,6 +512,7 @@ class Player:
                 self.jumped = False
                 if not self.airborn:
                     # standing animation
+                    self.sack_offset = 0
                     if self.direction == 1:
                         self.blink_counter += 1*fps_adjust
                         if self.blink_counter > 150:
@@ -531,11 +541,25 @@ class Player:
                             self.sack_img = self.sack_blinkb
                         else:
                             self.sack_img = self.sack0b
-                else:
-                    if self.direction == 1:
-                        self.sack_img = self.sack_jumpf
+
+            if self.airborn:
+                if self.direction == 1:
+                    self.sack_offset = jump_offset_amount - 3
+                    if self.vel_y < -5:
+                        self.sack_img = self.sack_jump1f
+                    elif -5 < self.vel_y < 5:
+                        self.sack_img = self.sack_jump2f
                     else:
-                        self.sack_img = self.sack_jumpb
+                        self.sack_img = self.sack_jump3f
+                else:
+                    self.sack_offset = jump_offset_amount + 4
+                    if self.vel_y < -5:
+                        self.sack_img = self.sack_jump1b
+                    elif -5 < self.vel_y < 5:
+                        self.sack_img = self.sack_jump2b
+                    else:
+                        self.sack_img = self.sack_jump3b
+
             # walking left
             if key[pygame.K_LEFT] or key[pygame.K_a]:
                 self.player_moved = True
@@ -550,7 +574,7 @@ class Player:
                 self.direction = 0
                 self.teleport_count = 0
                 if self.animate_walk:
-                    self.walk_counter += 0.9*fps_adjust
+                    self.walk_counter += 0.7*fps_adjust
                     if self.walk_counter > 20:
                         self.walk_counter = 0
                     elif self.walk_counter > 15:
@@ -575,7 +599,7 @@ class Player:
                 self.teleport_count = 0
                 self.direction = 1
                 if self.animate_walk:
-                    self.walk_counter += 0.9*fps_adjust
+                    self.walk_counter += 0.7*fps_adjust
                     if self.walk_counter > 20:
                         self.walk_counter = 0
                     elif self.walk_counter > 15:
@@ -800,7 +824,7 @@ class Player:
 
         # drawing player onto the screen
         if self.blit_plr:
-            screen.blit(self.sack_img, (self.sack_rect.x, self.sack_rect.y))
+            screen.blit(self.sack_img, (self.sack_rect.x - self.sack_offset, self.sack_rect.y))
 
         # refilling health if regeneration card used
         if self.regeneration:
