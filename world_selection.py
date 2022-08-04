@@ -43,20 +43,20 @@ class LevelSelection:
         self.tutorial_description = self.tut_desc.make_text(["learn to play the game"])
 
         self.wrld1 = Text()
-        self.world1_txt = self.wrld1.make_text(["'world one'"])
+        self.world1_txt = self.wrld1.make_text(["'world 1'"])
 
         self.wrld1_desc = Text()
         self.world1_description = self.wrld1_desc.make_text(["a run through 'climbton farm' where bees are kept"])
 
         self.wrld2 = Text()
-        self.world2_txt = self.wrld2.make_text(["'world two'"])
+        self.world2_txt = self.wrld2.make_text(["'world 2'"])
 
         self.wrld2_desc = Text()
         self.world2_description = self.wrld2_desc.make_text(["coming soon..."])
         # caves stretching below the farm, bats live there
 
         self.wrld3 = Text()
-        self.world3_txt = self.wrld3.make_text(["'world three'"])
+        self.world3_txt = self.wrld3.make_text(["'world 3'"])
 
         self.wrld3_desc = Text()
         self.world3_description = self.wrld3_desc.make_text(["coming soon..."])

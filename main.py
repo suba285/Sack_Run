@@ -108,6 +108,16 @@ one_time_play_lock = True
 card_swoosh_chest = False
 card_swoosh_counter = 0
 
+# controls -------------------------------------------------------------------------------------------------------------
+controls = {
+    'left': pygame.K_a,
+    'right': pygame.K_d,
+    'jump': pygame.K_SPACE,
+    'interact': pygame.K_x,
+    'shockwave': pygame.K_z,
+    'bin_card': pygame.K_q,
+}
+
 # custom cursor setup --------------------------------------------------------------------------------------------------
 pygame.mouse.set_visible(False)
 cursor_raw = pygame.image.load('data/images/cursor_classic2.PNG').convert()
@@ -127,7 +137,7 @@ str_level_count = file.read()
 
 # initiating classes ---------------------------------------------------------------------------------------------------
 world = World(world_data, screen, slow_computer, start_x, start_y, bg_data)
-main_game = Game(x, y, slow_computer, screen, world_data, bg_data)
+main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls)
 main_menu = mainMenu(screen)
 pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
@@ -216,7 +226,7 @@ while run:
         if play:
             if real_fps < 30:
                 slow_computer = True
-            main_game = Game(x, y, slow_computer, screen, world_data, bg_data)
+            main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls)
             play = False
 
         run_menu = False

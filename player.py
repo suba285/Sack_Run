@@ -163,7 +163,7 @@ def health_bar_particles(screen, fps_adjust, health_bar_part_list,
 # ======================================================================================================================
 
 class Player:
-    def __init__(self, x, y, screen):
+    def __init__(self, x, y, screen, controls):
         # player sprite assets -----------------------------------------------------------------------------------------
         self.sack0f = img_loader('data/images/sack0.PNG', player_size_x, player_size_y)
         self.sack1f = img_loader('data/images/sack1.PNG', player_size_x, player_size_y)
@@ -194,6 +194,8 @@ class Player:
         self.vel_y = 0
         self.jumped = False
         self.sack_offset = 0
+
+        self.controls = controls
 
         # player sprite death animation frames -------------------------------------------------------------------------
         self.dead1 = img_loader('data/images/dead_sack1.PNG', tile_size, tile_size)
@@ -489,7 +491,7 @@ class Player:
                 and not (self.col_types['right'] or self.col_types['left']) and game_counter >= 0:
             # player control
             self.transition = False
-            if key[pygame.K_SPACE]:
+            if key[self.controls['jump']]:
                 if self.jump_boost:
                     self.first_power_jump = True
                 self.teleport_count = 0
@@ -508,7 +510,7 @@ class Player:
                                 self.sack_img = self.sack_jumpf
                             elif self.direction == 0:
                                 self.sack_img = self.sack_jumpb
-            if not key[pygame.K_SPACE]:
+            if not key[self.controls['jump']]:
                 self.jumped = False
                 if not self.airborn:
                     # standing animation
@@ -547,7 +549,7 @@ class Player:
                     self.sack_offset = jump_offset_amount - 3
                     if self.vel_y < -5:
                         self.sack_img = self.sack_jump1f
-                    elif -5 < self.vel_y < 5:
+                    elif -5 < self.vel_y < 3:
                         self.sack_img = self.sack_jump2f
                     else:
                         self.sack_img = self.sack_jump3f
@@ -555,13 +557,13 @@ class Player:
                     self.sack_offset = jump_offset_amount + 4
                     if self.vel_y < -5:
                         self.sack_img = self.sack_jump1b
-                    elif -5 < self.vel_y < 5:
+                    elif -5 < self.vel_y < 3:
                         self.sack_img = self.sack_jump2b
                     else:
                         self.sack_img = self.sack_jump3b
 
             # walking left
-            if key[pygame.K_LEFT] or key[pygame.K_a]:
+            if key[self.controls['left']]:
                 self.player_moved = True
                 if not slow_computer:
                     self.speed_adder += 0.1
@@ -574,7 +576,7 @@ class Player:
                 self.direction = 0
                 self.teleport_count = 0
                 if self.animate_walk:
-                    self.walk_counter += 0.7*fps_adjust
+                    self.walk_counter += 0.9*fps_adjust
                     if self.walk_counter > 20:
                         self.walk_counter = 0
                     elif self.walk_counter > 15:
@@ -586,7 +588,7 @@ class Player:
                     else:
                         self.sack_img = self.sack0b
             # walking right
-            elif key[pygame.K_RIGHT] or key[pygame.K_d]:
+            elif key[self.controls['right']]:
                 self.player_moved = True
                 if not slow_computer:
                     self.speed_adder += 0.1
@@ -599,7 +601,7 @@ class Player:
                 self.teleport_count = 0
                 self.direction = 1
                 if self.animate_walk:
-                    self.walk_counter += 0.7*fps_adjust
+                    self.walk_counter += 0.9*fps_adjust
                     if self.walk_counter > 20:
                         self.walk_counter = 0
                     elif self.walk_counter > 15:
@@ -614,11 +616,6 @@ class Player:
             else:
                 self.speed = 0
                 self.speed_adder = 0
-
-            if (key[pygame.K_UP] or key[pygame.K_w]) and self.no_gravity:
-                dy -= 5*fps_adjust
-            if (key[pygame.K_DOWN] or key[pygame.K_s]) and self.no_gravity:
-                dy += 5*fps_adjust
 
         # respawn at the beginning of the level and transition
         if pygame.mouse.get_pressed()[0] and self.dead and self.dead_counter >= 36 and not self.restart_trigger:

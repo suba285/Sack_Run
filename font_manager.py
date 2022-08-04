@@ -7,10 +7,10 @@ class Text:
         self.characters = []
         self.ready_characters = []
         self.char_dimentions = (5, 9)
-        num_of_charachters = 30
+        num_of_charachters = 75
         num_tiles = num_of_charachters
         for num in range(num_tiles):
-            self.characters.append(img_loader(f'data/font/letter{num}.PNG',
+            self.characters.append(img_loader(f"data/font/letter{num}.PNG",
                                                self.char_dimentions[0], self.char_dimentions[1]))
 
         self.num_of_lines = 0
@@ -54,7 +54,52 @@ class Text:
             '.': 27,
             ',': 28,
             "'": 29,
-            ':': 30
+            ':': 30,
+            'A': 31,
+            'B': 32,
+            'C': 33,
+            'D': 34,
+            'E': 35,
+            'F': 36,
+            'G': 37,
+            'H': 38,
+            'I': 39,
+            'J': 40,
+            'K': 41,
+            'L': 42,
+            'M': 43,
+            'N': 44,
+            'O': 45,
+            'P': 46,
+            'Q': 47,
+            'R': 48,
+            'S': 49,
+            'T': 50,
+            'U': 51,
+            'V': 52,
+            'W': 53,
+            'X': 54,
+            'Y': 55,
+            'Z': 56,
+            '1': 57,
+            '2': 58,
+            '3': 59,
+            '4': 60,
+            '5': 61,
+            '6': 62,
+            '7': 63,
+            '8': 64,
+            '9': 65,
+            '0': 66,
+            '?': 67,
+            '#': 68,
+            '[': 69,
+            ']': 70,
+            '(': 71,
+            ')': 72,
+            '!': 73,
+            '-': 74,
+            '+': 75
         }
 
     def make_text(self, text):

@@ -12,12 +12,14 @@ card_tile_size = 2 * tile_size
 
 
 class eqManager:
-    def __init__(self, eq_list):
+    def __init__(self, eq_list, controls):
         self.jump_boost_trigger = False
         self.regeneration_trigger = False
         self.no_gravity_trigger = False
         self.no_harm_trigger = False
         self.shockwave_trigger = False
+
+        self.controls = controls
 
         self.y = 264 - 2*tile_size
         num_cards = len(eq_list)
@@ -111,7 +113,7 @@ class eqManager:
                     self.jump_boost_trigger = True
                     eq_list.remove('jump boost')
                     self.eq_button_list.remove(button)
-                if key[pygame.K_q] and local_over and 'jump boost' in eq_list:
+                if key[self.controls['bin_card']] and local_over and 'jump boost' in eq_list:
                     eq_list.remove('jump boost')
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
@@ -121,7 +123,7 @@ class eqManager:
                     self.regeneration_trigger = True
                     eq_list.remove('regeneration')
                     self.eq_button_list.remove(button)
-                if key[pygame.K_q] and local_over and 'regeneration' in eq_list:
+                if key[self.controls['bin_card']] and local_over and 'regeneration' in eq_list:
                     eq_list.remove('regeneration')
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
@@ -131,7 +133,7 @@ class eqManager:
                     self.no_gravity_trigger = True
                     eq_list.remove('no gravity')
                     self.eq_button_list.remove(button)
-                if key[pygame.K_q] and local_over and 'no gravity' in eq_list:
+                if key[self.controls['bin_card']] and local_over and 'no gravity' in eq_list:
                     eq_list.remove('no gravity')
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
@@ -141,7 +143,7 @@ class eqManager:
                     self.no_harm_trigger = True
                     eq_list.remove('no harm')
                     self.eq_button_list.remove(button)
-                if key[pygame.K_q] and local_over and 'no harm' in eq_list:
+                if key[self.controls['bin_card']] and local_over and 'no harm' in eq_list:
                     eq_list.remove('no harm')
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
@@ -151,7 +153,7 @@ class eqManager:
                     self.shockwave_trigger = True
                     eq_list.remove('shockwave+')
                     self.eq_button_list.remove(button)
-                if key[pygame.K_q] and local_over and 'shockwave+' in eq_list:
+                if key[self.controls['bin_card']] and local_over and 'shockwave+' in eq_list:
                     eq_list.remove('shockwave+')
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True

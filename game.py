@@ -6,6 +6,7 @@ from particles import Particles
 from eq_management import eqManager
 from shockwave import Shockwave
 from image_loader import img_loader
+from font_manager import Text
 
 
 particle_num = 12
@@ -70,8 +71,21 @@ def intro_map(screen, int_map, map_img, map_btn):
     return int_map
 
 
+class LevelDisplay:
+    def __init__(self, level_count):
+        level_text = Text()
+        self.text = level_text.make_text([f"level {level_count}"])
+
+    def draw_level_number(self, screen, game_counter):
+        if game_counter < 0:
+            local_offset = game_counter * 20
+        else:
+            local_offset = 0
+        screen.blit(self.text, (swidth / 2 - self.text.get_width() / 2, 10 + local_offset))
+
+
 class Game:
-    def __init__(self, x, y, slow_computer, screen, world_data, bg_data):
+    def __init__(self, x, y, slow_computer, screen, world_data, bg_data, controls):
 
         # loading in images --------------------------------------------------------------------------------------------
         background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
@@ -80,8 +94,6 @@ class Game:
         home_button_img = img_loader('data/images/button_pause.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_press = img_loader('data/images/button_pause_press.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_down = img_loader('data/images/button_pause_down.PNG', tile_size * 0.75, tile_size * 0.75)
-
-        self.menu_button_bg = img_loader('data/images/pause_button_background.PNG', tile_size, tile_size)
 
         # buttons ------------------------------------------------------------------------------------------------------
         self.home_button = Button(swidth - tile_size + (tile_size - home_button_down.get_width()) / 2, 3,
@@ -101,6 +113,8 @@ class Game:
 
         # variables ----------------------------------------------------------------------------------------------------
         self.level_check = 1
+
+        self.controls = controls
 
         self.dead = False
 
@@ -146,11 +160,12 @@ class Game:
         self.shockwave_radius = 0
 
         # initiating classes -------------------------------------------------------------------------------------------
-        self.player = Player(x, y, screen)
+        self.player = Player(x, y, screen, self.controls)
         self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data)
         self.particles = Particles(particle_num, slow_computer)
-        self.eq_manager = eqManager(self.eq_power_list)
+        self.eq_manager = eqManager(self.eq_power_list, self.controls)
         self.shockwave = Shockwave(screen)
+        self.level_display = LevelDisplay(1)
 
         # nesting lists ------------------------------------------------------------------------------------------------
         self.tile_list, self.level_length = self.world.return_tile_list()
@@ -279,6 +294,7 @@ class Game:
             self.particles = Particles(particle_num, slow_computer)
             self.reinit_eq = True
             self.blit_card_instructions = False
+            self.level_display = LevelDisplay(level_count)
             if not self.restart_level:
                 self.level_check = level_count
                 self.backup_eq_power_list = self.eq_power_list
@@ -325,9 +341,9 @@ class Game:
 
         if self.restart_level:
             self.eq_power_list = []
-            self.eq_manager = eqManager(self.eq_power_list)
+            self.eq_manager = eqManager(self.eq_power_list, self.controls)
         if self.reinit_eq:
-            self.eq_manager = eqManager(self.eq_power_list)
+            self.eq_manager = eqManager(self.eq_power_list, self.controls)
             self.reinit_eq = False
 
         # updating and blitting the card bar ---------------------------------------------------------------------------
@@ -353,6 +369,9 @@ class Game:
         if menu and not self.menu_fadeout:
             self.menu_fadeout = True
             self.fadeout = True
+
+        # level count display ------------------------------------------------------------------------------------------
+        self.level_display.draw_level_number(screen, game_counter)
 
         # new level transition -----------------------------------------------------------------------------------------
         self.player.draw_transition(fps_adjust)
