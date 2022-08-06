@@ -10,6 +10,7 @@ from font_manager import Text
 from pause_screen import PauseScreen
 from world_selection import LevelSelection
 from game import level_dictionary, level_bg_dictionary
+from settings import SettingsMenu
 
 pygame.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
@@ -38,6 +39,7 @@ main_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
 menu_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
 pause_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
 level_selection_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
+settings_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
 
 pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
 
@@ -58,11 +60,12 @@ slow_computer = False
 run = True
 run_game = False
 run_menu = True
+run_settings = False
 play_press = False
 play = False
 run_level_selection = False
 level_selection = False
-draw_hitbox = False
+draw_hitbox = True
 last_mouse_pos = pygame.mouse.get_pos()
 mouse_still_count = 0
 play_music = False
@@ -136,11 +139,12 @@ str_level_count = file.read()
 # level_count = int(str_level_count)
 
 # initiating classes ---------------------------------------------------------------------------------------------------
-world = World(world_data, screen, slow_computer, start_x, start_y, bg_data)
+world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls)
 main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls)
 main_menu = mainMenu(screen)
 pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
+settings_menu = SettingsMenu(controls)
 
 paused_text = Text()
 
@@ -202,7 +206,8 @@ while run:
     if run_menu:
         run_game = False
         level_selection, slow_computer, resolution, res, button_sound_trigger1,\
-            button_sound_trigger3 = main_menu.menu(menu_screen, slow_computer, mouse_adjustment, events)
+            button_sound_trigger3, settings = main_menu.menu(menu_screen,
+                                                                     slow_computer, mouse_adjustment, events)
         if res:
             if resolution == "small":
                 wiwidth = 900
@@ -212,6 +217,7 @@ while run:
                 wiwidth = 1260
                 wiheight = 924
                 window = pygame.display.set_mode((wiwidth, wiheight), pygame.SCALED)
+
         if level_selection:
             game_counter = default_game_counter
             run_game = False
@@ -220,6 +226,13 @@ while run:
             level_count = first_level
             menu_y = 0
             game_y = swidth
+
+        if settings:
+            print('settings')
+            run_game = False
+            run_menu = False
+            run_settings = True
+            run_level_selection = False
 
     # running the game -------------------------------------------------------------------------------------------------
     if run_game:
@@ -290,7 +303,7 @@ while run:
             level_count = 1
             world_data = level_dictionary[f'level1_{world_count}']
             bg_data = level_bg_dictionary[f'level1_{world_count}_bg']
-            world = World(world_data, screen, slow_computer, start_x, start_y, bg_data)
+            world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls)
             run_level_selection = False
             menu_transition = True
             menu_transition_counter = 0
@@ -299,6 +312,17 @@ while run:
             run_menu = True
             run_game = False
             paused = False
+            run_level_selection = False
+
+    # settings ---------------------------------------------------------------------------------------------------------
+    if run_settings:
+        menu, controls = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events)
+
+        if menu:
+            run_menu = True
+            run_game = False
+            paused = False
+            run_settings = False
             run_level_selection = False
 
     if slow_computer:
@@ -412,6 +436,9 @@ while run:
 
     elif run_level_selection:
         main_screen.blit(level_selection_screen, (0, 0))
+
+    elif run_settings:
+        main_screen.blit(settings_screen, (0, 0))
 
     else:
         main_screen.blit(menu_screen, (0, 0))

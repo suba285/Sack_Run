@@ -39,12 +39,14 @@ def key_animation(img1, img2, counter, fps_adjust):
 
 
 class World:
-    def __init__(self, data, screen, slow_computer, start_x, start_y, bg_data):
+    def __init__(self, data, screen, slow_computer, start_x, start_y, bg_data, controls):
 
         if slow_computer:
             self.fps_adjust = 0.5
         else:
             self.fps_adjust = 1
+
+        self.controls = controls
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.tile_list = []
@@ -720,7 +722,7 @@ class World:
                 for tile2 in self.mushroom_pick_list:
                     if tile[0] != self.mushroom_dirt and health == 1:
                         output = self.mushroom_pick
-                if key[pygame.K_x] and tile[0] != self.mushroom_dirt and health == 1:
+                if key[self.controls['interact']] and tile[0] != self.mushroom_dirt and health == 1:
                     for i in range(8):
                         self.mush_particles.append([[tile[1][0] + tile_size/2,
                                                     tile[1][1] + tile_size/2],
@@ -817,12 +819,12 @@ class World:
                     output = self.chest_open
                 else:
                     output = tile[0]
-                if key[pygame.K_x] and tile[0] != self.chest2 and not tile[4] and\
+                if key[self.controls['interact']] and tile[0] != self.chest2 and not tile[4] and\
                         power_list and eq_len < max_card_num:
                     self.chest_press = True
                     tile[4] = True
                     play_lock_sound = True
-                if key[pygame.K_x] and eq_len >= max_card_num:
+                if key[self.controls['interact']] and eq_len >= max_card_num:
                     self.eq_full = True
                 if eq_len >= max_card_num and not tile[4]:
                     self.blit_eq_full = True

@@ -7,7 +7,7 @@ tile_size = 32
 
 
 class Shockwave:
-    def __init__(self, screen):
+    def __init__(self, screen, controls):
         self.radius = 0
         self.speed = 4
         self.x = 0
@@ -15,6 +15,8 @@ class Shockwave:
         self.surface = screen
         self.expand = False
         self.shock_num = 2
+
+        self.controls = controls
 
         self.blit_bar = True
 
@@ -42,7 +44,7 @@ class Shockwave:
         self.attention_counter -= 1*fps_adjust
         self.flash_counter += 1*fps_adjust
         self.info = False
-        if key[pygame.K_z] and not self.expand and self.shock_num > 0 and health > 0:
+        if key[self.controls['shockwave']] and not self.expand and self.shock_num > 0 and health > 0:
             self.expand = True
             self.blit_shock = False
             self.x = sack_rect.x + 10

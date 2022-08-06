@@ -100,51 +100,11 @@ class mainMenu:
 
         # settings button
         settings, over2 = self.s_button.draw_button(menu_screen, False, mouse_adjustement, events)
-        if settings:
-            if self.settings:
-                self.settings = False
-                self.s_button = Button(self.settings_x, self.settings_y, self.settings_button,
-                                       self.settings_button_press, self.settings_button_down)
-            elif not self.settings:
-                self.settings = True
-                self.s_button = Button(self.fps_x, 194, self.up_button, self.up_button_press,
-                                       self.up_button)
-
-        if self.settings:
-            # fps button
-            fps, end_over2 = self.f60_button.draw_button(menu_screen, False, mouse_adjustement, events)
-
-            if fps:
-                if self.fps_button:
-                    self.fps_button = False
-                    slow_computer = True
-                    self.f60_button = Button(self.fps_x, self.fps_y, self.fps30_button, self.fps30_button_press,
-                                             self.fps30_button)
-                elif not self.fps_button:
-                    self.fps_button = True
-                    slow_computer = False
-                    self.f60_button = Button(self.fps_x, self.fps_y, self.fps60_button, self.fps60_button_press,
-                                             self.fps60_button)
-
-            # resolution button
-            res, over4 = self.res_btn.draw_button(menu_screen, False, mouse_adjustement, events)
-
-            if res:
-                if self.res_button:
-                    self.res_button = False
-                    self.resolution = "big"
-                    self.res_btn = Button(self.resolution_x, self.resolution_y, self.resolution_big_button,
-                                          self.resolution_big_button_press, self.resolution_big_button)
-                elif not self.res_button:
-                    self.res_button = True
-                    self.resolution = "small"
-                    self.res_btn = Button(self.resolution_x, self.resolution_y, self.resolution_button,
-                                          self.resolution_button_press, self.resolution_button)
 
         if over1 or over2 or over4:
             end_over1 = True
 
-        return play, slow_computer, self.resolution, res, end_over1, end_over2
+        return play, slow_computer, self.resolution, res, end_over1, end_over2, settings
 
 
 

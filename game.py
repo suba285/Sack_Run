@@ -161,10 +161,10 @@ class Game:
 
         # initiating classes -------------------------------------------------------------------------------------------
         self.player = Player(x, y, screen, self.controls)
-        self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data)
+        self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data, controls)
         self.particles = Particles(particle_num, slow_computer)
         self.eq_manager = eqManager(self.eq_power_list, self.controls)
-        self.shockwave = Shockwave(screen)
+        self.shockwave = Shockwave(screen, controls)
         self.level_display = LevelDisplay(1)
 
         # nesting lists ------------------------------------------------------------------------------------------------
@@ -288,7 +288,7 @@ class Game:
         # updating the world data if new level -------------------------------------------------------------------------
         if self.level_check < level_count or self.restart_level:
             world_data, bg_data = Game.level_checker(self, level_count, world_count)
-            self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data)
+            self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data, self.controls)
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
             self.particles = Particles(particle_num, slow_computer)
@@ -362,7 +362,7 @@ class Game:
 
         # resetting shockwave ------------------------------------------------------------------------------------------
         if self.shockwave_trigger:
-            self.shockwave = Shockwave(screen)
+            self.shockwave = Shockwave(screen, self.controls)
 
         # menu button --------------------------------------------------------------------------------------------------
         menu, home_button_over = self.home_button.draw_button(screen, False, mouse_adjustment, events)

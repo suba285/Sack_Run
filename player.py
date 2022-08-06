@@ -351,7 +351,7 @@ class Player:
         # class initiations --------------------------------------------------------------------------------------------
         self.hey_particle1 = HeyParticle(self.hey_part1, self.hey_part2, self.hey_part3, self.sack_rect)
         self.circle_transition = CircleTransition(screen)
-        self.shockwave = Shockwave(screen)
+        self.shockwave = Shockwave(screen, controls)
 
     def update_pos_animation(self, screen, tile_list, world, level_count, trap_harm, bee_harm,
                              spit_harm_left, spit_harm_right, spit_harm_up, health, fps_adjust,
