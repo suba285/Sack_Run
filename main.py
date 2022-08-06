@@ -316,7 +316,7 @@ while run:
 
     # settings ---------------------------------------------------------------------------------------------------------
     if run_settings:
-        menu, controls = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events)
+        menu, controls, button_sound_trigger1, button_sound_trigger2 = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events)
 
         if menu:
             run_menu = True

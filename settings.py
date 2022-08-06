@@ -129,6 +129,15 @@ class SettingsMenu:
         interactions_left_press = False
         interactions_right_press = False
 
+        final_over1 = False
+        final_over2 = False
+
+        over = False
+        over1 = False
+        over2 = False
+        over3 = False
+        over4 = False
+
         # updating the text showing the player's current controls ------------------------------------------------------
         if self.walk_counter == 1:
             walk_text = self.move_conf1
@@ -201,13 +210,13 @@ class SettingsMenu:
             settings_screen.blit(self.right_button_grey, (self.right_btn_x, self.shockwave_y))
 
         if self.interaction_counter > 1:
-            interactions_left_press, over3 = self.interaction_btn_left.draw_button(settings_screen, False,
+            interactions_left_press, over4 = self.interaction_btn_left.draw_button(settings_screen, False,
                                                                                    mouse_adjustment, events)
         else:
             settings_screen.blit(self.left_button_grey, (self.left_btn_x, self.interactions_y))
 
         if self.interaction_counter < 2:
-            interactions_right_press, over3 = self.interaction_btn_right.draw_button(settings_screen,
+            interactions_right_press, over4 = self.interaction_btn_right.draw_button(settings_screen,
                                                                                      False, mouse_adjustment, events)
         else:
             settings_screen.blit(self.right_button_grey, (self.right_btn_x, self.interactions_y))
@@ -244,5 +253,10 @@ class SettingsMenu:
             self.controls['interact'] = self.nums_to_btns[f'interact{self.interaction_counter}']
             self.controls['shockwave'] = self.nums_to_btns[f'shockwave{self.shockwave_counter}']
 
-        return menu_press, self.controls
+        if over or over1 or over3:
+            final_over1 = True
+        if over2 or over4:
+            final_over2 = True
+
+        return menu_press, self.controls, final_over1, final_over2
 

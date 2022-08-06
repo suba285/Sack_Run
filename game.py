@@ -74,7 +74,7 @@ def intro_map(screen, int_map, map_img, map_btn):
 class LevelDisplay:
     def __init__(self, level_count):
         level_text = Text()
-        self.text = level_text.make_text([f"level {level_count}"])
+        self.text = level_text.make_text([f"Level {level_count}"])
 
     def draw_level_number(self, screen, game_counter):
         if game_counter < 0:
