@@ -230,6 +230,14 @@ class Player:
         self.no_gravity_indicator = img_loader('data/images/icon_no_gravity.PNG', tile_size, tile_size)
         self.no_harm_indicator = img_loader('data/images/icon_no_harm.PNG', tile_size, tile_size)
 
+        self.jump_boost_surf = pygame.Surface((tile_size, tile_size))
+        self.no_harm_surf = pygame.Surface((tile_size, tile_size))
+        self.no_gravity_surf = pygame.Surface((tile_size, tile_size))
+
+        self.progress_bar = pygame.Surface((tile_size, 18))
+        self.progress_bar.set_alpha(128)
+        self.progress_bar.fill((0, 0, 0))
+
         # respawn instruction images -----------------------------------------------------------------------------------
         self.respawn_instr1 = img_loader('data/images/respawn_instructions1.PNG', tile_size * 2, tile_size)
         self.respawn_instr2 = img_loader('data/images/respawn_instructions2.PNG', tile_size * 2, tile_size)
@@ -793,11 +801,26 @@ class Player:
         spacer = 0
         for icon in self.power_indicator_list:
             if icon == 'jump_boost':
-                screen.blit(self.jump_boost_indicator, (2*tile_size + spacer, 0))
+                percentage = self.jump_boost_duration / self.jump_boost_counter
+                bar_y = int(18 / percentage)
+                self.jump_boost_surf.blit(self.jump_boost_indicator, (0, 0))
+                self.jump_boost_surf.blit(self.progress_bar, (0, bar_y + 8))
+                self.jump_boost_surf.set_colorkey((0, 0, 0))
+                screen.blit(self.jump_boost_surf, (2*tile_size + spacer, 0))
             elif icon == 'no_gravity':
-                screen.blit(self.no_gravity_indicator, (2*tile_size + spacer, 0))
+                percentage = self.no_gravity_duration / self.no_gravity_counter
+                bar_y = int(18 / percentage)
+                self.no_gravity_surf.blit(self.no_gravity_indicator, (0, 0))
+                self.no_gravity_surf.blit(self.progress_bar, (0, bar_y + 8))
+                self.no_gravity_surf.set_colorkey((0, 0, 0))
+                screen.blit(self.no_gravity_surf, (2*tile_size + spacer, 0))
             elif icon == 'no_harm':
-                screen.blit(self.no_harm_indicator, (2*tile_size + spacer, 0))
+                percentage = self.no_harm_duration / self.no_harm_counter
+                bar_y = int(18 / percentage)
+                self.no_harm_surf.blit(self.no_harm_indicator, (0, 0))
+                self.no_harm_surf.blit(self.progress_bar, (0, bar_y + 8))
+                self.no_harm_surf.set_colorkey((0, 0, 0))
+                screen.blit(self.no_harm_surf, (2*tile_size + spacer, 0))
             spacer += 32
 
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================

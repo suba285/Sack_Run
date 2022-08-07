@@ -44,13 +44,14 @@ class SettingsMenu:
             'jump3': pygame.K_UP,
             'shockwave1': pygame.K_z,
             'shockwave2': pygame.K_r,
+            'shockwave3': pygame.K_f,
             'interact1': pygame.K_x,
             'interact2': pygame.K_e
         }
 
         # text generation ----------------------------------------------------------------------------------------------
         self.controls_txt = Text().make_text(['CONTROLS'])
-        self.other_txt = Text().make_text(['OTHER SETTINGS'])
+        self.visual_txt = Text().make_text(['VISUAL'])
         self.walking_txt = Text().make_text(['walking:'])
         self.jumping_txt = Text().make_text(['jumping:'])
         self.shockwave_txt = Text().make_text(['shockwave:'])
@@ -64,6 +65,7 @@ class SettingsMenu:
         self.interact_conf2 = Text().make_text(['E key'])
         self.shockwave_conf1 = Text().make_text(['Z key'])
         self.shockwave_conf2 = Text().make_text(['R key'])
+        self.shockwave_conf3 = Text().make_text(['F key'])
 
         # counters -----------------------------------------------------------------------------------------------------
         self.walk_counter = 1
@@ -74,7 +76,7 @@ class SettingsMenu:
         # button positional variables ----------------------------------------------------------------------------------
         gap = 30
         self.gap = 30
-        button_start_y = 13
+        button_start_y = 33
         interbutton_space = 120
 
         self.center = 150
@@ -110,15 +112,15 @@ class SettingsMenu:
 
         # --------------------------------------------------------------------------------------------------------------
     def draw_settings_menu(self, settings_screen, mouse_adjustment, events):
-        settings_screen.blit(self.menu_background, (0, 0))
+        settings_screen.blit(self.menu_background, (0, 20))
 
-        settings_screen.blit(self.controls_txt, (swidth / 2 - self.controls_txt.get_width() / 2, 20))
+        settings_screen.blit(self.controls_txt, (swidth / 2 - self.controls_txt.get_width() / 2, 40))
 
-        settings_screen.blit(self.walking_txt, (self.center - 10 - self.walking_txt.get_width(), 20 + self.gap))
-        settings_screen.blit(self.jumping_txt, (self.center - 10 - self.jumping_txt.get_width(), 20 + self.gap * 2))
-        settings_screen.blit(self.shockwave_txt, (self.center - 10 - self.shockwave_txt.get_width(), 20 + self.gap * 3))
+        settings_screen.blit(self.walking_txt, (self.center - 10 - self.walking_txt.get_width(), 40 + self.gap))
+        settings_screen.blit(self.jumping_txt, (self.center - 10 - self.jumping_txt.get_width(), 40 + self.gap * 2))
+        settings_screen.blit(self.shockwave_txt, (self.center - 10 - self.shockwave_txt.get_width(), 40 + self.gap * 3))
         settings_screen.blit(self.interactions_txt,
-                             (self.center - 10 - self.interactions_txt.get_width(), 20 + self.gap * 4))
+                             (self.center - 10 - self.interactions_txt.get_width(), 40 + self.gap * 4))
 
         walking_left_press = False
         walking_right_press = False
@@ -153,8 +155,10 @@ class SettingsMenu:
 
         if self.shockwave_counter == 1:
             shockwave_text = self.shockwave_conf1
-        else:
+        elif self.shockwave_counter == 2:
             shockwave_text = self.shockwave_conf2
+        else:
+            shockwave_text = self.shockwave_conf3
 
         if self.interaction_counter == 1:
             interaction_text = self.interact_conf1
@@ -203,7 +207,7 @@ class SettingsMenu:
         else:
             settings_screen.blit(self.left_button_grey, (self.left_btn_x, self.shockwave_y))
 
-        if self.shockwave_counter < 2:
+        if self.shockwave_counter < 3:
             shockwave_right_press, over3 = self.shockwave_btn_right.draw_button(settings_screen,
                                                                                 False, mouse_adjustment, events)
         else:
@@ -234,7 +238,7 @@ class SettingsMenu:
 
         if shockwave_left_press and self.shockwave_counter > 1:
             self.shockwave_counter -= 1
-        if shockwave_right_press and self.shockwave_counter < 2:
+        if shockwave_right_press and self.shockwave_counter < 3:
             self.shockwave_counter += 1
 
         if interactions_left_press and self.interaction_counter > 1:

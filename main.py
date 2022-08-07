@@ -65,7 +65,12 @@ play_press = False
 play = False
 run_level_selection = False
 level_selection = False
-draw_hitbox = True
+
+draw_hitbox = False
+draw_fps_counter = True
+play_background_music = False
+play_sounds = False
+
 last_mouse_pos = pygame.mouse.get_pos()
 mouse_still_count = 0
 play_music = False
@@ -331,61 +336,62 @@ while run:
         fps = 60
 
     # playing sounds ---------------------------------------------------------------------------------------------------
-    if play_card_pull_sound and one_time_play_card_pull:
-        sounds['card_pull'].play()
-        one_time_play_card_pull = False
-    if not play_card_pull_sound:
-        one_time_play_card_pull = True
-
-    if button_sound_trigger1 or button_sound_trigger2:
-        play_button_sound = True
-
-    if play_button_sound and one_time_play_button1:
-        sounds['button_click'].play()
-        one_time_play_button1 = False
-    if not play_button_sound:
-        one_time_play_button1 = True
-
-    if button_sound_trigger3 and one_time_play_button2:
-        sounds['button_click'].play()
-        one_time_play_button2 = False
-    if not button_sound_trigger3:
-        one_time_play_button2 = True
-
-    if play_lock_sound and one_time_play_lock:
-        sounds['lock_click'].play()
-        one_time_play_lock = False
-        card_swoosh_chest = True
-    if not play_lock_sound:
-        one_time_play_lock = True
-    if card_swoosh_chest:
-        card_swoosh_counter += 1 * fps_adjust
-        if card_swoosh_counter >= 20:
+    if play_sounds:
+        if play_card_pull_sound and one_time_play_card_pull:
             sounds['card_pull'].play()
-            card_swoosh_chest = False
-            card_swoosh_counter = 0
+            one_time_play_card_pull = False
+        if not play_card_pull_sound:
+            one_time_play_card_pull = True
 
-    if play_bear_trap_cling_sound:
-        sounds['bear_trap_cling'].play()
+        if button_sound_trigger1 or button_sound_trigger2:
+            play_button_sound = True
 
-    if play_healing_sound:
-        sounds['healing_sound'].play()
+        if play_button_sound and one_time_play_button1:
+            sounds['button_click'].play()
+            one_time_play_button1 = False
+        if not play_button_sound:
+            one_time_play_button1 = True
 
-    if play_paper_sound:
-        sounds['paper_crumbling'].play()
+        if button_sound_trigger3 and one_time_play_button2:
+            sounds['button_click'].play()
+            one_time_play_button2 = False
+        if not button_sound_trigger3:
+            one_time_play_button2 = True
 
-    play_music = False
+        if play_lock_sound and one_time_play_lock:
+            sounds['lock_click'].play()
+            one_time_play_lock = False
+            card_swoosh_chest = True
+        if not play_lock_sound:
+            one_time_play_lock = True
+        if card_swoosh_chest:
+            card_swoosh_counter += 1 * fps_adjust
+            if card_swoosh_counter >= 20:
+                sounds['card_pull'].play()
+                card_swoosh_chest = False
+                card_swoosh_counter = 0
 
-    if play_music:
-        pygame.mixer.music.play(-1, 0.0, 300)
-        play_music = False
+        if play_bear_trap_cling_sound:
+            sounds['bear_trap_cling'].play()
+
+        if play_healing_sound:
+            sounds['healing_sound'].play()
+
+        if play_paper_sound:
+            sounds['paper_crumbling'].play()
+
+    if play_background_music:
+        if play_music:
+            pygame.mixer.music.play(-1, 0.0, 300)
+            play_music = False
 
     if fadeout_music:
         pygame.mixer.music.fadeout(300)
         fadeout_music = False
 
     # displaying fps ---------------------------------------------------------------------------------------------------
-    display_frames_per_second(screen, display_fps, display_numbers)
+    if draw_fps_counter:
+        display_frames_per_second(screen, display_fps, display_numbers)
 
     # game quit handling and respawn -----------------------------------------------------------------------------------
     for event in events:
