@@ -4,8 +4,8 @@ tile_size = local_tile_size
 from image_loader import img_loader
 
 
-swidth = 360
 sheight = 264
+swidth = 352
 
 
 class mainMenu:
@@ -83,7 +83,6 @@ class mainMenu:
 
         play = False
         fps = False
-        res = False
         end_over1 = False
         end_over2 = False
         over1 = False
@@ -104,7 +103,7 @@ class mainMenu:
         if over1 or over2 or over4:
             end_over1 = True
 
-        return play, slow_computer, self.resolution, res, end_over1, end_over2, settings
+        return play, slow_computer, end_over1, end_over2, settings
 
 
 

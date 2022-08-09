@@ -5,8 +5,8 @@ from font_manager import Text
 
 tile_size = 32
 
-swidth = 360
 sheight = 264
+swidth = 352
 
 card_tile_size = 2 * tile_size
 

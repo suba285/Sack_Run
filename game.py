@@ -11,8 +11,8 @@ from font_manager import Text
 
 particle_num = 12
 
-swidth = 360
 sheight = 264
+swidth = 352
 
 level_dictionary = {
     "level1_1": level1_1,

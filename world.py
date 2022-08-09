@@ -12,8 +12,8 @@ pygame.mixer.init()
 pygame.init()
 
 tile_size = 32
-swidth = 360
 sheight = 264
+swidth = 352
 
 # this class is responsible for assigning tile images to their places on the screen
 # it's functions draw the tiles and manage the interactive tiles of the game

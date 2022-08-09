@@ -3,8 +3,8 @@ from image_loader import img_loader
 from font_manager import Text
 from button import Button
 
-swidth = 360
 sheight = 264
+swidth = 352
 tile_size = 32
 
 

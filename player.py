@@ -4,8 +4,8 @@ from shockwave import Shockwave
 from image_loader import img_loader
 import random
 
-swidth = 360
 sheight = 264
+swidth = 352
 
 pygame.init()
 tile_size = 32

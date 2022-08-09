@@ -5,8 +5,8 @@ from button import Button
 
 tile_size = 32
 
-swidth = 360
 sheight = 264
+swidth = 352
 
 
 class LevelSelection:

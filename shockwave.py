@@ -2,6 +2,8 @@ import pygame
 from image_loader import img_loader
 
 tile_size = 32
+sheight = 264
+swidth = 352
 
 # handles the shockwave expansion across the screen, creates the shockwave
 

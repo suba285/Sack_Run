@@ -16,12 +16,19 @@ pygame.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
 
 # basic game variables -------------------------------------------------------------------------------------------------
-swidth = 360
+screen_dimentions = pygame.display.Info()
+monitor_height = screen_dimentions.current_h
+monitor_width = screen_dimentions.current_w
+screen_width = monitor_height * (360 / 264)
+
+ratio = 4 / 3
+
 sheight = 264
-wiwidth = 900
-wiheight = 660
-wiwidth_big = 1260
-wiheight_big = 924
+swidth = 352
+wiheight = sheight * 2
+wiwidth = swidth * 2
+wiheight_big = sheight * 3
+wiwidth_big = swidth * 3
 tile_size = 32
 
 x = 180
@@ -210,18 +217,9 @@ while run:
     # running the menu -------------------------------------------------------------------------------------------------
     if run_menu:
         run_game = False
-        level_selection, slow_computer, resolution, res, button_sound_trigger1,\
+        level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
                                                                      slow_computer, mouse_adjustment, events)
-        if res:
-            if resolution == "small":
-                wiwidth = 900
-                wiheight = 660
-                window = pygame.display.set_mode((wiwidth, wiheight), pygame.SCALED)
-            if resolution == "big":
-                wiwidth = 1260
-                wiheight = 924
-                window = pygame.display.set_mode((wiwidth, wiheight), pygame.SCALED)
 
         if level_selection:
             game_counter = default_game_counter
