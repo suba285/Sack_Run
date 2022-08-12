@@ -364,7 +364,8 @@ class Player:
     def update_pos_animation(self, screen, tile_list, world, level_count, trap_harm, bee_harm,
                              spit_harm_left, spit_harm_right, spit_harm_up, health, fps_adjust,
                              jump_boost_trigger, regeneration_trigger, mush_regeneration_trigger, no_gravity_trigger,
-                             no_harm_trigger, shockwave_trigger, left_border, right_border, slow_computer, game_counter):
+                             no_harm_trigger, shockwave_trigger, left_border, right_border, slow_computer, game_counter,
+                             move):
 
         dx = 0
         dy = 0
@@ -379,7 +380,7 @@ class Player:
         if level_count == 8:
             top_border = 80
         else:
-            top_border = 40
+            top_border = 50
 
         harm = False
 
@@ -491,12 +492,13 @@ class Player:
                     self.new_level = True
                     self.new_level_cooldown = 0
                     self.teleport_count = 0
+                    self.player_moved = False
                     # player direction
                     self.direction = 1
 
         # movement and animation ---------------------------------------------------------------------------------------
         if self.new_level_cooldown >= 30 and not self.dead and self.teleport_count < 100\
-                and not (self.col_types['right'] or self.col_types['left']) and game_counter >= 0:
+                and not (self.col_types['right'] or self.col_types['left']) and game_counter >= 0 and move:
             # player control
             self.transition = False
             if key[self.controls['jump']]:
@@ -742,7 +744,7 @@ class Player:
         # updating player coordinates ----------------------------------------------------------------------------------
         self.camera_movement_x = round(-dx)
         dx = 0
-        if self.sack_rect.y > 180 and dy > 0:
+        if self.sack_rect.y > 190 and dy > 0:
             self.camera_movement_y = round(-dy)
         elif self.sack_rect.y < top_border and dy < 0:
             self.camera_movement_y = round(-dy)
@@ -762,7 +764,7 @@ class Player:
         # returns ------------------------------------------------------------------------------------------------------
         return level_count, self.sack_rect, self.direction, self.health,\
                self.camera_movement_x, self.camera_movement_y, self.play_music,\
-               self.fadeout, self.restart_level, self.player_moved
+               self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown
 
 # UPDATING PLAYER SPRITE HEALTH ========================================================================================
     def update_health(self, screen, fps_adjust, mouse_adjustment):
@@ -884,7 +886,7 @@ class Player:
             else:
                 img = self.respawn_instr1
 
-            screen.blit(img, (swidth / 2 - tile_size, sheight / 2 - (tile_size / 2)))
+            screen.blit(img, (swidth / 2 - tile_size, sheight / 3 - (tile_size / 2)))
 
 # draws control instruction buttons ------------------------------------------------------------------------------------
     def draw_inst_buttons(self, screen, fps_adjust, level_count):

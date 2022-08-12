@@ -214,8 +214,5 @@ class eqManager:
 
                 screen.blit(img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
 
-        if tutorial and level_count == 3:
-            screen.blit(self.completed_txt, (swidth / 2 - self.completed_txt.get_width() / 2, sheight / 3))
-
         return eq_list, self.jump_boost_trigger, self.regeneration_trigger, self.no_gravity_trigger,\
                self.no_harm_trigger, self.shockwave_trigger, over, power_list, paper_sound_trigger

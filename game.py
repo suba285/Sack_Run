@@ -7,6 +7,7 @@ from eq_management import eqManager
 from shockwave import Shockwave
 from image_loader import img_loader
 from font_manager import Text
+from popup_bg_generator import popup_bg_generator
 
 
 particle_num = 12
@@ -52,7 +53,7 @@ level_pos_dictionary = {
     "level2_2": (4, -5),
     "level3_2": (0, -4),
     "level4_2": (1, 1),
-    "level5_2": (4, -6),
+    "level5_2": (4, -7),
     "level6_2": (4, -5),
     "level7_2": (4, -5),
     "level8_2": (2, -19),
@@ -85,7 +86,7 @@ class LevelDisplay:
 
 
 class Game:
-    def __init__(self, x, y, slow_computer, screen, world_data, bg_data, controls):
+    def __init__(self, x, y, slow_computer, screen, world_data, bg_data, controls, world_count, control_counters):
 
         # loading in images --------------------------------------------------------------------------------------------
         background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
@@ -95,9 +96,80 @@ class Game:
         home_button_press = img_loader('data/images/button_pause_press.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_down = img_loader('data/images/button_pause_down.PNG', tile_size * 0.75, tile_size * 0.75)
 
+        ok_button_img = img_loader('data/images/button_ok.PNG', tile_size, tile_size * 0.75)
+        ok_button_press = img_loader('data/images/button_ok_press.PNG', tile_size, tile_size * 0.75)
+        ok_button_down = img_loader('data/images/button_ok_down.PNG', tile_size, tile_size * 0.75)
+
         # buttons ------------------------------------------------------------------------------------------------------
         self.home_button = Button(swidth - tile_size + (tile_size - home_button_down.get_width()) / 2, 3,
                                   home_button_img, home_button_press, home_button_down)
+
+        # popup windows ------------------------------------------------------------------------------------------------
+        if world_count == 1:
+            self.popup_window_controls = True
+        else:
+            self.popup_window_controls = False
+
+        self.nums_to_text = {
+            'walk1': 'A and D',
+            'walk2': 'arrow keys',
+            'jump1': 'space',
+            'jump2': 'W',
+            'jump3': 'up key',
+            'interact1': 'X',
+            'interact2': 'E',
+            'shockwave1': 'Z',
+            'shockwave2': 'R',
+            'shockwave3': 'F'
+        }
+
+        # controls popup window
+        controls_txt = Text().make_text(['CONTROLS'])
+        walking_controls_txt = Text().make_text([f"walking: {self.nums_to_text[f'walk{control_counters[0]}']}"])
+        jumping_controls_txt = Text().make_text([f"jumping: {self.nums_to_text[f'jump{control_counters[1]}']}"])
+        interaction_controls_txt = Text().make_text([f"interaction: {self.nums_to_text[f'interact{control_counters[2]}']}"])
+        shockwave_controls_txt = Text().make_text([f"shockwave: {self.nums_to_text[f'shockwave{control_counters[3]}']}"])
+        tip1_txt = Text().make_text(['follow the compass in the top-left corner'])
+
+        tip2_txt = Text().make_text(['use shockwaves against bees'])
+        tip3_txt = Text().make_text(['regain health by eating red mushrooms'])
+
+        self.controls_popup = popup_bg_generator((tip1_txt.get_width() + 6, 130))
+        cont_bg_center = self.controls_popup.get_width() / 2
+
+        self.ok_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
+                             sheight / 2 + self.controls_popup.get_height() / 2 - tile_size * 0.75 - 3,
+                             ok_button_img, ok_button_press, ok_button_down)
+
+        self.controls_popup.blit(controls_txt, (cont_bg_center - controls_txt.get_width() / 2, 6))
+        self.controls_popup.blit(walking_controls_txt,
+                                 (cont_bg_center - walking_controls_txt.get_width() / 2, 25))
+        self.controls_popup.blit(jumping_controls_txt,
+                                 (cont_bg_center - jumping_controls_txt.get_width() / 2, 40))
+        self.controls_popup.blit(interaction_controls_txt,
+                                 (cont_bg_center - interaction_controls_txt.get_width() / 2, 55))
+        self.controls_popup.blit(shockwave_controls_txt,
+                                 (cont_bg_center - shockwave_controls_txt.get_width() / 2, 70))
+        self.controls_popup.blit(tip1_txt, (cont_bg_center - tip1_txt.get_width() / 2, 90))
+        self.controls_popup.blit(ok_button_down, (cont_bg_center - ok_button_img.get_width() / 2,
+                                                  self.controls_popup.get_height() - tile_size * 0.75 - 3))
+
+        # tutorial completed popup window
+        congrats_txt = Text().make_text(['CONGRATS!'])
+        tut_completed_txt = Text().make_text(["You've completed the tutorial."])
+
+        self.tut_completed_popup = popup_bg_generator((tut_completed_txt.get_width() + 8, 80))
+        tut_comp_center = self.tut_completed_popup.get_width() / 2
+
+        self.lvl_selection_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
+                                        sheight / 2 + self.tut_completed_popup.get_height() / 2 - tile_size * 0.75 - 3,
+                                        ok_button_img, ok_button_press, ok_button_down)
+
+        self.tut_completed_popup.blit(congrats_txt, (tut_comp_center - congrats_txt.get_width() / 2, 6))
+        self.tut_completed_popup.blit(tut_completed_txt, (tut_comp_center - tut_completed_txt.get_width() / 2, 26))
+        self.tut_completed_popup.blit(ok_button_down,
+                                      (self.tut_completed_popup.get_width() / 2 - ok_button_img.get_width() / 2 + 1,
+                                       self.tut_completed_popup.get_height() - tile_size * 0.75 - 3))
 
         # lists --------------------------------------------------------------------------------------------------------
         self.default_power_list = ['regeneration', 'regeneration', 'regeneration', 'no harm', 'no harm', 'jump boost',
@@ -134,8 +206,6 @@ class Game:
         self.no_harm_trigger = False
         self.shockwave_trigger = False
 
-        self.int_map = False
-
         self.play_music = False
         self.fadeout = False
         self.menu_fadeout = False
@@ -146,6 +216,8 @@ class Game:
         self.x = x
         self.y = y
 
+        self.move = False
+
         self.player_moved = False
 
         self.start_x = 2
@@ -153,11 +225,15 @@ class Game:
 
         self.restart_level = False
 
+        self.tutorial_completed_popup = False
+
         self.blit_card_instructions = False
 
         self.level_length = 0
 
         self.shockwave_radius = 0
+
+        self.level_duration_counter = 0
 
         # initiating classes -------------------------------------------------------------------------------------------
         self.player = Player(x, y, screen, self.controls)
@@ -187,6 +263,9 @@ class Game:
         if world_count >= max_world:
             world_count = max_world
 
+        if world_count == 1 and level_count == 3:
+            self.tutorial_completed_popup = True
+
         world_data_level_checker = level_dictionary[f'level{level_count}_{world_count}']
         bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
         pos = level_pos_dictionary[f'level{level_count}_{world_count}']
@@ -205,6 +284,8 @@ class Game:
         play_card_pull_sound = False
         play_healing_sound = False
         play_paper_sound = False
+
+        self.level_duration_counter += 0.04 * fps_adjust
 
         chest_opened = False
 
@@ -225,7 +306,8 @@ class Game:
             self.play_music,\
             self.fadeout,\
             self.restart_level,\
-            self.player_moved = self.player.update_pos_animation(screen,
+            self.player_moved,\
+            new_level_cooldown = self.player.update_pos_animation(screen,
                                                                  self.tile_list,
                                                                  self.world,
                                                                  level_count,
@@ -245,7 +327,8 @@ class Game:
                                                                  self.left_border,
                                                                  self.right_border,
                                                                  slow_computer,
-                                                                 game_counter
+                                                                 game_counter,
+                                                                 self.move
                                                                  )
 
         # updating solid tile positions --------------------------------------------------------------------------------
@@ -297,6 +380,8 @@ class Game:
             self.level_display = LevelDisplay(level_count)
             if not self.restart_level:
                 self.level_check = level_count
+                self.player_moved = False
+                self.level_duration_counter = 0
                 self.backup_eq_power_list = self.eq_power_list
 
         # --------------------------------------------------------------------------------------------------------------
@@ -371,7 +456,58 @@ class Game:
             self.fadeout = True
 
         # level count display ------------------------------------------------------------------------------------------
-        self.level_display.draw_level_number(screen, game_counter)
+        if not (tutorial and level_count == 3):
+            self.level_display.draw_level_number(screen, game_counter)
+
+        # popup window -------------------------------------------------------------------------------------------------
+        if self.popup_window_controls:
+            self.move = False
+            if 0.25 > game_counter > 0:
+                scaling = game_counter
+                popup = pygame.transform.scale(self.controls_popup, (self.controls_popup.get_width() * scaling * 4,
+                                                                     self.controls_popup.get_height() * scaling * 4))
+            else:
+                popup = self.controls_popup
+            if game_counter > 0:
+                screen.blit(popup,
+                            (swidth / 2 - popup.get_width() / 2,
+                             sheight / 2 - popup.get_height() / 2))
+
+            if game_counter >= 0.25:
+                popup_controls_press, ok_over = self.ok_btn.draw_button(screen,
+                                                                        False, mouse_adjustment, events)
+            else:
+                popup_controls_press = False
+
+            if popup_controls_press:
+                self.popup_window_controls = False
+        else:
+            self.move = True
+
+        if self.tutorial_completed_popup:
+            self.move = False
+            if 1.7 > self.level_duration_counter > 1.45:
+                scaling = self.level_duration_counter - 1.45
+                popup = pygame.transform.scale(self.tut_completed_popup,
+                                               (self.tut_completed_popup.get_width() * scaling * 4,
+                                                self.tut_completed_popup.get_height() * scaling * 4))
+            else:
+                popup = self.tut_completed_popup
+
+            if self.level_duration_counter > 1.45:
+                screen.blit(popup,
+                            (swidth / 2 - popup.get_width() / 2,
+                             sheight / 2 - popup.get_height() / 2))
+
+            if self.level_duration_counter > 1.7:
+                popup_tut_completed_press, lvl_select_over = self.lvl_selection_btn.draw_button(screen,
+                                                                                                False,
+                                                                                                mouse_adjustment,
+                                                                                                events)
+            else:
+                popup_tut_completed_press = False
+        else:
+            popup_tut_completed_press = False
 
         # new level transition -----------------------------------------------------------------------------------------
         self.player.draw_transition(fps_adjust)
@@ -387,4 +523,4 @@ class Game:
 
         return level_count, menu, play_card_pull_sound, play_lock_sound, play_bear_trap_cling_sound,\
             play_healing_sound, world_data, self.dead, bg_data, home_button_over, play_paper_sound, self.play_music,\
-            self.fadeout
+            self.fadeout, popup_tut_completed_press

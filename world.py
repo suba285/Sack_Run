@@ -784,7 +784,7 @@ class World:
         self.bee_harm = False
         if player_moved:
             self.bee_release_counter += 1*fps_adjust
-        if self.bee_release_counter >= 180 and health > 0:
+        if self.bee_release_counter >= 180 and health > 0 and player_moved:
             self.bee_counter += 1
             if self.bee_counter >= 4:
                 self.bee_counter = 4

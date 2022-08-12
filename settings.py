@@ -11,7 +11,7 @@ swidth = 352
 
 
 class SettingsMenu:
-    def __init__(self, controls):
+    def __init__(self, controls, resolution_counter):
         # image loading ------------------------------------------------------------------------------------------------
         self.menu_background = img_loader('data/images/menu_background.PNG', swidth, sheight)
 
@@ -55,14 +55,18 @@ class SettingsMenu:
         }
 
         self.resolutions = {
-            '1': (900, 660),
-            '2': (1260, 924)
+            '1': (swidth * 2, sheight * 2),
+            '2': (swidth * 3, sheight * 3),
+            '3': (swidth * 4, sheight * 4)
         }
 
         # text generation ----------------------------------------------------------------------------------------------
+
         self.controls_txt = Text().make_text(['CONTROL'])
         self.visual_txt = Text().make_text(['VISUAL'])
         self.sound_txt = Text().make_text(['SOUND'])
+
+        # control settings
         self.walking_txt = Text().make_text(['walking:'])
         self.jumping_txt = Text().make_text(['jumping:'])
         self.shockwave_txt = Text().make_text(['shockwave:'])
@@ -78,11 +82,26 @@ class SettingsMenu:
         self.shockwave_conf2 = Text().make_text(['R key'])
         self.shockwave_conf3 = Text().make_text(['F key'])
 
+        # visual settings
+        self.resolution_txt = Text().make_text(['window size:'])
+        self.performance_txt = Text().make_text(['performance:'])
+        self.res_conf1 = Text().make_text([f'{swidth*2} x {sheight*2}'])
+        self.res_conf2 = Text().make_text([f'{swidth*3} x {sheight*3}'])
+        self.res_conf3 = Text().make_text([f'{swidth*4} x {sheight*4}'])
+        self.perf_conf1 = Text().make_text(['Normal'])
+        self.perf_conf2 = Text().make_text(['Fast'])
+        self.resolution_message1 = Text().make_text(['Window size has been automatically adjusted'])
+        self.resolution_message2 = Text().make_text(['to your monitor size.'])
+
         # counters -----------------------------------------------------------------------------------------------------
         self.walk_counter = 1
         self.jump_counter = 1
         self.shockwave_counter = 1
         self.interaction_counter = 1
+
+        self.resolution_counter = resolution_counter
+        self.resolution_counter_check = 1
+        self.performance_counter = 1
 
         # button positional variables and other ------------------------------------------------------------------------
         gap = 30
@@ -92,13 +111,15 @@ class SettingsMenu:
 
         self.center = 150
 
-        self.walking_y = button_start_y + gap
-        self.jumping_y = button_start_y + gap * 2
-        self.shockwave_y = button_start_y + gap * 3
-        self.interactions_y = button_start_y + gap * 4
+        self.row1_y = button_start_y + gap
+        self.row2_y = button_start_y + gap * 2
+        self.row3_y = button_start_y + gap * 3
+        self.row4_y = button_start_y + gap * 4
 
         self.left_btn_x = self.center + 10
         self.right_btn_x = self.center + interbutton_space
+
+        self.res_adjusted = False
 
         section_btn_select = pygame.Surface((118, 20))
         section_btn_select.blit(self.menu_background, (0, 0))
@@ -106,9 +127,9 @@ class SettingsMenu:
         section_btn_dark = pygame.Surface((118, 20))
         section_btn_dark.blit(self.menu_background, (0, 0))
 
-        self.draw_control_button = False
-        self.draw_visual_button = True
-        self.draw_sound_button = True
+        self.draw_control_screen = False
+        self.draw_visual_screen = True
+        self.draw_sound_screen = True
 
         self.control_button_select = pygame.Surface((117, 20))
         self.sound_button_select = pygame.Surface((117, 20))
@@ -178,6 +199,15 @@ class SettingsMenu:
         self.visual_btn = Button(117, 0, self.visual_button_dark, self.visual_button_over,
                                  self.visual_button_dark)
 
+        self.resolution_btn_left = Button(self.center + 10, button_start_y + gap,
+                                          self.left_button, self.left_button_press, self.left_button_down)
+        self.resolution_btn_right = Button(self.center + interbutton_space, button_start_y + gap,
+                                           self.right_button, self.right_button_press, self.right_button_down)
+        self.performance_btn_left = Button(self.center + 10, button_start_y + gap * 2,
+                                           self.left_button, self.left_button_press, self.left_button_down)
+        self.performance_btn_right = Button(self.center + interbutton_space, button_start_y + gap * 2,
+                                            self.right_button, self.right_button_press, self.right_button_down)
+
         # --------------------------------------------------------------------------------------------------------------
     def draw_settings_menu(self, settings_screen, mouse_adjustment, events):
         settings_screen.fill((0, 0, 0))
@@ -196,6 +226,11 @@ class SettingsMenu:
         interactions_left_press = False
         interactions_right_press = False
 
+        res_left_press = False
+        res_right_press = False
+        perf_left_press = False
+        perf_right_press = False
+
         final_over1 = False
         final_over2 = False
 
@@ -204,6 +239,10 @@ class SettingsMenu:
         over2 = False
         over3 = False
         over4 = False
+        over5 = False
+        over6 = False
+        over7 = False
+        over8 = False
 
         menu_press = False
 
@@ -211,18 +250,18 @@ class SettingsMenu:
         visual_btn_trigger = False
         sound_btn_trigger = False
 
-        # drawing and updating the menu/back button ----------------------------------------------------------------
+        # drawing and updating the menu/back button --------------------------------------------------------------------
         menu_press, over = self.menu_btn.draw_button(settings_screen, False, mouse_adjustment, events)
 
         # CONTROL SETTINGS SCREEN ======================================================================================
         self.control_screen.blit(self.walking_txt, (self.center - 10 - self.walking_txt.get_width(), 40 + self.gap))
         self.control_screen.blit(self.jumping_txt, (self.center - 10 - self.jumping_txt.get_width(), 40 + self.gap * 2))
         self.control_screen.blit(self.shockwave_txt,
-                             (self.center - 10 - self.shockwave_txt.get_width(), 40 + self.gap * 3))
+                                 (self.center - 10 - self.shockwave_txt.get_width(), 40 + self.gap * 3))
         self.control_screen.blit(self.interactions_txt,
-                             (self.center - 10 - self.interactions_txt.get_width(), 40 + self.gap * 4))
+                                 (self.center - 10 - self.interactions_txt.get_width(), 40 + self.gap * 4))
 
-        # updating the text showing the player's current controls --------------------------------------------------
+        # updating the text showing the player's current controls ------------------------------------------------------
         if self.walk_counter == 1:
             walk_text = self.move_conf1
         else:
@@ -250,67 +289,68 @@ class SettingsMenu:
         button_text_center = self.center + 65
 
         self.control_screen.blit(walk_text, (button_text_center - walk_text.get_width() / 2 + button_size / 2,
-                                             self.walking_y + 7))
+                                             self.row1_y + 7))
         self.control_screen.blit(jump_text, (button_text_center - jump_text.get_width() / 2 + button_size / 2,
-                                             self.jumping_y + 7))
+                                             self.row2_y + 7))
         self.control_screen.blit(shockwave_text,
                                  (button_text_center - shockwave_text.get_width() / 2 + button_size / 2,
-                                  self.shockwave_y + 7))
+                                  self.row3_y + 7))
         self.control_screen.blit(interaction_text,
                                  (button_text_center - interaction_text.get_width() / 2 + button_size / 2,
-                                  self.interactions_y + 7))
+                                  self.row4_y + 7))
 
-        # managing the buttons to switch between control options ---------------------------------------------------
-        if self.walk_counter > 1:
-            walking_left_press, over1 = self.walking_btn_left.draw_button(self.control_screen,
-                                                                          False, mouse_adjustment, events)
-        else:
-            self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.walking_y))
-
-        if self.walk_counter < 2:
-            walking_right_press, over1 = self.walking_btn_right.draw_button(self.control_screen,
-                                                                            False, mouse_adjustment, events)
-        else:
-            self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.walking_y))
-
-        if self.jump_counter > 1:
-            jumping_left_press, over2 = self.jumping_btn_left.draw_button(self.control_screen,
-                                                                          False, mouse_adjustment, events)
-        else:
-            self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.jumping_y))
-
-        if self.jump_counter < 3:
-            jumping_right_press, over2 = self.jumping_btn_right.draw_button(self.control_screen,
-                                                                        False, mouse_adjustment, events)
-        else:
-            self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.jumping_y))
-
-        if self.shockwave_counter > 1:
-            shockwave_left_press, over3 = self.shockwave_btn_left.draw_button(self.control_screen,
+        # managing the buttons to switch between control options -------------------------------------------------------
+        if not self.draw_control_screen:
+            if self.walk_counter > 1:
+                walking_left_press, over1 = self.walking_btn_left.draw_button(self.control_screen,
                                                                               False, mouse_adjustment, events)
-        else:
-            self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.shockwave_y))
+            else:
+                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.row1_y))
 
-        if self.shockwave_counter < 3:
-            shockwave_right_press, over3 = self.shockwave_btn_right.draw_button(self.control_screen,
+            if self.walk_counter < 2:
+                walking_right_press, over2 = self.walking_btn_right.draw_button(self.control_screen,
                                                                                 False, mouse_adjustment, events)
-        else:
-            self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.shockwave_y))
+            else:
+                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.row1_y))
 
-        if self.interaction_counter > 1:
-            interactions_left_press, over4 = self.interaction_btn_left.draw_button(self.control_screen, False,
-                                                                                   mouse_adjustment, events)
-        else:
-            self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.interactions_y))
+            if self.jump_counter > 1:
+                jumping_left_press, over3 = self.jumping_btn_left.draw_button(self.control_screen,
+                                                                              False, mouse_adjustment, events)
+            else:
+                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.row2_y))
 
-        if self.interaction_counter < 2:
-            interactions_right_press, over4 = self.interaction_btn_right.draw_button(self.control_screen,
-                                                                                     False, mouse_adjustment,
-                                                                                     events)
-        else:
-            self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.interactions_y))
+            if self.jump_counter < 3:
+                jumping_right_press, over4 = self.jumping_btn_right.draw_button(self.control_screen,
+                                                                                False, mouse_adjustment, events)
+            else:
+                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.row2_y))
 
-        # adjusting control counters if buttons are pressed --------------------------------------------------------
+            if self.shockwave_counter > 1:
+                shockwave_left_press, over5 = self.shockwave_btn_left.draw_button(self.control_screen,
+                                                                                  False, mouse_adjustment, events)
+            else:
+                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.row3_y))
+
+            if self.shockwave_counter < 3:
+                shockwave_right_press, over6 = self.shockwave_btn_right.draw_button(self.control_screen,
+                                                                                    False, mouse_adjustment, events)
+            else:
+                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.row3_y))
+
+            if self.interaction_counter > 1:
+                interactions_left_press, over7 = self.interaction_btn_left.draw_button(self.control_screen, False,
+                                                                                       mouse_adjustment, events)
+            else:
+                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.row4_y))
+
+            if self.interaction_counter < 2:
+                interactions_right_press, over8 = self.interaction_btn_right.draw_button(self.control_screen,
+                                                                                         False, mouse_adjustment,
+                                                                                         events)
+            else:
+                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.row4_y))
+
+        # adjusting control counters if buttons are pressed ------------------------------------------------------------
         if walking_left_press and self.walk_counter > 1:
             self.walk_counter -= 1
         if walking_right_press and self.walk_counter < 2:
@@ -331,7 +371,7 @@ class SettingsMenu:
         if interactions_right_press and self.interaction_counter < 2:
             self.interaction_counter += 1
 
-        # updating the controls dictionary -------------------------------------------------------------------------
+        # updating the controls dictionary -----------------------------------------------------------------------------
         if menu_press:
             self.controls['left'] = self.nums_to_btns[f'left{self.walk_counter}']
             self.controls['right'] = self.nums_to_btns[f'right{self.walk_counter}']
@@ -339,47 +379,124 @@ class SettingsMenu:
             self.controls['interact'] = self.nums_to_btns[f'interact{self.interaction_counter}']
             self.controls['shockwave'] = self.nums_to_btns[f'shockwave{self.shockwave_counter}']
 
-        if over or over1 or over3:
-            final_over1 = True
-        if over2 or over4:
-            final_over2 = True
+        # VISUAL SETTINGS SCREEN =======================================================================================
+        self.visual_screen.blit(self.resolution_txt,
+                                (self.center - 10 - self.resolution_txt.get_width(), 40 + self.gap))
+        self.visual_screen.blit(self.performance_txt,
+                                (self.center - 10 - self.performance_txt.get_width(), 40 + self.gap * 2))
 
-        if not self.draw_control_button:
+        if not self.res_adjusted:
+            self.visual_screen.blit(self.resolution_message1, (swidth / 2 - self.resolution_message1.get_width() / 2,
+                                                               40 + self.gap * 4))
+            self.visual_screen.blit(self.resolution_message2, (swidth / 2 - self.resolution_message2.get_width() / 2,
+                                                               30 + self.gap * 5))
+
+        if self.resolution_counter == 1:
+            res_text = self.res_conf1
+        elif self.resolution_counter == 2:
+            res_text = self.res_conf2
+        else:
+            res_text = self.res_conf3
+
+        if self.performance_counter == 1:
+            perf_text = self.perf_conf1
+        else:
+            perf_text = self.perf_conf2
+
+        self.visual_screen.blit(res_text, (button_text_center - res_text.get_width() / 2 + button_size / 2,
+                                             self.row1_y + 7))
+        self.visual_screen.blit(perf_text, (button_text_center - perf_text.get_width() / 2 + button_size / 2,
+                                             self.row2_y + 7))
+
+        if not self.draw_visual_screen:
+            if self.resolution_counter > 1:
+                res_left_press, over1 = self.resolution_btn_left.draw_button(self.visual_screen,
+                                                                             False, mouse_adjustment, events)
+            else:
+                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, self.row1_y))
+
+            if self.resolution_counter < 3:
+                res_right_press, over2 = self.resolution_btn_right.draw_button(self.visual_screen,
+                                                                               False, mouse_adjustment, events)
+            else:
+                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, self.row1_y))
+
+            if self.performance_counter > 1:
+                perf_left_press, over3 = self.performance_btn_left.draw_button(self.visual_screen,
+                                                                              False, mouse_adjustment, events)
+            else:
+                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, self.row2_y))
+
+            if self.performance_counter < 2:
+                perf_right_press, over4 = self.performance_btn_right.draw_button(self.visual_screen,
+                                                                                 False, mouse_adjustment, events)
+            else:
+                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, self.row2_y))
+
+        if res_left_press and self.resolution_counter > 1:
+            self.resolution_counter -= 1
+        if res_right_press and self.resolution_counter < 3:
+            self.resolution_counter += 1
+
+        if perf_left_press and self.performance_counter > 1:
+            self.performance_counter -= 1
+        if perf_right_press and self.performance_counter < 2:
+            self.performance_counter += 1
+
+        # screen managing ==============================================================================================
+        if not self.draw_control_screen:
             settings_screen.blit(self.control_screen, (0, 0))
-        if not self.draw_visual_button:
+        if not self.draw_visual_screen:
             settings_screen.blit(self.visual_screen, (0, 0))
-        if not self.draw_sound_button:
+        if not self.draw_sound_screen:
             settings_screen.blit(self.sound_screen, (0, 0))
 
         # managing the section buttons ---------------------------------------------------------------------------------
-        if self.draw_control_button:
+        if self.draw_control_screen:
             control_btn_trigger, not_over = self.control_btn.draw_button(settings_screen,
                                                                          False, mouse_adjustment, events)
         else:
             settings_screen.blit(self.control_button_select, (0, 0))
-        if self.draw_visual_button:
+        if self.draw_visual_screen:
             visual_btn_trigger, not_over = self.visual_btn.draw_button(settings_screen, False, mouse_adjustment,
                                                                        events)
         else:
             settings_screen.blit(self.visual_button_select, (117, 0))
-        if self.draw_sound_button:
+        if self.draw_sound_screen:
             sound_btn_trigger, not_over = self.sound_btn.draw_button(settings_screen, False, mouse_adjustment,
                                                                      events)
         else:
             settings_screen.blit(self.sound_button_select, (117 + 118, 0))
 
         if control_btn_trigger:
-            self.draw_control_button = False
-            self.draw_visual_button = True
-            self.draw_sound_button = True
+            self.draw_control_screen = False
+            self.draw_visual_screen = True
+            self.draw_sound_screen = True
         if visual_btn_trigger:
-            self.draw_control_button = True
-            self.draw_visual_button = False
-            self.draw_sound_button = True
+            self.draw_control_screen = True
+            self.draw_visual_screen = False
+            self.draw_sound_screen = True
         if sound_btn_trigger:
-            self.draw_control_button = True
-            self.draw_visual_button = True
-            self.draw_sound_button = False
+            self.draw_control_screen = True
+            self.draw_visual_screen = True
+            self.draw_sound_screen = False
 
-        return menu_press, self.controls, final_over1, final_over2
+        if over or over1 or over3 or over5 or over7:
+            final_over1 = True
+        if over2 or over4 or over6 or over8:
+            final_over2 = True
 
+        if res_right_press or res_left_press:
+            adjust_resolution = True
+        else:
+            adjust_resolution = False
+
+        if adjust_resolution:
+            self.res_adjusted = True
+
+        resolution = self.resolutions[str(self.resolution_counter)]
+
+        counters = [self.walk_counter, self.jump_counter, self.interaction_counter, self.shockwave_counter]
+
+        return menu_press, self.controls, final_over1, final_over2, self.performance_counter, resolution,\
+               adjust_resolution, counters

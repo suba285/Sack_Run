@@ -40,6 +40,34 @@ start_y = -3
 clock = pygame.time.Clock()
 fps = 60
 
+resolutions = {
+        '1': (swidth * 2, sheight * 2),
+        '2': (swidth * 3, sheight * 3),
+        '3': (swidth * 4, sheight * 4)
+    }
+
+resolution_1 = (swidth * 2, sheight * 2)
+resolution_2 = (swidth * 3, sheight * 3)
+resolution_3 = (swidth * 4, sheight * 4)
+
+list_of_resolutions = [resolution_3, resolution_2, resolution_1]
+
+recommended_resolution = resolution_1
+
+resolution_counter = 3
+
+for res in list_of_resolutions:
+    if res[1] < (monitor_height * 0.8):
+        recommended_resolution = res
+        break
+    resolution_counter -= 1
+
+if resolution_counter < 1:
+    resolution_counter = 1
+
+wiwidth = recommended_resolution[0]
+wiheight = recommended_resolution[1]
+
 window = pygame.display.set_mode((wiwidth, wiheight), pygame.SCALED)
 screen = pygame.Surface((swidth, sheight), pygame.SCALED)
 main_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
@@ -133,6 +161,8 @@ controls = {
     'bin_card': pygame.K_q,
 }
 
+control_counters = [1, 1, 1, 1]
+
 # custom cursor setup --------------------------------------------------------------------------------------------------
 pygame.mouse.set_visible(False)
 cursor_raw = pygame.image.load('data/images/cursor_classic2.PNG').convert()
@@ -152,11 +182,11 @@ str_level_count = file.read()
 
 # initiating classes ---------------------------------------------------------------------------------------------------
 world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls)
-main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls)
+main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, control_counters)
 main_menu = mainMenu(screen)
 pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
-settings_menu = SettingsMenu(controls)
+settings_menu = SettingsMenu(controls, resolution_counter)
 
 paused_text = Text()
 
@@ -219,7 +249,7 @@ while run:
         run_game = False
         level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
-                                                                     slow_computer, mouse_adjustment, events)
+                                                             slow_computer, mouse_adjustment, events)
 
         if level_selection:
             game_counter = default_game_counter
@@ -231,7 +261,6 @@ while run:
             game_y = swidth
 
         if settings:
-            print('settings')
             run_game = False
             run_menu = False
             run_settings = True
@@ -242,7 +271,7 @@ while run:
         if play:
             if real_fps < 30:
                 slow_computer = True
-            main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls)
+            main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, control_counters)
             play = False
 
         run_menu = False
@@ -258,7 +287,8 @@ while run:
             button_sound_trigger2,\
             play_paper_sound,\
             play_music_trigger,\
-            fadeout_music = main_game.game(screen, level_count, slow_computer, fps_adjust,
+            fadeout_music,\
+            lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
                                            draw_hitbox, mouse_adjustment, events, world_data, bg_data,
                                            game_counter, world_count)
 
@@ -271,6 +301,17 @@ while run:
             paused = True
             run_level_selection = False
             fadeout_music = True
+
+        if lvl_selection_press:
+            game_counter = default_game_counter
+            run_game = False
+            run_menu = False
+            run_settings = False
+            run_level_selection = True
+            fadeout_music = True
+            level_count = first_level
+            menu_y = 0
+            game_y = swidth
 
     # pause ------------------------------------------------------------------------------------------------------------
     if paused:
@@ -319,7 +360,24 @@ while run:
 
     # settings ---------------------------------------------------------------------------------------------------------
     if run_settings:
-        menu, controls, button_sound_trigger1, button_sound_trigger2 = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events)
+        menu,\
+            controls,\
+            button_sound_trigger1,\
+            button_sound_trigger2,\
+            performance_counter,\
+            current_resolution,\
+            adjust_resolution,\
+            control_counters = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events)
+
+        if performance_counter == 1:
+            slow_computer = False
+        else:
+            slow_computer = True
+
+        if adjust_resolution:
+            window = pygame.display.set_mode(current_resolution, pygame.SCALED)
+            wiwidth = current_resolution[0]
+            wiheight = current_resolution[1]
 
         if menu:
             run_menu = True

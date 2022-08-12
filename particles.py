@@ -48,7 +48,7 @@ class Particles():
         for particle in self.front_particle_list:
             particle[0] += self.front_x_speed + camera_move_x
             particle[1] += self.front_y_speed + camera_move_y
-            if particle[0] < 0 or particle[1] > 364:
+            if particle[0] < -100 or particle[1] > 352:
                 direction = random.randrange(0, 2)
                 if direction == 1:
                     particle[0] = 360
@@ -64,7 +64,7 @@ class Particles():
         for particle in self.bg_particle_list:
             particle[0] += self.bg_x_speed + camera_move_x
             particle[1] += self.bg_y_speed + camera_move_y
-            if particle[0] < 0 or particle[1] > 364:
+            if particle[0] < -100 or particle[1] > 352:
                 direction = random.randrange(0, 2)
                 if direction == 1:
                     particle[0] = 360
