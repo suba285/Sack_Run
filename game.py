@@ -179,10 +179,6 @@ class Game:
         self.eq_power_list = []
         self.backup_eq_power_list = []
 
-        # loading in sounds --------------------------------------------------------------------------------------------
-        pygame.mixer.music.load('data/sounds/gameplay_song.wav')
-        pygame.mixer.music.set_volume(0.5)
-
         # variables ----------------------------------------------------------------------------------------------------
         self.level_check = 1
 

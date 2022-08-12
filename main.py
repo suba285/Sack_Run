@@ -1,5 +1,6 @@
 import time
 import pygame
+import json
 
 from world import World
 from levels import *
@@ -40,15 +41,38 @@ start_y = -3
 clock = pygame.time.Clock()
 fps = 60
 
+# errors
+settings_not_saved_error = False
+settings_not_loaded_error = False
+
+# loading settings data
+try:
+    with open('data/settings_configuration.json', 'r') as json_file:
+        settings_counters = json.load(json_file)
+
+except Exception:
+    settings_not_loaded_error = True
+
+    settings_counters = {
+        'walking': 1,
+        'jumping': 1,
+        'shockwave': 1,
+        'interaction': 1,
+        'resolution': 1,
+        'performance': 1,
+        'music_volume': 2,
+        'sounds': 2
+    }
+
 resolutions = {
         '1': (swidth * 2, sheight * 2),
         '2': (swidth * 3, sheight * 3),
         '3': (swidth * 4, sheight * 4)
     }
 
-resolution_1 = (swidth * 2, sheight * 2)
-resolution_2 = (swidth * 3, sheight * 3)
-resolution_3 = (swidth * 4, sheight * 4)
+resolution_1 = resolutions['1']
+resolution_2 = resolutions['2']
+resolution_3 = resolutions['3']
 
 list_of_resolutions = [resolution_3, resolution_2, resolution_1]
 
@@ -68,6 +92,10 @@ if resolution_counter < 1:
 wiwidth = recommended_resolution[0]
 wiheight = recommended_resolution[1]
 
+settings_counters['resolution'] = resolution_counter
+recommended_res_counter = resolution_counter
+
+# screens (surfaces)
 window = pygame.display.set_mode((wiwidth, wiheight), pygame.SCALED)
 screen = pygame.Surface((swidth, sheight), pygame.SCALED)
 main_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
@@ -90,6 +118,11 @@ resolution = "small"
 
 default_game_counter = -3
 game_counter = default_game_counter
+
+# error variables and error messages
+settings_not_saved_error_counter = 300
+settings_not_saved_error_txt = Text().make_text(['error while saving settings configuration'])
+settings_not_loaded_error_txt = Text().make_text(['error while loading settings configuration'])
 
 slow_computer = False
 run = True
@@ -144,6 +177,15 @@ sounds['bear_trap_cling'].set_volume(0.6)
 sounds['button_click'].set_volume(0.9)
 sounds['paper_crumbling'].set_volume(0.8)
 
+music_volumes = {
+    '1': 0,
+    '2': 0.5,
+    '3': 1
+}
+
+pygame.mixer.music.load('data/sounds/gameplay_song.wav')
+pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
+
 one_time_play_card_pull = True
 one_time_play_button1 = True
 one_time_play_button2 = True
@@ -152,12 +194,27 @@ card_swoosh_chest = False
 card_swoosh_counter = 0
 
 # controls -------------------------------------------------------------------------------------------------------------
+controls_nums = {
+            'left1': pygame.K_a,
+            'right1': pygame.K_d,
+            'left2': pygame.K_LEFT,
+            'right2': pygame.K_RIGHT,
+            'jump1': pygame.K_SPACE,
+            'jump2': pygame.K_w,
+            'jump3': pygame.K_UP,
+            'shockwave1': pygame.K_z,
+            'shockwave2': pygame.K_r,
+            'shockwave3': pygame.K_f,
+            'interact1': pygame.K_x,
+            'interact2': pygame.K_e
+}
+
 controls = {
-    'left': pygame.K_a,
-    'right': pygame.K_d,
-    'jump': pygame.K_SPACE,
-    'interact': pygame.K_x,
-    'shockwave': pygame.K_z,
+    'left': controls_nums[f"left{settings_counters['walking']}"],
+    'right': controls_nums[f"right{settings_counters['walking']}"],
+    'jump': controls_nums[f"jump{settings_counters['jumping']}"],
+    'interact': controls_nums[f"interact{settings_counters['interaction']}"],
+    'shockwave': controls_nums[f"shockwave{settings_counters['shockwave']}"],
     'bin_card': pygame.K_q,
 }
 
@@ -175,10 +232,7 @@ cursor_list = []
 
 mouse_vis = True
 
-# level file reading (not used currently, a different system is in use) ------------------------------------------------
-file = open('level_count', 'r')
-str_level_count = file.read()
-# level_count = int(str_level_count)
+show_cursor = True
 
 # initiating classes ---------------------------------------------------------------------------------------------------
 world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls)
@@ -186,7 +240,7 @@ main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, wor
 main_menu = mainMenu(screen)
 pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
-settings_menu = SettingsMenu(controls, resolution_counter)
+settings_menu = SettingsMenu(controls, settings_counters, resolutions, recommended_res_counter)
 
 paused_text = Text()
 
@@ -250,6 +304,12 @@ while run:
         level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
                                                              slow_computer, mouse_adjustment, events)
+
+        if settings_not_saved_error:
+            settings_not_saved_error_counter -= 1*fps_adjust
+            if settings_not_saved_error_counter >= 0:
+                menu_screen.blit(settings_not_saved_error_txt, (swidth / 2 - settings_not_loaded_error_txt.get_width() / 2,
+                                                                3))
 
         if level_selection:
             game_counter = default_game_counter
@@ -367,7 +427,8 @@ while run:
             performance_counter,\
             current_resolution,\
             adjust_resolution,\
-            control_counters = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events)
+            control_counters,\
+            settings_counters = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events)
 
         if performance_counter == 1:
             slow_computer = False
@@ -385,6 +446,12 @@ while run:
             paused = False
             run_settings = False
             run_level_selection = False
+
+            try:
+                with open('data/settings_configuration.json', 'w') as json_file:
+                    json.dump(settings_counters, json_file)
+            except Exception:
+                settings_not_saved_error = True
 
     if slow_computer:
         fps = 30
@@ -463,9 +530,14 @@ while run:
                            draw_bottom_left=True, draw_bottom_right=True)
 
     # custom mouse cursor ----------------------------------------------------------------------------------------------
+    if not run_game:
+        show_cursor = True
+    else:
+        show_cursor = False
+
     if pygame.mouse.get_focused():
         mouse_pos = pygame.mouse.get_pos()
-        if mouse_pos == last_mouse_pos and not run_menu and not run_level_selection and not paused:
+        if mouse_pos == last_mouse_pos and not show_cursor and not run_level_selection and not paused:
             mouse_still_count += 1
         else:
             last_mouse_pos = mouse_pos

@@ -11,7 +11,7 @@ swidth = 352
 
 
 class SettingsMenu:
-    def __init__(self, controls, resolution_counter):
+    def __init__(self, controls, settings_counters, resolutions, recommended_res_counter):
         # image loading ------------------------------------------------------------------------------------------------
         self.menu_background = img_loader('data/images/menu_background.PNG', swidth, sheight)
 
@@ -32,13 +32,14 @@ class SettingsMenu:
 
         # variables ----------------------------------------------------------------------------------------------------
         self.controls = controls
+        self.recommended_res_counter = recommended_res_counter
 
         # major surfaces -----------------------------------------------------------------------------------------------
         self.control_screen = pygame.Surface((swidth, 200))
         self.visual_screen = pygame.Surface((swidth, 200))
         self.sound_screen = pygame.Surface((swidth, 200))
 
-        # dictionaries --------------------------------------------------------------------------------
+        # dictionaries -------------------------------------------------------------------------------------------------
         self.nums_to_btns = {
             'left1': pygame.K_a,
             'right1': pygame.K_d,
@@ -54,11 +55,7 @@ class SettingsMenu:
             'interact2': pygame.K_e
         }
 
-        self.resolutions = {
-            '1': (swidth * 2, sheight * 2),
-            '2': (swidth * 3, sheight * 3),
-            '3': (swidth * 4, sheight * 4)
-        }
+        self.resolutions = resolutions
 
         # text generation ----------------------------------------------------------------------------------------------
 
@@ -81,6 +78,8 @@ class SettingsMenu:
         self.shockwave_conf1 = Text().make_text(['Z key'])
         self.shockwave_conf2 = Text().make_text(['R key'])
         self.shockwave_conf3 = Text().make_text(['F key'])
+        self.controls_message1 = Text().make_text(['This is the recommended controls configuration'])
+        self.controls_message2 = Text().make_text(['but feel free to tune it to your liking'])
 
         # visual settings
         self.resolution_txt = Text().make_text(['window size:'])
@@ -90,18 +89,23 @@ class SettingsMenu:
         self.res_conf3 = Text().make_text([f'{swidth*4} x {sheight*4}'])
         self.perf_conf1 = Text().make_text(['Normal'])
         self.perf_conf2 = Text().make_text(['Fast'])
-        self.resolution_message1 = Text().make_text(['Window size has been automatically adjusted'])
-        self.resolution_message2 = Text().make_text(['to your monitor size.'])
+        self.resolution_message1 = Text().make_text(['This window size is recommended for'])
+        self.resolution_message2 = Text().make_text(['your screen resolution.'])
+        self.resolution_message3 = Text().make_text(['A bit too big, innit?'])
+        self.perf_message1 = Text().make_text(["Use 'fast' mode only if your computer"])
+        self.perf_message2 = Text().make_text(["is an utter potato."])
 
         # counters -----------------------------------------------------------------------------------------------------
-        self.walk_counter = 1
-        self.jump_counter = 1
-        self.shockwave_counter = 1
-        self.interaction_counter = 1
+        self.walk_counter = settings_counters['walking']
+        self.jump_counter = settings_counters['jumping']
+        self.shockwave_counter = settings_counters['shockwave']
+        self.interaction_counter = settings_counters['interaction']
 
-        self.resolution_counter = resolution_counter
+        self.resolution_counter = settings_counters['resolution']
         self.resolution_counter_check = 1
-        self.performance_counter = 1
+        self.performance_counter = settings_counters['performance']
+
+        self.settings_counters = settings_counters
 
         # button positional variables and other ------------------------------------------------------------------------
         gap = 30
@@ -385,11 +389,21 @@ class SettingsMenu:
         self.visual_screen.blit(self.performance_txt,
                                 (self.center - 10 - self.performance_txt.get_width(), 40 + self.gap * 2))
 
-        if not self.res_adjusted:
+        if self.performance_counter == 2:
+            self.visual_screen.blit(self.perf_message1, (swidth / 2 - self.perf_message1.get_width() / 2,
+                                                         35 + self.gap * 4))
+            self.visual_screen.blit(self.perf_message2, (swidth / 2 - self.perf_message2.get_width() / 2,
+                                                         20 + self.gap * 5))
+
+        elif self.recommended_res_counter == self.resolution_counter:
             self.visual_screen.blit(self.resolution_message1, (swidth / 2 - self.resolution_message1.get_width() / 2,
-                                                               40 + self.gap * 4))
+                                                               35 + self.gap * 4))
             self.visual_screen.blit(self.resolution_message2, (swidth / 2 - self.resolution_message2.get_width() / 2,
-                                                               30 + self.gap * 5))
+                                                               20 + self.gap * 5))
+
+        if self.recommended_res_counter < self.resolution_counter and self.performance_counter != 2:
+            self.visual_screen.blit(self.resolution_message3, (swidth / 2 - self.resolution_message3.get_width() / 2,
+                                                               42 + self.gap * 4))
 
         if self.resolution_counter == 1:
             res_text = self.res_conf1
@@ -491,12 +505,17 @@ class SettingsMenu:
         else:
             adjust_resolution = False
 
-        if adjust_resolution:
-            self.res_adjusted = True
-
         resolution = self.resolutions[str(self.resolution_counter)]
 
         counters = [self.walk_counter, self.jump_counter, self.interaction_counter, self.shockwave_counter]
 
+        if menu_press:
+            self.settings_counters['walking'] = self.walk_counter
+            self.settings_counters['jumping'] = self.jump_counter
+            self.settings_counters['shockwave'] = self.shockwave_counter
+            self.settings_counters['interaction'] = self.interaction_counter
+            self.settings_counters['resolution'] = self.resolution_counter
+            self.settings_counters['performance'] = self.performance_counter
+
         return menu_press, self.controls, final_over1, final_over2, self.performance_counter, resolution,\
-               adjust_resolution, counters
+               adjust_resolution, counters, self.settings_counters
