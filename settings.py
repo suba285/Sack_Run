@@ -30,14 +30,52 @@ class SettingsMenu:
         self.menu_button_press = img_loader('data/images/button_menu_press.PNG', tile_size * 1.5, tile_size * 0.75)
         self.menu_button_down = img_loader('data/images/button_menu_down.PNG', tile_size * 1.5, tile_size * 0.75)
 
+        self.keyboard_base = img_loader('data/images/keyboard_base.PNG', tile_size * 3, tile_size)
+        keyboard_interact1 = img_loader('data/images/keyboard_highlights/keyboard_interact1.PNG',
+                                        tile_size * 3, tile_size)
+        keyboard_interact2 = img_loader('data/images/keyboard_highlights/keyboard_interact2.PNG',
+                                        tile_size * 3, tile_size)
+        keyboard_interact3 = img_loader('data/images/keyboard_highlights/keyboard_interact3.PNG',
+                                        tile_size * 3, tile_size)
+        keyboard_jump1 = img_loader('data/images/keyboard_highlights/keyboard_jump1.PNG',
+                                    tile_size * 3, tile_size)
+        keyboard_jump2 = img_loader('data/images/keyboard_highlights/keyboard_jump2.PNG',
+                                    tile_size * 3, tile_size)
+        keyboard_jump3 = img_loader('data/images/keyboard_highlights/keyboard_jump3.PNG',
+                                    tile_size * 3, tile_size)
+        keyboard_shockwave1 = img_loader('data/images/keyboard_highlights/keyboard_shockwave1.PNG',
+                                         tile_size * 3, tile_size)
+        keyboard_shockwave2 = img_loader('data/images/keyboard_highlights/keyboard_shockwave2.PNG',
+                                         tile_size * 3, tile_size)
+        keyboard_shockwave3 = img_loader('data/images/keyboard_highlights/keyboard_shockwave3.PNG',
+                                         tile_size * 3, tile_size)
+        keyboard_walk1 = img_loader('data/images/keyboard_highlights/keyboard_walk1.PNG',
+                                    tile_size * 3, tile_size)
+        keyboard_walk2 = img_loader('data/images/keyboard_highlights/keyboard_walk2.PNG',
+                                    tile_size * 3, tile_size)
+
+        self.keyboard_overlays = {
+            'interact1': keyboard_interact1,
+            'interact2': keyboard_interact2,
+            'interact3': keyboard_interact3,
+            'shockwave1': keyboard_shockwave1,
+            'shockwave2': keyboard_shockwave2,
+            'shockwave3': keyboard_shockwave3,
+            'jump1': keyboard_jump1,
+            'jump2': keyboard_jump2,
+            'jump3': keyboard_jump3,
+            'walk1': keyboard_walk1,
+            'walk2': keyboard_walk2
+        }
+
         # variables ----------------------------------------------------------------------------------------------------
         self.controls = controls
         self.recommended_res_counter = recommended_res_counter
 
         # major surfaces -----------------------------------------------------------------------------------------------
-        self.control_screen = pygame.Surface((swidth, 200))
-        self.visual_screen = pygame.Surface((swidth, 200))
-        self.sound_screen = pygame.Surface((swidth, 200))
+        self.control_screen = pygame.Surface((swidth, 220))
+        self.visual_screen = pygame.Surface((swidth, 220))
+        self.sound_screen = pygame.Surface((swidth, 220))
 
         # dictionaries -------------------------------------------------------------------------------------------------
         self.nums_to_btns = {
@@ -49,10 +87,13 @@ class SettingsMenu:
             'jump2': pygame.K_w,
             'jump3': pygame.K_UP,
             'shockwave1': pygame.K_z,
-            'shockwave2': pygame.K_r,
-            'shockwave3': pygame.K_f,
+            'shockwave2': pygame.K_f,
+            'shockwave3': pygame.K_RSHIFT,
             'interact1': pygame.K_x,
-            'interact2': pygame.K_e
+            'interact2': pygame.K_e,
+            'interact3': pygame.K_SLASH,
+            'delete_card1': pygame.K_q,
+            'delete_card2': pygame.K_PERIOD
         }
 
         self.resolutions = resolutions
@@ -75,9 +116,10 @@ class SettingsMenu:
         self.jump_conf3 = Text().make_text(['up key'])
         self.interact_conf1 = Text().make_text(['X key'])
         self.interact_conf2 = Text().make_text(['E key'])
+        self.interact_conf3 = Text().make_text(["forward slash"])
         self.shockwave_conf1 = Text().make_text(['Z key'])
-        self.shockwave_conf2 = Text().make_text(['R key'])
-        self.shockwave_conf3 = Text().make_text(['F key'])
+        self.shockwave_conf2 = Text().make_text(['F key'])
+        self.shockwave_conf3 = Text().make_text(["right shift"])
         self.controls_message1 = Text().make_text(['This is the recommended controls configuration'])
         self.controls_message2 = Text().make_text(['but feel free to tune it to your liking'])
 
@@ -95,6 +137,11 @@ class SettingsMenu:
         self.perf_message1 = Text().make_text(["Use 'fast' mode only if your computer"])
         self.perf_message2 = Text().make_text(["is an utter potato."])
 
+        self.keyboard_walk_conf = keyboard_walk1
+        self.keyboard_jump_conf = keyboard_jump1
+        self.keyboard_shockwave_conf = keyboard_shockwave1
+        self.keyboard_interact_conf = keyboard_interact1
+
         # counters -----------------------------------------------------------------------------------------------------
         self.walk_counter = settings_counters['walking']
         self.jump_counter = settings_counters['jumping']
@@ -110,15 +157,16 @@ class SettingsMenu:
         # button positional variables and other ------------------------------------------------------------------------
         gap = 30
         self.gap = 30
-        button_start_y = 33
+        control_button_start_y = 13
+        self.button_start_y = control_button_start_y
         interbutton_space = 120
 
         self.center = 150
 
-        self.row1_y = button_start_y + gap
-        self.row2_y = button_start_y + gap * 2
-        self.row3_y = button_start_y + gap * 3
-        self.row4_y = button_start_y + gap * 4
+        self.control_row1_y = control_button_start_y + gap
+        self.control_row2_y = control_button_start_y + gap * 2
+        self.control_row3_y = control_button_start_y + gap * 3
+        self.control_row4_y = control_button_start_y + gap * 4
 
         self.left_btn_x = self.center + 10
         self.right_btn_x = self.center + interbutton_space
@@ -177,21 +225,21 @@ class SettingsMenu:
         self.sound_button_over.blit(self.sound_txt, (swidth / 6 - self.sound_txt.get_width() / 2, 7))
 
         # initiating buttons -------------------------------------------------------------------------------------------
-        self.walking_btn_left = Button(self.center + 10, button_start_y + gap,
+        self.walking_btn_left = Button(self.center + 10, control_button_start_y + gap,
                                        self.left_button, self.left_button_press, self.left_button_down)
-        self.walking_btn_right = Button(self.center + interbutton_space, button_start_y + gap,
+        self.walking_btn_right = Button(self.center + interbutton_space, control_button_start_y + gap,
                                         self.right_button, self.right_button_press, self.right_button_down)
-        self.jumping_btn_left = Button(self.center + 10, button_start_y + gap * 2,
+        self.jumping_btn_left = Button(self.center + 10, control_button_start_y + gap * 2,
                                        self.left_button, self.left_button_press, self.left_button_down)
-        self.jumping_btn_right = Button(self.center + interbutton_space, button_start_y + gap * 2,
+        self.jumping_btn_right = Button(self.center + interbutton_space, control_button_start_y + gap * 2,
                                         self.right_button, self.right_button_press, self.right_button_down)
-        self.shockwave_btn_left = Button(self.center + 10, button_start_y + gap * 3,
+        self.shockwave_btn_left = Button(self.center + 10, control_button_start_y + gap * 3,
                                          self.left_button, self.left_button_press, self.left_button_down)
-        self.shockwave_btn_right = Button(self.center + interbutton_space, button_start_y + gap * 3,
+        self.shockwave_btn_right = Button(self.center + interbutton_space, control_button_start_y + gap * 3,
                                           self.right_button, self.right_button_press, self.right_button_down)
-        self.interaction_btn_left = Button(self.center + 10, button_start_y + gap * 4,
+        self.interaction_btn_left = Button(self.center + 10, control_button_start_y + gap * 4,
                                            self.left_button, self.left_button_press, self.left_button_down)
-        self.interaction_btn_right = Button(self.center + interbutton_space, button_start_y + gap * 4,
+        self.interaction_btn_right = Button(self.center + interbutton_space, control_button_start_y + gap * 4,
                                             self.right_button, self.right_button_press, self.right_button_down)
 
         self.menu_btn = Button(swidth / 2 - self.menu_button.get_width() / 2, 220,
@@ -203,13 +251,13 @@ class SettingsMenu:
         self.visual_btn = Button(117, 0, self.visual_button_dark, self.visual_button_over,
                                  self.visual_button_dark)
 
-        self.resolution_btn_left = Button(self.center + 10, button_start_y + gap,
+        self.resolution_btn_left = Button(self.center + 10, 33 + gap,
                                           self.left_button, self.left_button_press, self.left_button_down)
-        self.resolution_btn_right = Button(self.center + interbutton_space, button_start_y + gap,
+        self.resolution_btn_right = Button(self.center + interbutton_space, 33 + gap,
                                            self.right_button, self.right_button_press, self.right_button_down)
-        self.performance_btn_left = Button(self.center + 10, button_start_y + gap * 2,
+        self.performance_btn_left = Button(self.center + 10, 33 + gap * 2,
                                            self.left_button, self.left_button_press, self.left_button_down)
-        self.performance_btn_right = Button(self.center + interbutton_space, button_start_y + gap * 2,
+        self.performance_btn_right = Button(self.center + interbutton_space, 33 + gap * 2,
                                             self.right_button, self.right_button_press, self.right_button_down)
 
         # --------------------------------------------------------------------------------------------------------------
@@ -258,12 +306,27 @@ class SettingsMenu:
         menu_press, over = self.menu_btn.draw_button(settings_screen, False, mouse_adjustment, events)
 
         # CONTROL SETTINGS SCREEN ======================================================================================
-        self.control_screen.blit(self.walking_txt, (self.center - 10 - self.walking_txt.get_width(), 40 + self.gap))
-        self.control_screen.blit(self.jumping_txt, (self.center - 10 - self.jumping_txt.get_width(), 40 + self.gap * 2))
+        self.control_screen.blit(self.walking_txt, (self.center - 10 - self.walking_txt.get_width(),
+                                                    self.button_start_y + 7 + self.gap))
+        self.control_screen.blit(self.jumping_txt, (self.center - 10 - self.jumping_txt.get_width(),
+                                                    self.button_start_y + 7 + self.gap * 2))
         self.control_screen.blit(self.shockwave_txt,
-                                 (self.center - 10 - self.shockwave_txt.get_width(), 40 + self.gap * 3))
+                                 (self.center - 10 - self.shockwave_txt.get_width(),
+                                  self.button_start_y + 7 + self.gap * 3))
         self.control_screen.blit(self.interactions_txt,
-                                 (self.center - 10 - self.interactions_txt.get_width(), 40 + self.gap * 4))
+                                 (self.center - 10 - self.interactions_txt.get_width(),
+                                  self.button_start_y + 7 + self.gap * 4))
+
+        self.control_screen.blit(self.keyboard_base, (swidth / 2 - self.keyboard_base.get_width() / 2,
+                                                      175))
+        self.control_screen.blit(self.keyboard_overlays[f'walk{self.walk_counter}'],
+                                 (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
+        self.control_screen.blit(self.keyboard_overlays[f'jump{self.jump_counter}'],
+                                 (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
+        self.control_screen.blit(self.keyboard_overlays[f'shockwave{self.shockwave_counter}'],
+                                 (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
+        self.control_screen.blit(self.keyboard_overlays[f'interact{self.interaction_counter}'],
+                                 (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
 
         # updating the text showing the player's current controls ------------------------------------------------------
         if self.walk_counter == 1:
@@ -287,21 +350,23 @@ class SettingsMenu:
 
         if self.interaction_counter == 1:
             interaction_text = self.interact_conf1
-        else:
+        elif self.interaction_counter == 2:
             interaction_text = self.interact_conf2
+        else:
+            interaction_text = self.interact_conf3
 
         button_text_center = self.center + 65
 
         self.control_screen.blit(walk_text, (button_text_center - walk_text.get_width() / 2 + button_size / 2,
-                                             self.row1_y + 7))
+                                             self.control_row1_y + 7))
         self.control_screen.blit(jump_text, (button_text_center - jump_text.get_width() / 2 + button_size / 2,
-                                             self.row2_y + 7))
+                                             self.control_row2_y + 7))
         self.control_screen.blit(shockwave_text,
                                  (button_text_center - shockwave_text.get_width() / 2 + button_size / 2,
-                                  self.row3_y + 7))
+                                  self.control_row3_y + 7))
         self.control_screen.blit(interaction_text,
                                  (button_text_center - interaction_text.get_width() / 2 + button_size / 2,
-                                  self.row4_y + 7))
+                                  self.control_row4_y + 7))
 
         # managing the buttons to switch between control options -------------------------------------------------------
         if not self.draw_control_screen:
@@ -309,50 +374,50 @@ class SettingsMenu:
                 walking_left_press, over1 = self.walking_btn_left.draw_button(self.control_screen,
                                                                               False, mouse_adjustment, events)
             else:
-                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.row1_y))
+                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row1_y))
 
             if self.walk_counter < 2:
                 walking_right_press, over2 = self.walking_btn_right.draw_button(self.control_screen,
                                                                                 False, mouse_adjustment, events)
             else:
-                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.row1_y))
+                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row1_y))
 
             if self.jump_counter > 1:
                 jumping_left_press, over3 = self.jumping_btn_left.draw_button(self.control_screen,
                                                                               False, mouse_adjustment, events)
             else:
-                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.row2_y))
+                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row2_y))
 
             if self.jump_counter < 3:
                 jumping_right_press, over4 = self.jumping_btn_right.draw_button(self.control_screen,
                                                                                 False, mouse_adjustment, events)
             else:
-                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.row2_y))
+                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row2_y))
 
             if self.shockwave_counter > 1:
                 shockwave_left_press, over5 = self.shockwave_btn_left.draw_button(self.control_screen,
                                                                                   False, mouse_adjustment, events)
             else:
-                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.row3_y))
+                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row3_y))
 
             if self.shockwave_counter < 3:
                 shockwave_right_press, over6 = self.shockwave_btn_right.draw_button(self.control_screen,
                                                                                     False, mouse_adjustment, events)
             else:
-                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.row3_y))
+                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row3_y))
 
             if self.interaction_counter > 1:
                 interactions_left_press, over7 = self.interaction_btn_left.draw_button(self.control_screen, False,
                                                                                        mouse_adjustment, events)
             else:
-                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.row4_y))
+                self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row4_y))
 
-            if self.interaction_counter < 2:
+            if self.interaction_counter < 3:
                 interactions_right_press, over8 = self.interaction_btn_right.draw_button(self.control_screen,
                                                                                          False, mouse_adjustment,
                                                                                          events)
             else:
-                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.row4_y))
+                self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row4_y))
 
         # adjusting control counters if buttons are pressed ------------------------------------------------------------
         if walking_left_press and self.walk_counter > 1:
@@ -372,7 +437,7 @@ class SettingsMenu:
 
         if interactions_left_press and self.interaction_counter > 1:
             self.interaction_counter -= 1
-        if interactions_right_press and self.interaction_counter < 2:
+        if interactions_right_press and self.interaction_counter < 3:
             self.interaction_counter += 1
 
         # updating the controls dictionary -----------------------------------------------------------------------------
@@ -418,34 +483,34 @@ class SettingsMenu:
             perf_text = self.perf_conf2
 
         self.visual_screen.blit(res_text, (button_text_center - res_text.get_width() / 2 + button_size / 2,
-                                             self.row1_y + 7))
+                                             33 + self.gap + 7))
         self.visual_screen.blit(perf_text, (button_text_center - perf_text.get_width() / 2 + button_size / 2,
-                                             self.row2_y + 7))
+                                             33 + self.gap * 2 + 7))
 
         if not self.draw_visual_screen:
             if self.resolution_counter > 1:
                 res_left_press, over1 = self.resolution_btn_left.draw_button(self.visual_screen,
                                                                              False, mouse_adjustment, events)
             else:
-                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, self.row1_y))
+                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap))
 
             if self.resolution_counter < 3:
                 res_right_press, over2 = self.resolution_btn_right.draw_button(self.visual_screen,
                                                                                False, mouse_adjustment, events)
             else:
-                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, self.row1_y))
+                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap))
 
             if self.performance_counter > 1:
                 perf_left_press, over3 = self.performance_btn_left.draw_button(self.visual_screen,
                                                                               False, mouse_adjustment, events)
             else:
-                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, self.row2_y))
+                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap * 2))
 
             if self.performance_counter < 2:
                 perf_right_press, over4 = self.performance_btn_right.draw_button(self.visual_screen,
                                                                                  False, mouse_adjustment, events)
             else:
-                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, self.row2_y))
+                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap * 2))
 
         if res_left_press and self.resolution_counter > 1:
             self.resolution_counter -= 1

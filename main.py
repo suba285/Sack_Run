@@ -195,18 +195,21 @@ card_swoosh_counter = 0
 
 # controls -------------------------------------------------------------------------------------------------------------
 controls_nums = {
-            'left1': pygame.K_a,
-            'right1': pygame.K_d,
-            'left2': pygame.K_LEFT,
-            'right2': pygame.K_RIGHT,
-            'jump1': pygame.K_SPACE,
-            'jump2': pygame.K_w,
-            'jump3': pygame.K_UP,
-            'shockwave1': pygame.K_z,
-            'shockwave2': pygame.K_r,
-            'shockwave3': pygame.K_f,
-            'interact1': pygame.K_x,
-            'interact2': pygame.K_e
+    'left1': pygame.K_a,
+    'right1': pygame.K_d,
+    'left2': pygame.K_LEFT,
+    'right2': pygame.K_RIGHT,
+    'jump1': pygame.K_SPACE,
+    'jump2': pygame.K_w,
+    'jump3': pygame.K_UP,
+    'shockwave1': pygame.K_z,
+    'shockwave2': pygame.K_f,
+    'shockwave3': pygame.K_RSHIFT,
+    'interact1': pygame.K_x,
+    'interact2': pygame.K_e,
+    'interact3': pygame.K_SLASH,
+    'delete_card1': pygame.K_q,
+    'delete_card2': pygame.K_PERIOD
 }
 
 controls = {

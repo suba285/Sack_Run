@@ -118,9 +118,12 @@ class Game:
             'jump3': 'up key',
             'interact1': 'X',
             'interact2': 'E',
+            'interact3': 'full stop',
             'shockwave1': 'Z',
-            'shockwave2': 'R',
-            'shockwave3': 'F'
+            'shockwave2': 'F',
+            'shockwave3': 'forward slash',
+            'delete_card1': 'Q',
+            'delete_card2': 'right shift'
         }
 
         # controls popup window
