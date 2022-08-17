@@ -9,6 +9,8 @@ button_size = tile_size * 0.75
 sheight = 264
 swidth = 352
 
+# this file is a total mess, you have been warned
+
 
 class SettingsMenu:
     def __init__(self, controls, settings_counters, resolutions, recommended_res_counter):
@@ -71,6 +73,9 @@ class SettingsMenu:
         # variables ----------------------------------------------------------------------------------------------------
         self.controls = controls
         self.recommended_res_counter = recommended_res_counter
+        self.keyboard_highlight_counter = 60
+        self.keyboard_highlight_off = False
+        self.keyboard_bg_alpha = 100
 
         # major surfaces -----------------------------------------------------------------------------------------------
         self.control_screen = pygame.Surface((swidth, 220))
@@ -137,6 +142,12 @@ class SettingsMenu:
         self.perf_message1 = Text().make_text(["Use 'fast' mode only if your computer"])
         self.perf_message2 = Text().make_text(["is an utter potato."])
 
+        # sound settings
+        self.volume_txt = Text().make_text(['music volume:'])
+        self.volume_conf1 = Text().make_text(['off'])
+        self.volume_conf2 = Text().make_text(['normal'])
+        self.volume_conf3 = Text().make_text(['deafening'])
+
         self.keyboard_walk_conf = keyboard_walk1
         self.keyboard_jump_conf = keyboard_jump1
         self.keyboard_shockwave_conf = keyboard_shockwave1
@@ -152,12 +163,15 @@ class SettingsMenu:
         self.resolution_counter_check = 1
         self.performance_counter = settings_counters['performance']
 
+        self.volume_counter = settings_counters['music_volume']
+
         self.settings_counters = settings_counters
 
         # button positional variables and other ------------------------------------------------------------------------
         gap = 30
         self.gap = 30
         control_button_start_y = 13
+        self.vis_sound_button_start_y = 33
         self.button_start_y = control_button_start_y
         interbutton_space = 120
 
@@ -251,19 +265,47 @@ class SettingsMenu:
         self.visual_btn = Button(117, 0, self.visual_button_dark, self.visual_button_over,
                                  self.visual_button_dark)
 
-        self.resolution_btn_left = Button(self.center + 10, 33 + gap,
+        self.resolution_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap,
                                           self.left_button, self.left_button_press, self.left_button_down)
-        self.resolution_btn_right = Button(self.center + interbutton_space, 33 + gap,
+        self.resolution_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap,
                                            self.right_button, self.right_button_press, self.right_button_down)
-        self.performance_btn_left = Button(self.center + 10, 33 + gap * 2,
+        self.performance_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap * 2,
                                            self.left_button, self.left_button_press, self.left_button_down)
-        self.performance_btn_right = Button(self.center + interbutton_space, 33 + gap * 2,
+        self.performance_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap * 2,
                                             self.right_button, self.right_button_press, self.right_button_down)
 
+        self.volume_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap,
+                                      self.left_button, self.left_button_press, self.left_button_down)
+        self.volume_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap,
+                                       self.right_button, self.right_button_press, self.right_button_down)
+
+        self.keyboard_control_box1 = (self.center + 2, control_button_start_y + gap,
+                                      interbutton_space + tile_size * 0.75, tile_size)
+        self.keyboard_control_box_mould = pygame.Surface((interbutton_space + tile_size, tile_size))
+
+        self.keyboard_control_box1 = self.keyboard_control_box_mould.get_rect()
+        self.keyboard_control_box1.x = self.center + 6
+        self.keyboard_control_box1.y = control_button_start_y + gap - 4
+
+        self.keyboard_control_box2 = self.keyboard_control_box_mould.get_rect()
+        self.keyboard_control_box2.x = self.center + 6
+        self.keyboard_control_box2.y = control_button_start_y + gap * 2 - 4
+
+        self.keyboard_control_box3 = self.keyboard_control_box_mould.get_rect()
+        self.keyboard_control_box3.x = self.center + 6
+        self.keyboard_control_box3.y = control_button_start_y + gap * 3 - 4
+
+        self.keyboard_control_box4 = self.keyboard_control_box_mould.get_rect()
+        self.keyboard_control_box4.x = self.center + 6
+        self.keyboard_control_box4.y = control_button_start_y + gap * 4 - 4
+
         # --------------------------------------------------------------------------------------------------------------
-    def draw_settings_menu(self, settings_screen, mouse_adjustment, events):
+    def draw_settings_menu(self, settings_screen, mouse_adjustment, events, fps_adjust):
         settings_screen.fill((0, 0, 0))
         settings_screen.blit(self.menu_background, (0, 0))
+
+        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = (mouse_pos[0]/mouse_adjustment, mouse_pos[1]/mouse_adjustment)
 
         self.control_screen.blit(self.menu_background, (0, 20))
         self.sound_screen.blit(self.menu_background, (0, 20))
@@ -283,6 +325,9 @@ class SettingsMenu:
         perf_left_press = False
         perf_right_press = False
 
+        vol_left_press = False
+        vol_right_press = False
+
         final_over1 = False
         final_over2 = False
 
@@ -298,9 +343,16 @@ class SettingsMenu:
 
         menu_press = False
 
+        control_box1_over = False
+        control_box2_over = False
+        control_box3_over = False
+        control_box4_over = False
+
         control_btn_trigger = False
         visual_btn_trigger = False
         sound_btn_trigger = False
+
+        self.keyboard_highlight_counter += 1 * fps_adjust
 
         # drawing and updating the menu/back button --------------------------------------------------------------------
         menu_press, over = self.menu_btn.draw_button(settings_screen, False, mouse_adjustment, events)
@@ -419,6 +471,53 @@ class SettingsMenu:
             else:
                 self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row4_y))
 
+            if self.keyboard_control_box1.collidepoint(mouse_pos):
+                control_box1_over = True
+
+            if self.keyboard_control_box2.collidepoint(mouse_pos):
+                control_box2_over = True
+
+            if self.keyboard_control_box3.collidepoint(mouse_pos):
+                control_box3_over = True
+
+            if self.keyboard_control_box4.collidepoint(mouse_pos):
+                control_box4_over = True
+
+            if control_box1_over:
+                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(255)
+                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays[f'shockwave{self.shockwave_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays[f'interact{self.interaction_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_highlight_off = False
+
+            elif control_box2_over:
+                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(255)
+                self.keyboard_overlays[f'shockwave{self.shockwave_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays[f'interact{self.interaction_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_highlight_off = False
+
+            elif control_box3_over:
+                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays[f'shockwave{self.shockwave_counter}'].set_alpha(255)
+                self.keyboard_overlays[f'interact{self.interaction_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_highlight_off = False
+
+            elif control_box4_over:
+                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays[f'shockwave{self.shockwave_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays[f'interact{self.interaction_counter}'].set_alpha(255)
+                self.keyboard_highlight_off = False
+
+            elif not self.keyboard_highlight_off:
+                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(255)
+                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(255)
+                self.keyboard_overlays[f'shockwave{self.shockwave_counter}'].set_alpha(255)
+                self.keyboard_overlays[f'interact{self.interaction_counter}'].set_alpha(255)
+                self.keyboard_highlight_off = True
+
         # adjusting control counters if buttons are pressed ------------------------------------------------------------
         if walking_left_press and self.walk_counter > 1:
             self.walk_counter -= 1
@@ -447,6 +546,7 @@ class SettingsMenu:
             self.controls['jump'] = self.nums_to_btns[f'jump{self.jump_counter}']
             self.controls['interact'] = self.nums_to_btns[f'interact{self.interaction_counter}']
             self.controls['shockwave'] = self.nums_to_btns[f'shockwave{self.shockwave_counter}']
+            self.controls['bin_card'] = self.nums_to_btns[f'delete_card{self.walk_counter}']
 
         # VISUAL SETTINGS SCREEN =======================================================================================
         self.visual_screen.blit(self.resolution_txt,
@@ -521,6 +621,39 @@ class SettingsMenu:
             self.performance_counter -= 1
         if perf_right_press and self.performance_counter < 2:
             self.performance_counter += 1
+
+        # SOUND SETTINGS SCREEN ========================================================================================
+        self.sound_screen.blit(self.volume_txt,
+                               (self.center - 10 - self.volume_txt.get_width(), 40 + self.gap))
+
+        if self.volume_counter == 1:
+            vol_text = self.volume_conf1
+        elif self.volume_counter == 2:
+            vol_text = self.volume_conf2
+        else:
+            vol_text = self.volume_conf3
+
+        if not self.draw_sound_screen:
+            if self.volume_counter > 1:
+                vol_left_press, over1 = self.volume_btn_left.draw_button(self.sound_screen,
+                                                                         False, mouse_adjustment, events)
+            else:
+                self.sound_screen.blit(self.left_button_grey,
+                                       (self.left_btn_x, self.vis_sound_button_start_y + self.gap))
+            if self.volume_counter < 3:
+                vol_right_press, over2 = self.volume_btn_right.draw_button(self.sound_screen,
+                                                                           False, mouse_adjustment, events)
+            else:
+                self.sound_screen.blit(self.right_button_grey,
+                                       (self.right_btn_x, self.vis_sound_button_start_y + self.gap))
+
+            self.sound_screen.blit(vol_text, (button_text_center - vol_text.get_width() / 2 + button_size / 2,
+                                              self.vis_sound_button_start_y + self.gap + 7))
+
+        if vol_left_press and self.volume_counter > 1:
+            self.volume_counter -= 1
+        if vol_right_press and self.volume_counter < 3:
+            self.volume_counter += 1
 
         # screen managing ==============================================================================================
         if not self.draw_control_screen:

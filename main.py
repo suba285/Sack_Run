@@ -137,7 +137,7 @@ level_selection = False
 draw_hitbox = False
 draw_fps_counter = True
 play_background_music = False
-play_sounds = False
+play_sounds = True
 
 last_mouse_pos = pygame.mouse.get_pos()
 mouse_still_count = 0
@@ -218,10 +218,8 @@ controls = {
     'jump': controls_nums[f"jump{settings_counters['jumping']}"],
     'interact': controls_nums[f"interact{settings_counters['interaction']}"],
     'shockwave': controls_nums[f"shockwave{settings_counters['shockwave']}"],
-    'bin_card': pygame.K_q,
+    'bin_card': controls_nums[f"delete_card{settings_counters['walking']}"],
 }
-
-control_counters = [1, 1, 1, 1]
 
 # custom cursor setup --------------------------------------------------------------------------------------------------
 pygame.mouse.set_visible(False)
@@ -238,8 +236,8 @@ mouse_vis = True
 show_cursor = True
 
 # initiating classes ---------------------------------------------------------------------------------------------------
-world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls)
-main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, control_counters)
+world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls, settings_counters)
+main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, settings_counters)
 main_menu = mainMenu(screen)
 pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
@@ -270,6 +268,7 @@ while run:
     events = pygame.event.get()
 
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+    key = pygame.key.get_pressed()
 
     screen.blit(background, (0, 0))
 
@@ -334,7 +333,7 @@ while run:
         if play:
             if real_fps < 30:
                 slow_computer = True
-            main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, control_counters)
+            main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, settings_counters)
             play = False
 
         run_menu = False
@@ -358,7 +357,7 @@ while run:
         if play_music_trigger:
             play_music = True
 
-        if menu_press:
+        if menu_press or key[pygame.K_ESCAPE]:
             run_menu = False
             run_game = False
             paused = True
@@ -410,7 +409,7 @@ while run:
             level_count = 1
             world_data = level_dictionary[f'level1_{world_count}']
             bg_data = level_bg_dictionary[f'level1_{world_count}_bg']
-            world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls)
+            world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls, settings_counters)
             run_level_selection = False
             menu_transition = True
             menu_transition_counter = 0
@@ -431,7 +430,7 @@ while run:
             current_resolution,\
             adjust_resolution,\
             control_counters,\
-            settings_counters = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events)
+            settings_counters = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events, fps_adjust)
 
         if performance_counter == 1:
             slow_computer = False

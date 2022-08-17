@@ -12,7 +12,7 @@ card_tile_size = 2 * tile_size
 
 
 class eqManager:
-    def __init__(self, eq_list, controls):
+    def __init__(self, eq_list, controls, walk_counter):
         self.jump_boost_trigger = False
         self.regeneration_trigger = False
         self.no_gravity_trigger = False
@@ -20,6 +20,7 @@ class eqManager:
         self.shockwave_trigger = False
 
         self.controls = controls
+        self.card_delete_counter = walk_counter
 
         self.y = 264 - 2*tile_size
         num_cards = len(eq_list)
@@ -46,6 +47,8 @@ class eqManager:
         self.mouse_press = img_loader('data/images/mouse_press.PNG', tile_size / 2, tile_size)
         self.key_q = img_loader('data/images/key_q.PNG', tile_size / 2, tile_size / 2)
         self.key_q_press = img_loader('data/images/key_q_press.PNG', tile_size / 2, tile_size / 2)
+        self.key_full_stop = img_loader('data/images/key_full_stop.PNG', tile_size / 2, tile_size / 2)
+        self.key_full_stop_press = img_loader('data/images/key_full_stop_press.PNG', tile_size / 2, tile_size / 2)
         self.use_text = img_loader('data/images/text_use.PNG', tile_size / 2, tile_size / 2)
         self.bin_text = img_loader('data/images/text_bin.PNG', tile_size / 2, tile_size / 2)
 
@@ -83,7 +86,7 @@ class eqManager:
 
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
     def draw_eq(self, screen, eq_list, mouse_adjustement, events, power_list, tutorial, fps_adjust, level_count,
-                blit_card_instructions):
+                blit_card_instructions, health):
 
         self.jump_boost_trigger = False
         self.regeneration_trigger = False
@@ -159,7 +162,6 @@ class eqManager:
                     paper_sound_trigger = True
 
             if local_over:
-                print(self.eq_button_counter)
                 if self.eq_button_counter == 1:
                     over1 = True
                 if self.eq_button_counter == 2:
@@ -175,15 +177,20 @@ class eqManager:
         if tutorial and self.eq_button_list and level_count != 3 and blit_card_instructions:
             gap = 3
             img = self.mouse3
+            if self.card_delete_counter == 1:
+                delete_key_images = (self.key_q, self.key_q_press)
+            else:
+                delete_key_images = (self.key_full_stop, self.key_full_stop_press)
+
             if over:
                 if self.press_counter >= 30:
                     img = self.mouse_press
-                    key_img = self.key_q_press
+                    key_img = delete_key_images[1]
                     if self.press_counter >= 40:
                         self.press_counter = 0
                 else:
                     img = self.mouse3
-                    key_img = self.key_q
+                    key_img = delete_key_images[0]
 
                 center_width = swidth / 2
                 center_height = sheight / 3 - tile_size / 2 + tile_size / 4
@@ -211,8 +218,8 @@ class eqManager:
                     img = self.mouse1
                 else:
                     img = self.mouse0
-
-                screen.blit(img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
+                if health > 1:
+                    screen.blit(img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
 
         return eq_list, self.jump_boost_trigger, self.regeneration_trigger, self.no_gravity_trigger,\
                self.no_harm_trigger, self.shockwave_trigger, over, power_list, paper_sound_trigger

@@ -39,7 +39,7 @@ def key_animation(img1, img2, counter, fps_adjust):
 
 
 class World:
-    def __init__(self, data, screen, slow_computer, start_x, start_y, bg_data, controls):
+    def __init__(self, data, screen, slow_computer, start_x, start_y, bg_data, controls, settings_counters):
 
         if slow_computer:
             self.fps_adjust = 0.5
@@ -47,6 +47,7 @@ class World:
             self.fps_adjust = 1
 
         self.controls = controls
+        self.settings_counters = settings_counters
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.tile_list = []
@@ -240,6 +241,18 @@ class World:
 
         self.key_x = img_loader('data/images/key_x.PNG', tile_size / 2, tile_size / 2)
         self.key_x_press = img_loader('data/images/key_x_press.PNG', tile_size / 2, tile_size / 2)
+
+        key_images = {
+            'interact1': img_loader('data/images/key_x.PNG', tile_size / 2, tile_size / 2),
+            'interact1_press': img_loader('data/images/key_x_press.PNG', tile_size / 2, tile_size / 2),
+            'interact2': img_loader('data/images/key_e.PNG', tile_size / 2, tile_size / 2),
+            'interact2_press': img_loader('data/images/key_e_press.PNG', tile_size / 2, tile_size / 2),
+            'interact3': img_loader('data/images/key_slash.PNG', tile_size / 2, tile_size / 2),
+            'interact3_press': img_loader('data/images/key_slash_press.PNG', tile_size / 2, tile_size / 2)
+        }
+
+        self.interaction_key = key_images[f'interact{settings_counters["interaction"]}']
+        self.interaction_key_press = key_images[f'interact{settings_counters["interaction"]}_press']
 
         # text ---------------------------------------------------------------------------------------------------------
         eq_full_text = Text()
@@ -739,7 +752,8 @@ class World:
             screen.blit(output, tile[1])
             if tutorial and tile[0] != self.mushroom_dirt and health == 1:
                 if tile[1].colliderect(sack_rect):
-                    self.key_press_counter, img = key_animation(self.key_x, self.key_x_press, self.key_press_counter,
+                    self.key_press_counter, img = key_animation(self.interaction_key, self.interaction_key_press,
+                                                                self.key_press_counter,
                                                                 fps_adjust)
                     screen.blit(img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 4))
                 screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size / 2))
@@ -858,7 +872,7 @@ class World:
             screen.blit(output, tile[1])
             if tutorial and tile[0] != self.chest2 and not tile[4]:
                 if tile[1].colliderect(sack_rect):
-                    self.key_press_counter, img = key_animation(self.key_x, self.key_x_press, self.key_press_counter,
+                    self.key_press_counter, img = key_animation(self.interaction_key, self.interaction_key_press, self.key_press_counter,
                                                                 fps_adjust)
                     screen.blit(img, (swidth/2 - tile_size/4, sheight/3 - tile_size/4))
                 screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size / 2))

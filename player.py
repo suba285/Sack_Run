@@ -163,7 +163,7 @@ def health_bar_particles(screen, fps_adjust, health_bar_part_list,
 # ======================================================================================================================
 
 class Player:
-    def __init__(self, x, y, screen, controls):
+    def __init__(self, x, y, screen, controls, settings_counters):
         # player sprite assets -----------------------------------------------------------------------------------------
         self.sack0f = img_loader('data/images/sack0.PNG', player_size_x, player_size_y)
         self.sack1f = img_loader('data/images/sack1.PNG', player_size_x, player_size_y)
@@ -189,13 +189,18 @@ class Player:
         self.sack_rect.x = x
         self.sack_rect.y = y
         self.speed = 4
+        self.slide = 0.3
         self.sack_width = self.sack0f.get_width()
         self.sack_height = self.sack0f.get_height()
         self.vel_y = 0
+        self.vel_x_l = 0
+        self.vel_x_r = 0
+        self.vel_x = 0
         self.jumped = False
         self.sack_offset = 0
 
         self.controls = controls
+        self.settings_counters = settings_counters
 
         # player sprite death animation frames -------------------------------------------------------------------------
         self.dead1 = img_loader('data/images/dead_sack1.PNG', tile_size, tile_size)
@@ -298,14 +303,29 @@ class Player:
         self.left_col = False
         self.col_types = {'left': False, 'right': False, 'top': False, 'bottom': False}
 
+        # --------------------------------------------------------------------------------------------------------------
         self.camera_movement_x = 0
         self.camera_movement_y = 0
 
+        # --------------------------------------------------------------------------------------------------------------
         self.health_bar_part_list = []
         self.new_health_particles = False
         self.health_part_x = 0
         self.health_part_y = 14
         self.power_indicator_list = []
+
+        self.hands_on_keyboard_counter = 0
+        self.hands_on_keyboard_surf = pygame.Surface((tile_size * 2, tile_size * 1.5))
+        self.hands_on_keyboard_surf.set_colorkey((0, 0, 0))
+
+        self.draw_hands_on_keyboard = False
+
+        # power particle variables -------------------------------------------------------------------------------------
+        self.power_particle_surface = pygame.Surface((swidth, sheight))
+        self.power_particle_surface.set_alpha(170)
+        self.power_particle_list = []
+        self.power_particle_counter = 0
+        self.particle_colour = (255, 255, 255)
 
         # map borders --------------------------------------------------------------------------------------------------
         self.right_border = 0
@@ -336,6 +356,65 @@ class Player:
         self.key_a_press = img_loader('data/images/key_a_press.PNG', tile_size / 2, tile_size / 2)
         self.key_d = img_loader('data/images/key_d.PNG', tile_size / 2, tile_size / 2)
         self.key_d_press = img_loader('data/images/key_d_press.PNG', tile_size / 2, tile_size / 2)
+        self.key_e = img_loader('data/images/key_e.PNG', tile_size / 2, tile_size / 2)
+        self.key_e_press = img_loader('data/images/key_e_press.PNG', tile_size / 2, tile_size / 2)
+        self.key_slash = img_loader('data/images/key_slash.PNG', tile_size / 2, tile_size / 2)
+        self.key_slash_press = img_loader('data/images/key_slash_press.PNG', tile_size / 2, tile_size / 2)
+        self.key_w = img_loader('data/images/key_w.PNG', tile_size / 2, tile_size / 2)
+        self.key_w_press = img_loader('data/images/key_w_press.PNG', tile_size / 2, tile_size / 2)
+        self.key_up = img_loader('data/images/key_up.PNG', tile_size / 2, tile_size / 2)
+        self.key_up_press = img_loader('data/images/key_up_press.PNG', tile_size / 2, tile_size / 2)
+        self.key_f = img_loader('data/images/key_f.PNG', tile_size / 2, tile_size / 2)
+        self.key_f_press = img_loader('data/images/key_f_press.PNG', tile_size / 2, tile_size / 2)
+        self.key_shift = img_loader('data/images/key_shift.PNG', tile_size, tile_size / 2)
+        self.key_shift_press = img_loader('data/images/key_shift_press.PNG', tile_size, tile_size / 2)
+
+        self.hand_keyboard = img_loader('data/images/hand_keyboard.PNG', tile_size * 2, tile_size)
+        self.hand_mouse1 = img_loader('data/images/hand_mouse1.PNG', tile_size * 0.75, tile_size * 0.75)
+        self.hand_mouse2 = img_loader('data/images/hand_mouse2.PNG', tile_size * 0.75, tile_size * 0.75)
+
+        self.key_images = {
+            'left1': self.key_a,
+            'left2': self.key_left,
+            'right1': self.key_d,
+            'right2': self.key_right,
+            'left1_press': self.key_a_press,
+            'left2_press': self.key_left_press,
+            'right1_press': self.key_d_press,
+            'right2_press': self.key_right_press,
+            'interact1': self.key_x,
+            'interact2': self.key_e,
+            'interact3': self.key_slash,
+            'interact1_press': self.key_x_press,
+            'interact2_press': self.key_e_press,
+            'interact3_press': self.key_slash_press,
+            'jump1': self.key_space,
+            'jump2': self.key_w,
+            'jump3': self.key_up,
+            'jump1_press': self.key_space_press,
+            'jump2_press': self.key_w_press,
+            'jump3_press': self.key_up_press,
+            'shockwave1': self.key_z,
+            'shockwave2': self.key_f,
+            'shockwave3': self.key_shift,
+            'shockwave1_press': self.key_z_press,
+            'shockwave2_press': self.key_f_press,
+            'shockwave3_press': self.key_shift_press,
+        }
+
+        self.left_key_image = self.key_images[f'left{settings_counters["walking"]}']
+        self.right_key_image = self.key_images[f'right{settings_counters["walking"]}']
+        self.left_key_press_image = self.key_images[f'left{settings_counters["walking"]}_press']
+        self.right_key_press_image = self.key_images[f'right{settings_counters["walking"]}_press']
+
+        self.interact_image = self.key_images[f'interact{settings_counters["interaction"]}']
+        self.interact_image_press = self.key_images[f'interact{settings_counters["interaction"]}_press']
+
+        self.jump_image = self.key_images[f'jump{settings_counters["jumping"]}']
+        self.jump_image_press = self.key_images[f'jump{settings_counters["jumping"]}_press']
+
+        self.shockwave_image = self.key_images[f'shockwave{settings_counters["shockwave"]}']
+        self.shockwave_image_press = self.key_images[f'shockwave{settings_counters["shockwave"]}_press']
 
         self.mouse0 = img_loader('data/images/mouse0.PNG', tile_size / 2, tile_size)
         self.mouse1 = img_loader('data/images/mouse1.PNG', tile_size / 2, tile_size)
@@ -369,6 +448,16 @@ class Player:
 
         dx = 0
         dy = 0
+
+        if self.vel_x_l < 0:
+            self.vel_x_l += self.slide * fps_adjust
+        else:
+            self.vel_x_l = 0
+
+        if self.vel_x_r > 0:
+            self.vel_x_r -= self.slide * fps_adjust
+        else:
+            self.vel_x_r = 0
 
         self.restart_level = False
 
@@ -430,12 +519,43 @@ class Player:
         # updating special power cards counters ------------------------------------------------------------------------
         if self.jump_boost:
             self.jump_boost_counter += 1*fps_adjust
+            self.particle_colour = (67, 124, 94)
+            x_value = int(self.sack_rect.x)
+            y_value = int(self.sack_rect.y)
+            self.power_particle_list.append([random.randrange(x_value, x_value + self.sack_width),
+                                             random.randrange(y_value, y_value + self.sack_height),
+                                             random.randrange(6, 14),
+                                             self.particle_colour])
         if self.regeneration:
             self.regeneration_counter += 1*fps_adjust
+            self.particle_colour = (215, 24, 70)
+            x_value = int(self.sack_rect.x)
+            y_value = int(self.sack_rect.y)
+            self.power_particle_list.append([random.randrange(x_value, x_value + self.sack_width),
+                                             random.randrange(y_value, y_value + self.sack_height),
+                                             random.randrange(6, 14),
+                                             self.particle_colour])
         if self.no_gravity:
             self.no_gravity_counter += 1*fps_adjust
+            self.particle_colour = (70, 161, 193)
+            x_value = int(self.sack_rect.x)
+            y_value = int(self.sack_rect.y)
+            self.power_particle_list.append([random.randrange(x_value, x_value + self.sack_width),
+                                             random.randrange(y_value, y_value + self.sack_height),
+                                             random.randrange(6, 14),
+                                             self.particle_colour])
         if self.no_harm:
             self.no_harm_counter += 1*fps_adjust
+            self.particle_colour = (191, 117, 213)
+            x_value = int(self.sack_rect.x)
+            y_value = int(self.sack_rect.y)
+            self.power_particle_list.append([random.randrange(x_value, x_value + self.sack_width),
+                                             random.randrange(y_value, y_value + self.sack_height),
+                                             random.randrange(6, 14),
+                                             self.particle_colour])
+
+        if self.jump_boost or self.regeneration or self.no_gravity or self.no_harm:
+            self.power_particle_counter += 1 * fps_adjust
 
         # special power cards duration counters ------------------------------------------------------------------------
         if self.jump_boost_counter >= self.jump_boost_duration:
@@ -572,21 +692,24 @@ class Player:
                     else:
                         self.sack_img = self.sack_jump3b
 
+            walking_left = False
+            walking_right = False
+
             # walking left
             if key[self.controls['left']]:
                 self.player_moved = True
-                if not slow_computer:
-                    self.speed_adder += 0.1
-                    self.speed += self.speed_adder
-                    if self.speed > 2.8:
-                        self.speed = 2.8*fps_adjust
-                else:
-                    self.speed = 2.8*fps_adjust
+                walking_left = True
+                self.speed_adder += 0.1 * fps_adjust
+                self.speed += self.speed_adder
+                if self.speed > 2.5:
+                    self.speed = 2.5 * fps_adjust
                 dx -= self.speed
+                self.vel_x_l = dx
+                self.vel_x_r = 0
                 self.direction = 0
                 self.teleport_count = 0
                 if self.animate_walk:
-                    self.walk_counter += 0.9*fps_adjust
+                    self.walk_counter += 0.9 * fps_adjust
                     if self.walk_counter > 20:
                         self.walk_counter = 0
                     elif self.walk_counter > 15:
@@ -598,20 +721,20 @@ class Player:
                     else:
                         self.sack_img = self.sack0b
             # walking right
-            elif key[self.controls['right']]:
+            if key[self.controls['right']]:
                 self.player_moved = True
-                if not slow_computer:
-                    self.speed_adder += 0.1
-                    self.speed += self.speed_adder
-                    if self.speed > 2.8:
-                        self.speed = 2.8 * fps_adjust
-                else:
-                    self.speed = 2.8 * fps_adjust
+                walking_right = True
+                self.speed_adder += 0.1 * fps_adjust
+                self.speed += self.speed_adder
+                if self.speed > 2.5:
+                    self.speed = 2.5 * fps_adjust
                 dx += self.speed
+                self.vel_x_r = dx
+                self.vel_x_l = 0
                 self.teleport_count = 0
                 self.direction = 1
                 if self.animate_walk:
-                    self.walk_counter += 0.9*fps_adjust
+                    self.walk_counter += 0.9 * fps_adjust
                     if self.walk_counter > 20:
                         self.walk_counter = 0
                     elif self.walk_counter > 15:
@@ -623,9 +746,14 @@ class Player:
                     else:
                         self.sack_img = self.sack0f
 
-            else:
+            if not walking_right and not walking_left:
                 self.speed = 0
                 self.speed_adder = 0
+
+            if walking_right and walking_left:
+                self.speed = 0
+                self.speed_adder = 0
+                self.walk_counter = 0
 
         # respawn at the beginning of the level and transition
         if pygame.mouse.get_pressed()[0] and self.dead and self.dead_counter >= 36 and not self.restart_trigger:
@@ -668,8 +796,9 @@ class Player:
 
         # collision detection and position -----------------------------------------------------------------------------
         hit_list_x = []
+        self.vel_x = self.vel_x_l + self.vel_x_r
         temp_rect = self.sack_rect
-        temp_rect.x += (dx + 0.5)
+        temp_rect.x += (self.vel_x + 0.5)
 
         if self.dead:
             x_adjust = 15
@@ -679,26 +808,34 @@ class Player:
             sack_width = self.sack_width
 
         for tile in tile_list:
-            if tile[1].colliderect(self.sack_rect.x + x_adjust, self.sack_rect.y, sack_width, self.sack_height):
+            if tile[1].colliderect(temp_rect.x + x_adjust, temp_rect.y, sack_width, self.sack_height):
                 hit_list_x.append(tile)
 
         if self.sack_rect.x + 20 > self.right_border:
-            if dx > 0:
+            if self.vel_x > 0:
                 dx = 0
+                self.vel_x_r = 0
+                self.vel_x = 0
                 self.sack_rect.x = self.right_border - 20
         if self.sack_rect.x < self.left_border:
-            if dx < 0:
+            if self.vel_x < 0:
                 dx = 0
+                self.vel_x_l = 0
+                self.vel_x = 0
                 self.sack_rect.x = self.left_border
 
         for tile in hit_list_x:
-            if dx > 0:
+            if self.vel_x > 0:
                 self.sack_rect.right = tile[1].left
                 dx = 0
+                self.vel_x = 0
+                self.vel_x_r = 0
                 self.col_types['right'] = True
-            if dx < 0:
+            if self.vel_x < 0:
                 self.sack_rect.left = tile[1].right
                 dx = 0
+                self.vel_x = 0
+                self.vel_x_l = 0
                 self.col_types['left'] = True
 
         hit_list_y = []
@@ -742,7 +879,7 @@ class Player:
                                            self.camera_movement_x, self.camera_movement_y)
 
         # updating player coordinates ----------------------------------------------------------------------------------
-        self.camera_movement_x = round(-dx)
+        self.camera_movement_x = round(-self.vel_x)
         dx = 0
         if self.sack_rect.y > 190 and dy > 0:
             self.camera_movement_y = round(-dy)
@@ -844,6 +981,18 @@ class Player:
         else:
             self.blit_plr = True
 
+        # power particles
+        self.power_particle_surface.fill((0, 0, 0))
+
+        for particle in self.power_particle_list:
+            particle[2] -= 0.3
+            particle[0] += self.camera_movement_x
+            particle[1] += self.camera_movement_y
+            pygame.draw.circle(self.power_particle_surface, particle[3], (particle[0], particle[1]), particle[2])
+
+        self.power_particle_surface.set_colorkey((0, 0, 0))
+        screen.blit(self.power_particle_surface, (0, 0))
+
         # drawing player onto the screen
         if self.blit_plr:
             screen.blit(self.sack_img, (self.sack_rect.x - self.sack_offset, self.sack_rect.y))
@@ -852,7 +1001,6 @@ class Player:
         if self.regeneration:
             self.health = 2
             self.regeneration_counter += (1 * fps_adjust)/4
-            magic_animation(self, screen, self.regeneration_counter, particle_x)
             if self.regeneration_counter > 60:
                 self.regeneration = False
                 self.regeneration_counter = 0
@@ -889,7 +1037,7 @@ class Player:
             screen.blit(img, (swidth / 2 - tile_size, sheight / 3 - (tile_size / 2)))
 
 # draws control instruction buttons ------------------------------------------------------------------------------------
-    def draw_inst_buttons(self, screen, fps_adjust, level_count):
+    def draw_inst_buttons(self, screen, fps_adjust, level_count, world_count):
         self.inst_mouse_counter += 1 * fps_adjust
         self.inst_button_counter += 1 * fps_adjust
 
@@ -914,31 +1062,41 @@ class Player:
             else:
                 mouse_img = self.mouse0
             # controls: buttons
-            key_left = self.key_a
-            key_right = self.key_d
-            key_x = self.key_x
-            key_z = self.key_z
-            key_space = self.key_space
+            key_left = self.left_key_image
+            key_right = self.right_key_image
+            key_x = self.interact_image
+            key_z = self.shockwave_image
+            key_space = self.jump_image
             if self.inst_button_counter > 250:
                 self.inst_button_counter = 0
             elif 220 + key_press_len > self.inst_button_counter > 220:
-                key_x = self.key_x_press
+                key_x = self.interact_image_press
             elif 170 + key_press_len > self.inst_button_counter > 170:
-                key_z = self.key_z_press
+                key_z = self.shockwave_image_press
             elif 120 + key_press_len > self.inst_button_counter > 120:
-                key_space = self.key_space_press
+                key_space = self.jump_image_press
             elif 70 + key_press_len > self.inst_button_counter > 70:
-                key_right = self.key_d_press
+                key_right = self.right_key_press_image
             elif 20 + key_press_len > self.inst_button_counter > 20:
-                key_left = self.key_a_press
+                key_left = self.left_key_press_image
+
+            if self.settings_counters['jumping'] == 1:
+                space_size = key_size
+            else:
+                space_size = 0
+
+            if self.settings_counters['shockwave'] == 3:
+                shock_size = key_size
+            else:
+                shock_size = 0
 
             # blitting the controls onto the screen (I could've done it a better way)
             screen.blit(key_z, (first_key_x, y))
-            screen.blit(key_x, (first_key_x + key_size + gap, y))
-            screen.blit(key_space, (first_key_x + (2 * key_size) + (2 * gap), y))
-            screen.blit(key_left, (first_key_x + (4 * key_size) + (3 * gap), y))
-            screen.blit(key_right, (first_key_x + (5 * key_size) + (4 * gap), y))
-            screen.blit(mouse_img, (first_key_x + (6 * key_size) + (6 * gap), y - 5))
+            screen.blit(key_x, (first_key_x + key_size + shock_size + gap, y))
+            screen.blit(key_space, (first_key_x + (2 * key_size + shock_size) + (2 * gap), y))
+            screen.blit(key_left, (first_key_x + (3 * key_size + space_size + shock_size) + (3 * gap), y))
+            screen.blit(key_right, (first_key_x + (4 * key_size + space_size + shock_size) + (4 * gap), y))
+            screen.blit(mouse_img, (first_key_x + (5 * key_size + space_size + shock_size) + (6 * gap), y - 5))
 
         if level_count == 1 and not self.first_power_jump and self.jump_boost:
             if self.inst_button_counter >= 30:
@@ -949,4 +1107,24 @@ class Player:
                 img = self.key_space
 
             screen.blit(img, (swidth/2 - tile_size/2, sheight/3 - tile_size/4))
+
+        if not self.player_moved and world_count == 1 and level_count == 1 and self.draw_hands_on_keyboard:
+            self.hands_on_keyboard_counter += 1
+            hand_mouse_img = self.hand_mouse1
+            if self.hands_on_keyboard_counter >= 40:
+                if self.hands_on_keyboard_counter <= 50:
+                    hand_mouse_img = self.hand_mouse2
+                else:
+                    self.hands_on_keyboard_counter = 0
+
+            self.hands_on_keyboard_surf.blit(self.hand_keyboard, (0, 0))
+            self.hands_on_keyboard_surf.blit(hand_mouse_img, (42, 15))
+
+            hands_on_keyboard_final = self.hands_on_keyboard_surf
+
+            if self.settings_counters['walking'] == 2:
+                hands_on_keyboard_final = pygame.transform.flip(self.hands_on_keyboard_surf, True, False)
+
+            screen.blit(hands_on_keyboard_final,
+                        (swidth / 2 - hands_on_keyboard_final.get_width() / 2, sheight / 4 - 10))
 

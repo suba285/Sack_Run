@@ -86,7 +86,7 @@ class LevelDisplay:
 
 
 class Game:
-    def __init__(self, x, y, slow_computer, screen, world_data, bg_data, controls, world_count, control_counters):
+    def __init__(self, x, y, slow_computer, screen, world_data, bg_data, controls, world_count, settings_counters):
 
         # loading in images --------------------------------------------------------------------------------------------
         background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
@@ -118,20 +118,25 @@ class Game:
             'jump3': 'up key',
             'interact1': 'X',
             'interact2': 'E',
-            'interact3': 'full stop',
+            'interact3': 'forward slash',
             'shockwave1': 'Z',
             'shockwave2': 'F',
-            'shockwave3': 'forward slash',
+            'shockwave3': 'right shift',
             'delete_card1': 'Q',
-            'delete_card2': 'right shift'
+            'delete_card2': 'full stop'
         }
+
+        walk_counter = settings_counters['walking']
+        jump_counter = settings_counters['jumping']
+        interaction_counter = settings_counters['interaction']
+        shockwave_counter = settings_counters['shockwave']
 
         # controls popup window
         controls_txt = Text().make_text(['CONTROLS'])
-        walking_controls_txt = Text().make_text([f"walking: {self.nums_to_text[f'walk{control_counters[0]}']}"])
-        jumping_controls_txt = Text().make_text([f"jumping: {self.nums_to_text[f'jump{control_counters[1]}']}"])
-        interaction_controls_txt = Text().make_text([f"interaction: {self.nums_to_text[f'interact{control_counters[2]}']}"])
-        shockwave_controls_txt = Text().make_text([f"shockwave: {self.nums_to_text[f'shockwave{control_counters[3]}']}"])
+        walking_controls_txt = Text().make_text([f"walking: {self.nums_to_text[f'walk{walk_counter}']}"])
+        jumping_controls_txt = Text().make_text([f"jumping: {self.nums_to_text[f'jump{jump_counter}']}"])
+        interaction_controls_txt = Text().make_text([f"interaction: {self.nums_to_text[f'interact{interaction_counter}']}"])
+        shockwave_controls_txt = Text().make_text([f"shockwave: {self.nums_to_text[f'shockwave{shockwave_counter}']}"])
         tip1_txt = Text().make_text(['follow the compass in the top-left corner'])
 
         tip2_txt = Text().make_text(['use shockwaves against bees'])
@@ -186,6 +191,7 @@ class Game:
         self.level_check = 1
 
         self.controls = controls
+        self.settings_counters = settings_counters
 
         self.dead = False
 
@@ -235,10 +241,11 @@ class Game:
         self.level_duration_counter = 0
 
         # initiating classes -------------------------------------------------------------------------------------------
-        self.player = Player(x, y, screen, self.controls)
-        self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data, controls)
+        self.player = Player(x, y, screen, self.controls, self.settings_counters)
+        self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data, controls,
+                           settings_counters)
         self.particles = Particles(particle_num, slow_computer)
-        self.eq_manager = eqManager(self.eq_power_list, self.controls)
+        self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
         self.shockwave = Shockwave(screen, controls)
         self.level_display = LevelDisplay(1)
 
@@ -307,28 +314,28 @@ class Game:
             self.restart_level,\
             self.player_moved,\
             new_level_cooldown = self.player.update_pos_animation(screen,
-                                                                 self.tile_list,
-                                                                 self.world,
-                                                                 level_count,
-                                                                 self.trap_harm,
-                                                                 self.bee_harm,
-                                                                 self.spit_harm_left,
-                                                                 self.spit_harm_right,
-                                                                 self.spit_harm_up,
-                                                                 self.health,
-                                                                 fps_adjust,
-                                                                 self.jump_boost_trigger,
-                                                                 self.regeneration_trigger,
-                                                                 self.mush_regeneration_trigger,
-                                                                 self.no_gravity_trigger,
-                                                                 self.no_harm_trigger,
-                                                                 self.shockwave_trigger,
-                                                                 self.left_border,
-                                                                 self.right_border,
-                                                                 slow_computer,
-                                                                 game_counter,
-                                                                 self.move
-                                                                 )
+                                                                  self.tile_list,
+                                                                  self.world,
+                                                                  level_count,
+                                                                  self.trap_harm,
+                                                                  self.bee_harm,
+                                                                  self.spit_harm_left,
+                                                                  self.spit_harm_right,
+                                                                  self.spit_harm_up,
+                                                                  self.health,
+                                                                  fps_adjust,
+                                                                  self.jump_boost_trigger,
+                                                                   self.regeneration_trigger,
+                                                                  self.mush_regeneration_trigger,
+                                                                  self.no_gravity_trigger,
+                                                                  self.no_harm_trigger,
+                                                                  self.shockwave_trigger,
+                                                                  self.left_border,
+                                                                  self.right_border,
+                                                                  slow_computer,
+                                                                  game_counter,
+                                                                  self.move
+                                                                  )
 
         # updating solid tile positions --------------------------------------------------------------------------------
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
@@ -370,7 +377,8 @@ class Game:
         # updating the world data if new level -------------------------------------------------------------------------
         if self.level_check < level_count or self.restart_level:
             world_data, bg_data = Game.level_checker(self, level_count, world_count)
-            self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data, self.controls)
+            self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data, self.controls,
+                               self.settings_counters)
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
             self.particles = Particles(particle_num, slow_computer)
@@ -413,7 +421,7 @@ class Game:
         self.player.blit_respawn_instructions(screen, fps_adjust)
 
         # control instructions -----------------------------------------------------------------------------------------
-        self.player.draw_inst_buttons(screen, fps_adjust, level_count)
+        self.player.draw_inst_buttons(screen, fps_adjust, level_count, world_count)
 
         # eq full message ----------------------------------------------------------------------------------------------
         self.world.draw_eq_full(screen)
@@ -425,9 +433,9 @@ class Game:
 
         if self.restart_level:
             self.eq_power_list = []
-            self.eq_manager = eqManager(self.eq_power_list, self.controls)
+            self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
         if self.reinit_eq:
-            self.eq_manager = eqManager(self.eq_power_list, self.controls)
+            self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
             self.reinit_eq = False
 
         # updating and blitting the card bar ---------------------------------------------------------------------------
@@ -442,14 +450,14 @@ class Game:
                 self.power_list,\
                 play_paper_sound = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment, events,
                                                            self.power_list, tutorial, fps_adjust, level_count,
-                                                           self.blit_card_instructions)
+                                                           self.blit_card_instructions, self.health)
 
         # resetting shockwave ------------------------------------------------------------------------------------------
         if self.shockwave_trigger:
             self.shockwave = Shockwave(screen, self.controls)
 
         # menu button --------------------------------------------------------------------------------------------------
-        menu, home_button_over = self.home_button.draw_button(screen, False, mouse_adjustment, events)
+        menu, game_button_over = self.home_button.draw_button(screen, False, mouse_adjustment, events)
         if menu and not self.menu_fadeout:
             self.menu_fadeout = True
             self.fadeout = True
@@ -459,6 +467,8 @@ class Game:
             self.level_display.draw_level_number(screen, game_counter)
 
         # popup window -------------------------------------------------------------------------------------------------
+        ok_over = False
+
         if self.popup_window_controls:
             self.move = False
             if 0.25 > game_counter > 0:
@@ -499,14 +509,17 @@ class Game:
                              sheight / 2 - popup.get_height() / 2))
 
             if self.level_duration_counter > 1.7:
-                popup_tut_completed_press, lvl_select_over = self.lvl_selection_btn.draw_button(screen,
-                                                                                                False,
-                                                                                                mouse_adjustment,
-                                                                                                events)
+                popup_tut_completed_press, ok_over = self.lvl_selection_btn.draw_button(screen,
+                                                                                        False,
+                                                                                        mouse_adjustment,
+                                                                                        events)
             else:
                 popup_tut_completed_press = False
         else:
             popup_tut_completed_press = False
+
+        if ok_over:
+            game_button_over = True
 
         # new level transition -----------------------------------------------------------------------------------------
         self.player.draw_transition(fps_adjust)
@@ -521,5 +534,5 @@ class Game:
         # pygame.mouse.set_visible(False)
 
         return level_count, menu, play_card_pull_sound, play_lock_sound, play_bear_trap_cling_sound,\
-            play_healing_sound, world_data, self.dead, bg_data, home_button_over, play_paper_sound, self.play_music,\
+            play_healing_sound, world_data, self.dead, bg_data, game_button_over, play_paper_sound, self.play_music,\
             self.fadeout, popup_tut_completed_press
