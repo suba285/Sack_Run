@@ -19,7 +19,7 @@ class Button:
         self.play_over_sound = True
         self.button_down = False
 
-    def draw_button(self, screen, card, mouse_adjustement, events):
+    def draw_button(self, screen, card, mouse_adjustment, events):
         action = False
         self.cursor_over = False
         self.image = self.image1
@@ -29,8 +29,8 @@ class Button:
         # cursor position
         pos = pygame.mouse.get_pos()
 
-        if self.image_rect.collidepoint((pos[0]/mouse_adjustement,
-                                         pos[1]/mouse_adjustement)) and pygame.mouse.get_focused():
+        if self.image_rect.collidepoint((pos[0] / mouse_adjustment,
+                                         pos[1] / mouse_adjustment)) and pygame.mouse.get_focused():
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             self.image = self.image2
             self.cursor_over = True
@@ -53,4 +53,15 @@ class Button:
         screen.blit(self.image, self.image_rect)
 
         return action, self.cursor_over
+
+
+def inactive_button(x, y, image, mouse_adjustment):
+    # cursor position
+    pos = pygame.mouse.get_pos()
+    rect = image.get_rect()
+    rect.x = x
+    rect.y = y
+    if rect.collidepoint((pos[0] / mouse_adjustment, pos[1] / mouse_adjustment)):
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_NO)
+
 

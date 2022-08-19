@@ -315,7 +315,7 @@ class Game:
             self.player_moved,\
             new_level_cooldown = self.player.update_pos_animation(screen,
                                                                   self.tile_list,
-                                                                  self.world,
+                                                                  self.world.next_level_list,
                                                                   level_count,
                                                                   self.trap_harm,
                                                                   self.bee_harm,
@@ -325,14 +325,12 @@ class Game:
                                                                   self.health,
                                                                   fps_adjust,
                                                                   self.jump_boost_trigger,
-                                                                   self.regeneration_trigger,
+                                                                  self.regeneration_trigger,
                                                                   self.mush_regeneration_trigger,
                                                                   self.no_gravity_trigger,
                                                                   self.no_harm_trigger,
-                                                                  self.shockwave_trigger,
                                                                   self.left_border,
                                                                   self.right_border,
-                                                                  slow_computer,
                                                                   game_counter,
                                                                   self.move
                                                                   )

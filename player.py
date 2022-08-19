@@ -189,7 +189,7 @@ class Player:
         self.sack_rect.x = x
         self.sack_rect.y = y
         self.speed = 4
-        self.slide = 0.3
+        self.slide = 0.4
         self.sack_width = self.sack0f.get_width()
         self.sack_height = self.sack0f.get_height()
         self.vel_y = 0
@@ -440,10 +440,10 @@ class Player:
         self.circle_transition = CircleTransition(screen)
         self.shockwave = Shockwave(screen, controls)
 
-    def update_pos_animation(self, screen, tile_list, world, level_count, trap_harm, bee_harm,
+    def update_pos_animation(self, screen, tile_list, next_level_list, level_count, trap_harm, bee_harm,
                              spit_harm_left, spit_harm_right, spit_harm_up, health, fps_adjust,
                              jump_boost_trigger, regeneration_trigger, mush_regeneration_trigger, no_gravity_trigger,
-                             no_harm_trigger, shockwave_trigger, left_border, right_border, slow_computer, game_counter,
+                             no_harm_trigger, left_border, right_border, game_counter,
                              move):
 
         dx = 0
@@ -590,7 +590,7 @@ class Player:
             self.sack_img = death_animation1(self, fps_adjust)
 
         # next level portal collisions ---------------------------------------------------------------------------------
-        for tile in world.next_level_list:
+        for tile in next_level_list:
             if tile[1].colliderect(self.sack_rect.x, self.sack_rect.y,
                                    self.sack_width, self.sack_height) and not self.dead:
                 self.teleport_count += 1*fps_adjust

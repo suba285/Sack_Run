@@ -124,7 +124,10 @@ settings_not_saved_error_counter = 300
 settings_not_saved_error_txt = Text().make_text(['error while saving settings configuration'])
 settings_not_loaded_error_txt = Text().make_text(['error while loading settings configuration'])
 
-slow_computer = False
+if settings_counters['performance'] == 1:
+    slow_computer = False
+else:
+    slow_computer = True
 run = True
 run_game = False
 run_menu = True
@@ -314,6 +317,10 @@ while run:
                                                                 3))
 
         if level_selection:
+            if not slow_computer:
+                fps = 60
+            else:
+                fps = 30
             game_counter = default_game_counter
             run_game = False
             run_menu = False
@@ -403,6 +410,10 @@ while run:
             world_count = level_select.draw_level_selection(level_selection_screen, mouse_adjustment, events)
 
         if play:
+            if not slow_computer:
+                fps = 60
+            else:
+                fps = 30
             run_menu = False
             run_game = True
             paused = False
@@ -459,6 +470,9 @@ while run:
         fps = 30
     else:
         fps = 60
+
+    if not run_game and not run_level_selection:
+        fps = 35
 
     # playing sounds ---------------------------------------------------------------------------------------------------
     if play_sounds:

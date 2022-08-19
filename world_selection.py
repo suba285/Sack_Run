@@ -2,6 +2,7 @@ import pygame
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
+from button import inactive_button
 
 tile_size = 32
 
@@ -104,10 +105,14 @@ class LevelSelection:
             left_press, over1 = self.left_btn.draw_button(level_screen, False, mouse_adjustment, events)
         else:
             level_screen.blit(self.left_button_grey, (self.left_x, self.button_y))
+            inactive_button(self.left_x, self.button_y, self.left_button_grey,
+                            mouse_adjustment)
         if self.world_count < 4:
             right_press, over2 = self.right_btn.draw_button(level_screen, False, mouse_adjustment, events)
         else:
             level_screen.blit(self.right_button_grey, (self.right_x, self.button_y))
+            inactive_button(self.right_x, self.button_y, self.right_button_grey,
+                            mouse_adjustment)
 
         menu_press, over3 = self.menu_btn.draw_button(level_screen, False, mouse_adjustment, events)
         if self.world_count <= 2:

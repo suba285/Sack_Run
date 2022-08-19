@@ -2,6 +2,7 @@ import pygame
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
+from button import inactive_button
 
 tile_size = 32
 button_size = tile_size * 0.75
@@ -427,42 +428,56 @@ class SettingsMenu:
                                                                               False, mouse_adjustment, events)
             else:
                 self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row1_y))
+                inactive_button(self.left_btn_x, self.control_row1_y, self.left_button_grey,
+                                mouse_adjustment)
 
             if self.walk_counter < 2:
                 walking_right_press, over2 = self.walking_btn_right.draw_button(self.control_screen,
                                                                                 False, mouse_adjustment, events)
             else:
                 self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row1_y))
+                inactive_button(self.right_btn_x, self.control_row1_y, self.right_button_grey,
+                                mouse_adjustment)
 
             if self.jump_counter > 1:
                 jumping_left_press, over3 = self.jumping_btn_left.draw_button(self.control_screen,
                                                                               False, mouse_adjustment, events)
             else:
                 self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row2_y))
+                inactive_button(self.left_btn_x, self.control_row2_y, self.left_button_grey,
+                                mouse_adjustment)
 
             if self.jump_counter < 3:
                 jumping_right_press, over4 = self.jumping_btn_right.draw_button(self.control_screen,
                                                                                 False, mouse_adjustment, events)
             else:
                 self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row2_y))
+                inactive_button(self.right_btn_x, self.control_row2_y, self.right_button_grey,
+                                mouse_adjustment)
 
             if self.shockwave_counter > 1:
                 shockwave_left_press, over5 = self.shockwave_btn_left.draw_button(self.control_screen,
                                                                                   False, mouse_adjustment, events)
             else:
                 self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row3_y))
+                inactive_button(self.left_btn_x, self.control_row3_y, self.left_button_grey,
+                                mouse_adjustment)
 
             if self.shockwave_counter < 3:
                 shockwave_right_press, over6 = self.shockwave_btn_right.draw_button(self.control_screen,
                                                                                     False, mouse_adjustment, events)
             else:
                 self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row3_y))
+                inactive_button(self.right_btn_x, self.control_row3_y, self.right_button_grey,
+                                mouse_adjustment)
 
             if self.interaction_counter > 1:
                 interactions_left_press, over7 = self.interaction_btn_left.draw_button(self.control_screen, False,
                                                                                        mouse_adjustment, events)
             else:
                 self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row4_y))
+                inactive_button(self.left_btn_x, self.control_row4_y, self.left_button_grey,
+                                mouse_adjustment)
 
             if self.interaction_counter < 3:
                 interactions_right_press, over8 = self.interaction_btn_right.draw_button(self.control_screen,
@@ -470,6 +485,8 @@ class SettingsMenu:
                                                                                          events)
             else:
                 self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row4_y))
+                inactive_button(self.right_btn_x, self.control_row4_y, self.right_button_grey,
+                                mouse_adjustment)
 
             if self.keyboard_control_box1.collidepoint(mouse_pos):
                 control_box1_over = True
@@ -593,24 +610,32 @@ class SettingsMenu:
                                                                              False, mouse_adjustment, events)
             else:
                 self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap))
+                inactive_button(self.left_btn_x, 33 + self.gap, self.left_button_grey,
+                                mouse_adjustment)
 
             if self.resolution_counter < 3:
                 res_right_press, over2 = self.resolution_btn_right.draw_button(self.visual_screen,
                                                                                False, mouse_adjustment, events)
             else:
                 self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap))
+                inactive_button(self.right_btn_x, 33 + self.gap, self.right_button_grey,
+                                mouse_adjustment)
 
             if self.performance_counter > 1:
                 perf_left_press, over3 = self.performance_btn_left.draw_button(self.visual_screen,
                                                                               False, mouse_adjustment, events)
             else:
                 self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap * 2))
+                inactive_button(self.left_btn_x, 33 + self.gap * 2, self.left_button_grey,
+                                mouse_adjustment)
 
             if self.performance_counter < 2:
                 perf_right_press, over4 = self.performance_btn_right.draw_button(self.visual_screen,
                                                                                  False, mouse_adjustment, events)
             else:
                 self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap * 2))
+                inactive_button(self.right_btn_x, 33 + self.gap * 2, self.right_button_grey,
+                                mouse_adjustment)
 
         if res_left_press and self.resolution_counter > 1:
             self.resolution_counter -= 1
@@ -640,12 +665,16 @@ class SettingsMenu:
             else:
                 self.sound_screen.blit(self.left_button_grey,
                                        (self.left_btn_x, self.vis_sound_button_start_y + self.gap))
+                inactive_button(self.left_btn_x, self.vis_sound_button_start_y + self.gap, self.left_button_grey,
+                                mouse_adjustment)
             if self.volume_counter < 3:
                 vol_right_press, over2 = self.volume_btn_right.draw_button(self.sound_screen,
                                                                            False, mouse_adjustment, events)
             else:
                 self.sound_screen.blit(self.right_button_grey,
                                        (self.right_btn_x, self.vis_sound_button_start_y + self.gap))
+                inactive_button(self.right_btn_x, self.vis_sound_button_start_y + self.gap, self.right_button_grey,
+                                mouse_adjustment)
 
             self.sound_screen.blit(vol_text, (button_text_center - vol_text.get_width() / 2 + button_size / 2,
                                               self.vis_sound_button_start_y + self.gap + 7))
