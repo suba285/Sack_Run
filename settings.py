@@ -148,6 +148,9 @@ class SettingsMenu:
         self.volume_conf1 = Text().make_text(['off'])
         self.volume_conf2 = Text().make_text(['normal'])
         self.volume_conf3 = Text().make_text(['deafening'])
+        self.sound_effects_txt = Text().make_text(['sound effects:'])
+        self.sounds_conf1 = Text().make_text(['off'])
+        self.sounds_conf2 = Text().make_text(['on'])
 
         self.keyboard_walk_conf = keyboard_walk1
         self.keyboard_jump_conf = keyboard_jump1
@@ -165,6 +168,7 @@ class SettingsMenu:
         self.performance_counter = settings_counters['performance']
 
         self.volume_counter = settings_counters['music_volume']
+        self.sounds_counter = settings_counters['sounds']
 
         self.settings_counters = settings_counters
 
@@ -280,6 +284,11 @@ class SettingsMenu:
         self.volume_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap,
                                        self.right_button, self.right_button_press, self.right_button_down)
 
+        self.sounds_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap * 2,
+                                      self.left_button, self.left_button_press, self.left_button_down)
+        self.sounds_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap * 2,
+                                       self.right_button, self.right_button_press, self.right_button_down)
+
         self.keyboard_control_box1 = (self.center + 2, control_button_start_y + gap,
                                       interbutton_space + tile_size * 0.75, tile_size)
         self.keyboard_control_box_mould = pygame.Surface((interbutton_space + tile_size, tile_size))
@@ -328,6 +337,8 @@ class SettingsMenu:
 
         vol_left_press = False
         vol_right_press = False
+        sound_left_press = False
+        sound_right_press = False
 
         final_over1 = False
         final_over2 = False
@@ -650,6 +661,8 @@ class SettingsMenu:
         # SOUND SETTINGS SCREEN ========================================================================================
         self.sound_screen.blit(self.volume_txt,
                                (self.center - 10 - self.volume_txt.get_width(), 40 + self.gap))
+        self.sound_screen.blit(self.sound_effects_txt,
+                               (self.center - 10 - self.sound_effects_txt.get_width(), 40 + self.gap * 2))
 
         if self.volume_counter == 1:
             vol_text = self.volume_conf1
@@ -657,6 +670,11 @@ class SettingsMenu:
             vol_text = self.volume_conf2
         else:
             vol_text = self.volume_conf3
+
+        if self.sounds_counter == 1:
+            sound_text = self.sounds_conf1
+        else:
+            sound_text = self.sounds_conf2
 
         if not self.draw_sound_screen:
             if self.volume_counter > 1:
@@ -679,10 +697,35 @@ class SettingsMenu:
             self.sound_screen.blit(vol_text, (button_text_center - vol_text.get_width() / 2 + button_size / 2,
                                               self.vis_sound_button_start_y + self.gap + 7))
 
+            if self.sounds_counter > 1:
+                sound_left_press, over1 = self.sounds_btn_left.draw_button(self.sound_screen,
+                                                                           False, mouse_adjustment, events)
+            else:
+                self.sound_screen.blit(self.left_button_grey,
+                                       (self.left_btn_x, self.vis_sound_button_start_y + self.gap * 2))
+                inactive_button(self.left_btn_x, self.vis_sound_button_start_y + self.gap * 2, self.left_button_grey,
+                                mouse_adjustment)
+            if self.sounds_counter < 2:
+                sound_right_press, over2 = self.sounds_btn_right.draw_button(self.sound_screen,
+                                                                             False, mouse_adjustment, events)
+            else:
+                self.sound_screen.blit(self.right_button_grey,
+                                       (self.right_btn_x, self.vis_sound_button_start_y + self.gap * 2))
+                inactive_button(self.right_btn_x, self.vis_sound_button_start_y + self.gap * 2, self.right_button_grey,
+                                mouse_adjustment)
+
+            self.sound_screen.blit(sound_text, (button_text_center - sound_text.get_width() / 2 + button_size / 2,
+                                              self.vis_sound_button_start_y + self.gap * 2 + 7))
+
         if vol_left_press and self.volume_counter > 1:
             self.volume_counter -= 1
         if vol_right_press and self.volume_counter < 3:
             self.volume_counter += 1
+
+        if sound_left_press and self.sounds_counter > 1:
+            self.sounds_counter -= 1
+        if sound_right_press and self.sounds_counter < 2:
+            self.sounds_counter += 1
 
         # screen managing ==============================================================================================
         if not self.draw_control_screen:
@@ -743,6 +786,8 @@ class SettingsMenu:
             self.settings_counters['interaction'] = self.interaction_counter
             self.settings_counters['resolution'] = self.resolution_counter
             self.settings_counters['performance'] = self.performance_counter
+            self.settings_counters['music_volume'] = self.volume_counter
+            self.settings_counters['sounds'] = self.sounds_counter
 
         return menu_press, self.controls, final_over1, final_over2, self.performance_counter, resolution,\
                adjust_resolution, counters, self.settings_counters

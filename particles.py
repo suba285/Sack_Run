@@ -60,7 +60,7 @@ class Particles():
             screen.blit(self.front_particle, particle)
 
 # BACKGROUND PARTICLES =================================================================================================
-    def bg_particles(self, screen, camera_move_x, camera_move_y):
+    def bg_particles(self, screen, camera_move_x, camera_move_y, sack_direction):
         for particle in self.bg_particle_list:
             particle[0] += self.bg_x_speed + camera_move_x
             particle[1] += self.bg_y_speed + camera_move_y

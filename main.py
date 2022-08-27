@@ -139,8 +139,10 @@ level_selection = False
 
 draw_hitbox = False
 draw_fps_counter = True
-play_background_music = False
+play_background_music = True
 play_sounds = True
+if settings_counters['sounds'] == 1:
+    play_sounds = False
 
 last_mouse_pos = pygame.mouse.get_pos()
 mouse_still_count = 0
@@ -186,7 +188,7 @@ music_volumes = {
     '3': 1
 }
 
-pygame.mixer.music.load('data/sounds/gameplay_song.wav')
+pygame.mixer.music.load('data/sounds/gameplay_song1.wav')
 pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
 one_time_play_card_pull = True
@@ -341,6 +343,10 @@ while run:
             if real_fps < 30:
                 slow_computer = True
             main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, settings_counters)
+            if world_count == 1:
+                pygame.mixer.music.load('data/sounds/gameplay_song2.wav')
+            elif world_count == 2:
+                pygame.mixer.music.load('data/sounds/gameplay_song4.wav')
             play = False
 
         run_menu = False
@@ -465,6 +471,13 @@ while run:
                     json.dump(settings_counters, json_file)
             except Exception:
                 settings_not_saved_error = True
+
+            if settings_counters['sounds'] == 1:
+                play_sounds = False
+            else:
+                play_sounds = True
+
+            pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
     if slow_computer:
         fps = 30

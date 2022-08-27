@@ -190,6 +190,8 @@ class Player:
         self.sack_rect.y = y
         self.speed = 4
         self.slide = 0.4
+        self.default_on_ground_counter = 6
+        self.on_ground_counter = self.default_on_ground_counter
         self.sack_width = self.sack0f.get_width()
         self.sack_height = self.sack0f.get_height()
         self.vel_y = 0
@@ -626,20 +628,18 @@ class Player:
                     self.first_power_jump = True
                 self.teleport_count = 0
                 self.player_moved = True
-                if not self.jumped:
-                    for tile in tile_list:
-                        if tile[1].top == self.sack_rect.bottom:
-                            if self.jump_boost:
-                                self.vel_y = -15*fps_adjust
-                            else:
-                                self.vel_y = -11*fps_adjust
-                            self.jumped = True
-                            self.animate_walk = False
-                            self.airborn = True
-                            if self.direction == 1:
-                                self.sack_img = self.sack_jumpf
-                            elif self.direction == 0:
-                                self.sack_img = self.sack_jumpb
+                if not self.jumped and self.on_ground_counter > 0:
+                    if self.jump_boost:
+                        self.vel_y = -15*fps_adjust
+                    else:
+                        self.vel_y = -11*fps_adjust
+                    self.jumped = True
+                    self.animate_walk = False
+                    self.airborn = True
+                    if self.direction == 1:
+                        self.sack_img = self.sack_jumpf
+                    elif self.direction == 0:
+                        self.sack_img = self.sack_jumpb
             if not key[self.controls['jump']]:
                 self.jumped = False
                 if not self.airborn:
@@ -843,6 +843,8 @@ class Player:
             if tile[1].colliderect(self.sack_rect.x + x_adjust, self.sack_rect.y + dy, sack_width, self.sack_height):
                 hit_list_y.append(tile)
 
+        self.on_ground_counter -= 1
+
         for tile in hit_list_y:
             if dy > 0:
                 self.sack_rect.bottom = tile[1].top
@@ -850,6 +852,7 @@ class Player:
                 self.vel_y = 0
                 self.col_types['bottom'] = True
                 self.airborn = False
+                self.on_ground_counter = self.default_on_ground_counter
                 self.animate_walk = True
             if dy < 0:
                 self.sack_rect.top = tile[1].bottom

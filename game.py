@@ -340,7 +340,7 @@ class Game:
 
         # blitting tiles and images in the background ------------------------------------------------------------------
         screen.blit(self.background, (0, 0))
-        self.particles.bg_particles(screen, self.camera_move_x, self.camera_move_y)
+        self.particles.bg_particles(screen, self.camera_move_x, self.camera_move_y, sack_direction)
         self.world.draw_background(screen, self.camera_move_x, self.camera_move_y)
         self.world.draw_log(screen, fps_adjust, self.camera_move_x, self.camera_move_y)
         self.world.draw_portal_list(screen, fps_adjust, level_count)
@@ -410,10 +410,10 @@ class Game:
         self.particles.front_particles(screen, self.camera_move_x, self.camera_move_y)
 
         # shockwave ----------------------------------------------------------------------------------------------------
-        self.shockwave_radius, play_card_pull_sound2 = self.shockwave.update_shockwave(sack_rect, fps_adjust,
-                                                                                       self.camera_move_x,
-                                                                                       self.camera_move_y,
-                                                                                       mouse_adjustment, self.health)
+        self.shockwave_radius = self.shockwave.update_shockwave(sack_rect, fps_adjust,
+                                                                self.camera_move_x,
+                                                                self.camera_move_y,
+                                                                mouse_adjustment, self.health)
 
         # respawn instructions -----------------------------------------------------------------------------------------
         self.player.blit_respawn_instructions(screen, fps_adjust)
@@ -526,7 +526,7 @@ class Game:
         if self.regeneration_trigger or self.mush_regeneration_trigger:
             play_healing_sound = True
 
-        if play_card_pull_sound2 or play_card_pull_sound3:
+        if play_card_pull_sound3:
             play_card_pull_sound = True
 
         # pygame.mouse.set_visible(False)

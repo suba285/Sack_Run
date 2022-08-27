@@ -64,17 +64,6 @@ class Shockwave:
             self.shock_num -= 1
             self.blit_shock = True
 
-        ms_pos = pygame.mouse.get_pos()
-        if (self.shockwave_rect.collidepoint((ms_pos[0]/mouse_adjustement, ms_pos[1]/mouse_adjustement)) and
-                pygame.mouse.get_focused()):
-            self.info = True
-            sound_trigger = True
-
-        if self.info:
-            self.info_move = 6
-        else:
-            self.info_move = 0
-
         if self.shock_num == 2:
             self.shock_img = self.shockwave_bar2
         elif self.shock_num == 1:
@@ -94,9 +83,6 @@ class Shockwave:
 
         # blitting shockwave bar
         if self.blit_bar:
-            self.surface.blit(self.shock_img, (self.shockwave_rect[0] + self.info_move, self.shockwave_rect[1]))
+            self.surface.blit(self.shock_img, (self.shockwave_rect[0], self.shockwave_rect[1]))
 
-        if self.info:
-            self.surface.blit(self.shockwave_info, (self.shockwave_rect.width, self.shockwave_rect[1]))
-
-        return self.radius, sound_trigger
+        return self.radius
