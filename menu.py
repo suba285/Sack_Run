@@ -1,15 +1,15 @@
 from button import *
-local_tile_size = 32
-tile_size = local_tile_size
 from image_loader import img_loader
 
+local_tile_size = 32
+tile_size = local_tile_size
 
 sheight = 264
 swidth = 352
 
 
 class mainMenu:
-    def __init__(self, screen):
+    def __init__(self):
         # images -------------------------------------------------------------------------------------------------------
         self.play_button = img_loader('data/images/button_play2.PNG', tile_size, tile_size * 0.75)
         self.play_button_press = img_loader('data/images/button_play2_press.PNG', tile_size, tile_size * 0.75)

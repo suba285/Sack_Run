@@ -132,6 +132,7 @@ run = True
 run_game = False
 run_menu = True
 run_settings = False
+paused = False
 play_press = False
 play = False
 run_level_selection = False
@@ -154,7 +155,7 @@ circle = False
 
 dead = False
 
-paused = False
+game_paused = False
 
 menu_transition_counter = 0
 menu_transition = False
@@ -243,7 +244,7 @@ show_cursor = True
 # initiating classes ---------------------------------------------------------------------------------------------------
 world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls, settings_counters)
 main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, settings_counters)
-main_menu = mainMenu(screen)
+main_menu = mainMenu()
 pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
 settings_menu = SettingsMenu(controls, settings_counters, resolutions, recommended_res_counter)
@@ -308,6 +309,7 @@ while run:
     # running the menu -------------------------------------------------------------------------------------------------
     if run_menu:
         run_game = False
+        game_paused = False
         level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
                                                              slow_computer, mouse_adjustment, events)
@@ -339,6 +341,7 @@ while run:
 
     # running the game -------------------------------------------------------------------------------------------------
     if run_game:
+        game_paused = False
         if play:
             if real_fps < 30:
                 slow_computer = True
@@ -390,16 +393,19 @@ while run:
 
     # pause ------------------------------------------------------------------------------------------------------------
     if paused:
+        game_paused = True
         pause_screen,\
             button_sound_trigger1,\
             resume,\
-            menu = pause_menu.draw_pause_screen(mouse_adjustment, events)
+            menu,\
+            settings = pause_menu.draw_pause_screen(mouse_adjustment, events)
 
         if menu:
-            run_menu = True
             run_game = False
-            paused = False
             run_level_selection = False
+            run_settings = False
+            run_menu = True
+            paused = False
 
         if resume:
             run_menu = False
@@ -407,6 +413,13 @@ while run:
             paused = False
             run_level_selection = False
             play_music = True
+
+        if settings:
+            run_menu = False
+            run_game = False
+            paused = False
+            run_level_selection = False
+            run_settings = True
 
     # world selection --------------------------------------------------------------------------------------------------
     if run_level_selection:
@@ -460,11 +473,15 @@ while run:
             wiheight = current_resolution[1]
 
         if menu:
-            run_menu = True
             run_game = False
-            paused = False
             run_settings = False
             run_level_selection = False
+            if game_paused:
+                paused = True
+                run_menu = False
+            else:
+                paused = False
+                run_menu = True
 
             try:
                 with open('data/settings_configuration.json', 'w') as json_file:

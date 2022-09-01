@@ -29,9 +29,9 @@ class LevelSelection:
         self.right_button_grey = img_loader('data/images/button_right_grey.PNG', button_size, button_size)
         self.left_button_grey = pygame.transform.flip(self.right_button_grey, True, False)
 
-        self.menu_button = img_loader('data/images/button_menu.PNG', tile_size * 1.5, tile_size * 0.75)
-        self.menu_button_press = img_loader('data/images/button_menu_press.PNG', tile_size * 1.5, tile_size * 0.75)
-        self.menu_button_down = img_loader('data/images/button_menu_down.PNG', tile_size * 1.5, tile_size * 0.75)
+        self.menu_button = img_loader('data/images/button_back.PNG', tile_size * 1.5, tile_size * 0.75)
+        self.menu_button_press = img_loader('data/images/button_back_press.PNG', tile_size * 1.5, tile_size * 0.75)
+        self.menu_button_down = img_loader('data/images/button_back_down.PNG', tile_size * 1.5, tile_size * 0.75)
 
         self.play_button = img_loader('data/images/button_play2.PNG', tile_size, tile_size * 0.75)
         self.play_button_press = img_loader('data/images/button_play2_press.PNG', tile_size, tile_size * 0.75)
