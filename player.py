@@ -630,9 +630,9 @@ class Player:
                 self.player_moved = True
                 if not self.jumped and self.on_ground_counter > 0:
                     if self.jump_boost:
-                        self.vel_y = -15*fps_adjust
+                        self.vel_y = -15
                     else:
-                        self.vel_y = -11*fps_adjust
+                        self.vel_y = -11
                     self.jumped = True
                     self.animate_walk = False
                     self.airborn = True
@@ -789,10 +789,10 @@ class Player:
         if self.no_gravity:
             self.vel_y = dy
         else:
-            self.vel_y += 0.6 * fps_adjust * fps_adjust
-            if self.vel_y > 8*fps_adjust:
-                self.vel_y = 8*fps_adjust
-        dy = self.vel_y
+            self.vel_y += 0.6 * fps_adjust
+            if self.vel_y > 8:
+                self.vel_y = 8
+        dy = self.vel_y*fps_adjust
 
         # collision detection and position -----------------------------------------------------------------------------
         hit_list_x = []
@@ -884,9 +884,9 @@ class Player:
         # updating player coordinates ----------------------------------------------------------------------------------
         self.camera_movement_x = round(-self.vel_x)
         dx = 0
-        if self.sack_rect.y > 190 and dy > 0:
+        if self.sack_rect.y > 190 and dy*fps_adjust > 0:
             self.camera_movement_y = round(-dy)
-        elif self.sack_rect.y < top_border and dy < 0:
+        elif self.sack_rect.y < top_border and dy*fps_adjust < 0:
             self.camera_movement_y = round(-dy)
         else:
             self.camera_movement_y = round(-dy/2)

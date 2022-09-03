@@ -297,13 +297,11 @@ while run:
     real_fps = clock.get_fps()
     fps_adjust = time.time() - last_time
     fps_adjust = fps_adjust * 60
-    if fps_adjust > last_fps_adjust + 0.2:
-        fps_adjust = last_fps_adjust + 0.2
-    if fps_adjust < last_fps_adjust - 0.2:
-        fps_adjust = last_fps_adjust - 0.2
     last_time = time.time()
     last_fps_adjust = fps_adjust
     display_fps = round(real_fps)
+
+    print(real_fps)
 
     clock.tick(fps)
 
@@ -502,10 +500,10 @@ while run:
 
             pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
-    if slow_computer:
-        fps = 30
-    else:
-        fps = 60
+    #if slow_computer:
+    #    fps = 30
+    #else:
+    #    fps = 60
 
     if not run_game and not run_level_selection:
         fps = 35
@@ -577,6 +575,11 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and dead:
             pass
             # play = True
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_g:
+                fps = 10
+            if event.key == pygame.K_h:
+                fps = 60
 
     # circle experiment ------------------------------------------------------------------------------------------------
     if circle:
