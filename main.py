@@ -60,6 +60,7 @@ except Exception:
         'interaction': 1,
         'resolution': 1,
         'performance': 1,
+        'hitbox': 1,
         'music_volume': 2,
         'sounds': 2
     }
@@ -494,6 +495,11 @@ while run:
             else:
                 play_sounds = True
 
+            if settings_counters['hitbox'] == 1:
+                draw_hitbox = False
+            else:
+                draw_hitbox = True
+
             pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
     if slow_computer:
@@ -511,15 +517,6 @@ while run:
             one_time_play_card_pull = False
         if not play_card_pull_sound:
             one_time_play_card_pull = True
-
-        if button_sound_trigger1 or button_sound_trigger2:
-            play_button_sound = True
-
-        if play_button_sound and one_time_play_button1:
-            sounds['button_click'].play()
-            one_time_play_button1 = False
-        if not play_button_sound:
-            one_time_play_button1 = True
 
         if button_sound_trigger3 and one_time_play_button2:
             sounds['button_click'].play()
@@ -549,6 +546,17 @@ while run:
         if play_paper_sound:
             sounds['paper_crumbling'].play()
 
+    # button sounds
+    if button_sound_trigger1 or button_sound_trigger2:
+        play_button_sound = True
+
+    if play_button_sound and one_time_play_button1:
+        sounds['button_click'].play()
+        one_time_play_button1 = False
+    if not play_button_sound:
+        one_time_play_button1 = True
+
+    # music
     if play_background_music:
         if play_music:
             pygame.mixer.music.play(-1, 0.0, 300)

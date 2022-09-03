@@ -110,6 +110,9 @@ class SettingsMenu:
         self.visual_txt = Text().make_text(['VISUAL'])
         self.sound_txt = Text().make_text(['SOUND'])
 
+        self.on_conf = Text().make_text(['on'])
+        self.off_conf = Text().make_text(['off'])
+
         # control settings
         self.walking_txt = Text().make_text(['walking:'])
         self.jumping_txt = Text().make_text(['jumping:'])
@@ -142,15 +145,18 @@ class SettingsMenu:
         self.resolution_message3 = Text().make_text(['A bit too big, innit?'])
         self.perf_message1 = Text().make_text(["Use 'fast' mode only if your computer"])
         self.perf_message2 = Text().make_text(["is an utter potato."])
+        self.hitbox_txt = Text().make_text(['show hitbox:'])
+        self.hitbox_conf1 = self.off_conf
+        self.hitbox_conf2 = self.on_conf
 
         # sound settings
         self.volume_txt = Text().make_text(['music volume:'])
-        self.volume_conf1 = Text().make_text(['off'])
+        self.volume_conf1 = self.off_conf
         self.volume_conf2 = Text().make_text(['normal'])
         self.volume_conf3 = Text().make_text(['deafening'])
         self.sound_effects_txt = Text().make_text(['sound effects:'])
-        self.sounds_conf1 = Text().make_text(['off'])
-        self.sounds_conf2 = Text().make_text(['on'])
+        self.sounds_conf1 = self.off_conf
+        self.sounds_conf2 = self.on_conf
 
         self.keyboard_walk_conf = keyboard_walk1
         self.keyboard_jump_conf = keyboard_jump1
@@ -166,6 +172,7 @@ class SettingsMenu:
         self.resolution_counter = settings_counters['resolution']
         self.resolution_counter_check = 1
         self.performance_counter = settings_counters['performance']
+        self.hitbox_counter = settings_counters['hitbox']
 
         self.volume_counter = settings_counters['music_volume']
         self.sounds_counter = settings_counters['sounds']
@@ -278,6 +285,10 @@ class SettingsMenu:
                                            self.left_button, self.left_button_press, self.left_button_down)
         self.performance_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap * 2,
                                             self.right_button, self.right_button_press, self.right_button_down)
+        self.hitbox_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap * 3,
+                                           self.left_button, self.left_button_press, self.left_button_down)
+        self.hitbox_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap * 3,
+                                            self.right_button, self.right_button_press, self.right_button_down)
 
         self.volume_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap,
                                       self.left_button, self.left_button_press, self.left_button_down)
@@ -334,6 +345,8 @@ class SettingsMenu:
         res_right_press = False
         perf_left_press = False
         perf_right_press = False
+        hit_left_press = False
+        hit_right_press = False
 
         vol_left_press = False
         vol_right_press = False
@@ -581,22 +594,24 @@ class SettingsMenu:
                                 (self.center - 10 - self.resolution_txt.get_width(), 40 + self.gap))
         self.visual_screen.blit(self.performance_txt,
                                 (self.center - 10 - self.performance_txt.get_width(), 40 + self.gap * 2))
+        self.visual_screen.blit(self.hitbox_txt,
+                                (self.center - 10 - self.hitbox_txt.get_width(), 40 + self.gap * 3))
 
         if self.performance_counter == 2:
             self.visual_screen.blit(self.perf_message1, (swidth / 2 - self.perf_message1.get_width() / 2,
-                                                         35 + self.gap * 4))
+                                                         50 + self.gap * 4))
             self.visual_screen.blit(self.perf_message2, (swidth / 2 - self.perf_message2.get_width() / 2,
-                                                         20 + self.gap * 5))
+                                                         35 + self.gap * 5))
 
         elif self.recommended_res_counter == self.resolution_counter:
             self.visual_screen.blit(self.resolution_message1, (swidth / 2 - self.resolution_message1.get_width() / 2,
-                                                               35 + self.gap * 4))
+                                                               50 + self.gap * 4))
             self.visual_screen.blit(self.resolution_message2, (swidth / 2 - self.resolution_message2.get_width() / 2,
-                                                               20 + self.gap * 5))
+                                                               35 + self.gap * 5))
 
         if self.recommended_res_counter < self.resolution_counter and self.performance_counter != 2:
             self.visual_screen.blit(self.resolution_message3, (swidth / 2 - self.resolution_message3.get_width() / 2,
-                                                               42 + self.gap * 4))
+                                                               57 + self.gap * 4))
 
         if self.resolution_counter == 1:
             res_text = self.res_conf1
@@ -610,10 +625,17 @@ class SettingsMenu:
         else:
             perf_text = self.perf_conf2
 
+        if self.hitbox_counter == 1:
+            hit_text = self.hitbox_conf1
+        else:
+            hit_text = self.hitbox_conf2
+
         self.visual_screen.blit(res_text, (button_text_center - res_text.get_width() / 2 + button_size / 2,
                                              33 + self.gap + 7))
         self.visual_screen.blit(perf_text, (button_text_center - perf_text.get_width() / 2 + button_size / 2,
                                              33 + self.gap * 2 + 7))
+        self.visual_screen.blit(hit_text, (button_text_center - hit_text.get_width() / 2 + button_size / 2,
+                                            33 + self.gap * 3 + 7))
 
         if not self.draw_visual_screen:
             if self.resolution_counter > 1:
@@ -648,6 +670,22 @@ class SettingsMenu:
                 inactive_button(self.right_btn_x, 33 + self.gap * 2, self.right_button_grey,
                                 mouse_adjustment)
 
+            if self.hitbox_counter > 1:
+                hit_left_press, over5 = self.hitbox_btn_left.draw_button(self.visual_screen,
+                                                                              False, mouse_adjustment, events)
+            else:
+                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap * 3))
+                inactive_button(self.left_btn_x, 33 + self.gap * 3, self.left_button_grey,
+                                mouse_adjustment)
+
+            if self.hitbox_counter < 2:
+                hit_right_press, over6 = self.hitbox_btn_right.draw_button(self.visual_screen,
+                                                                                 False, mouse_adjustment, events)
+            else:
+                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap * 3))
+                inactive_button(self.right_btn_x, 33 + self.gap * 3, self.right_button_grey,
+                                mouse_adjustment)
+
         if res_left_press and self.resolution_counter > 1:
             self.resolution_counter -= 1
         if res_right_press and self.resolution_counter < 3:
@@ -657,6 +695,11 @@ class SettingsMenu:
             self.performance_counter -= 1
         if perf_right_press and self.performance_counter < 2:
             self.performance_counter += 1
+
+        if hit_left_press and self.hitbox_counter > 1:
+            self.hitbox_counter -= 1
+        if hit_right_press and self.hitbox_counter < 2:
+            self.hitbox_counter += 1
 
         # SOUND SETTINGS SCREEN ========================================================================================
         self.sound_screen.blit(self.volume_txt,
@@ -788,6 +831,7 @@ class SettingsMenu:
             self.settings_counters['performance'] = self.performance_counter
             self.settings_counters['music_volume'] = self.volume_counter
             self.settings_counters['sounds'] = self.sounds_counter
+            self.settings_counters['hitbox'] = self.hitbox_counter
 
         return menu_press, self.controls, final_over1, final_over2, self.performance_counter, resolution,\
                adjust_resolution, counters, self.settings_counters
