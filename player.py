@@ -371,10 +371,6 @@ class Player:
         self.key_shift = img_loader('data/images/key_shift.PNG', tile_size, tile_size / 2)
         self.key_shift_press = img_loader('data/images/key_shift_press.PNG', tile_size, tile_size / 2)
 
-        self.hand_keyboard = img_loader('data/images/hand_keyboard.PNG', tile_size * 2, tile_size)
-        self.hand_mouse1 = img_loader('data/images/hand_mouse1.PNG', tile_size * 0.75, tile_size * 0.75)
-        self.hand_mouse2 = img_loader('data/images/hand_mouse2.PNG', tile_size * 0.75, tile_size * 0.75)
-
         self.key_images = {
             'left1': self.key_a,
             'left2': self.key_left,
@@ -884,7 +880,7 @@ class Player:
         # updating player coordinates ----------------------------------------------------------------------------------
         self.camera_movement_x = round(-self.vel_x)
         dx = 0
-        if self.sack_rect.y > 190 and dy*fps_adjust > 0:
+        if self.sack_rect.y > 180 and dy*fps_adjust > 0:
             self.camera_movement_y = round(-dy)
         elif self.sack_rect.y < top_border and dy*fps_adjust < 0:
             self.camera_movement_y = round(-dy)
@@ -1110,24 +1106,4 @@ class Player:
                 img = self.key_space
 
             screen.blit(img, (swidth/2 - tile_size/2, sheight/3 - tile_size/4))
-
-        if not self.player_moved and world_count == 1 and level_count == 1 and self.draw_hands_on_keyboard:
-            self.hands_on_keyboard_counter += 1
-            hand_mouse_img = self.hand_mouse1
-            if self.hands_on_keyboard_counter >= 40:
-                if self.hands_on_keyboard_counter <= 50:
-                    hand_mouse_img = self.hand_mouse2
-                else:
-                    self.hands_on_keyboard_counter = 0
-
-            self.hands_on_keyboard_surf.blit(self.hand_keyboard, (0, 0))
-            self.hands_on_keyboard_surf.blit(hand_mouse_img, (42, 15))
-
-            hands_on_keyboard_final = self.hands_on_keyboard_surf
-
-            if self.settings_counters['walking'] == 2:
-                hands_on_keyboard_final = pygame.transform.flip(self.hands_on_keyboard_surf, True, False)
-
-            screen.blit(hands_on_keyboard_final,
-                        (swidth / 2 - hands_on_keyboard_final.get_width() / 2, sheight / 4 - 10))
 

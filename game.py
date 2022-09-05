@@ -27,7 +27,7 @@ level_dictionary = {
     "level6_2": level6_2,
     "level7_2": level7_2,
     "level8_2": level8_2,
-    "level9_2": level9_2,
+    "level9_2": level9_2
 }
 
 level_bg_dictionary = {
@@ -54,10 +54,10 @@ level_pos_dictionary = {
     "level3_2": (0, -4),
     "level4_2": (1, 1),
     "level5_2": (4, -7),
-    "level6_2": (4, -5),
+    "level6_2": (2, 2),
     "level7_2": (4, -5),
-    "level8_2": (2, -19),
-    "level9_2": (1, -5)
+    "level8_2": (4, -5),
+    "level9_2": (3, -2)
 }
 
 
@@ -145,9 +145,9 @@ class Game:
         self.controls_popup = popup_bg_generator((tip1_txt.get_width() + 6, 130))
         cont_bg_center = self.controls_popup.get_width() / 2
 
-        self.ok_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
-                             sheight / 2 + self.controls_popup.get_height() / 2 - tile_size * 0.75 - 3,
-                             ok_button_img, ok_button_press, ok_button_down)
+        self.ok_controls_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
+                                      sheight / 2 + self.controls_popup.get_height() / 2 - tile_size * 0.75 - 3,
+                                      ok_button_img, ok_button_press, ok_button_down)
 
         self.controls_popup.blit(controls_txt, (cont_bg_center - controls_txt.get_width() / 2, 6))
         self.controls_popup.blit(walking_controls_txt,
@@ -162,22 +162,51 @@ class Game:
         self.controls_popup.blit(ok_button_down, (cont_bg_center - ok_button_img.get_width() / 2,
                                                   self.controls_popup.get_height() - tile_size * 0.75 - 3))
 
-        # tutorial completed popup window
-        congrats_txt = Text().make_text(['CONGRATS!'])
-        tut_completed_txt = Text().make_text(["You've completed the tutorial."])
+        # bees popup window
+        bees_txt = Text().make_text(['BEEWARE!'])
+        bees_intro_txt = Text().make_text(['You are about to encounter bees,'])
+        bees_things_to_know_txt = Text().make_text(['here are some things you need to know:'])
+        shockwave_key = self.nums_to_text[f'shockwave{settings_counters["shockwave"]}']
+        bees_tip1_txt = Text().make_text([f'- use shockwaves to kill bees [{shockwave_key}]'])
+        bees_tip2_txt = Text().make_text(['- hide in purple flowers to avoid being stung'])
 
-        self.tut_completed_popup = popup_bg_generator((tut_completed_txt.get_width() + 8, 80))
-        tut_comp_center = self.tut_completed_popup.get_width() / 2
+        self.bees_popup = popup_bg_generator((bees_tip2_txt.get_width() + 6, 115))
+
+        bee_bg_center = self.bees_popup.get_width() / 2
+
+        self.ok_bee_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
+                                 sheight / 2 + self.bees_popup.get_height() / 2 - tile_size * 0.75 - 3,
+                                 ok_button_img, ok_button_press, ok_button_down)
+
+        self.bees_popup.blit(bees_txt, (bee_bg_center - bees_txt.get_width() / 2, 6))
+        self.bees_popup.blit(bees_intro_txt, (bee_bg_center - bees_intro_txt.get_width() / 2, 25))
+        self.bees_popup.blit(bees_things_to_know_txt, (bee_bg_center - bees_things_to_know_txt.get_width() / 2, 40))
+        self.bees_popup.blit(bees_tip2_txt, (bee_bg_center - bees_tip2_txt.get_width() / 2, 55))
+        self.bees_popup.blit(bees_tip1_txt, (bee_bg_center - bees_tip1_txt.get_width() / 2, 70))
+        self.bees_popup.blit(ok_button_down, (bee_bg_center - ok_button_img.get_width() / 2,
+                                              self.bees_popup.get_height() - tile_size * 0.75 - 3))
+
+        # level completed popup window
+        worlds_nums = {
+            1: "the tutorial",
+            2: "world 1",
+            3: "world 2"
+        }
+        congrats_txt = Text().make_text(['CONGRATS!'])
+        tut_completed_txt = Text().make_text([f"You've completed {worlds_nums[world_count]}."])
+
+        self.level_completed_popup = popup_bg_generator((tut_completed_txt.get_width() + 8, 80))
+        tut_comp_center = self.level_completed_popup.get_width() / 2
 
         self.lvl_selection_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
-                                        sheight / 2 + self.tut_completed_popup.get_height() / 2 - tile_size * 0.75 - 3,
+                                        sheight / 2 + self.level_completed_popup.get_height() / 2 - tile_size * 0.75 - 3,
                                         ok_button_img, ok_button_press, ok_button_down)
 
-        self.tut_completed_popup.blit(congrats_txt, (tut_comp_center - congrats_txt.get_width() / 2, 6))
-        self.tut_completed_popup.blit(tut_completed_txt, (tut_comp_center - tut_completed_txt.get_width() / 2, 26))
-        self.tut_completed_popup.blit(ok_button_down,
-                                      (self.tut_completed_popup.get_width() / 2 - ok_button_img.get_width() / 2 + 1,
-                                       self.tut_completed_popup.get_height() - tile_size * 0.75 - 3))
+        self.level_completed_popup.blit(congrats_txt, (tut_comp_center - congrats_txt.get_width() / 2, 6))
+        self.level_completed_popup.blit(tut_completed_txt, (tut_comp_center - tut_completed_txt.get_width() / 2, 26))
+        self.level_completed_popup.blit(ok_button_down,
+                                        (self.level_completed_popup.get_width() / 2 - ok_button_img.get_width() / 2 + 1,
+                                         self.level_completed_popup.get_height() - tile_size * 0.75 - 3))
 
         # lists --------------------------------------------------------------------------------------------------------
         self.default_power_list = ['regeneration', 'regeneration', 'regeneration', 'no harm', 'no harm', 'jump boost',
@@ -230,7 +259,9 @@ class Game:
 
         self.restart_level = False
 
-        self.tutorial_completed_popup = False
+        self.lvl_completed_popup = False
+        self.bee_info_popup = False
+        self.bee_info_popup_done = False
 
         self.blit_card_instructions = False
 
@@ -269,8 +300,11 @@ class Game:
         if world_count >= max_world:
             world_count = max_world
 
-        if world_count == 1 and level_count == 3:
-            self.tutorial_completed_popup = True
+        if (world_count == 1 and level_count == 3) or (world_count == 2 and level_count == 9):
+            self.lvl_completed_popup = True
+
+        if world_count == 2 and level_count == 6:
+            self.bee_info_popup = True
 
         world_data_level_checker = level_dictionary[f'level{level_count}_{world_count}']
         bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
@@ -432,6 +466,7 @@ class Game:
         if self.restart_level:
             self.eq_power_list = []
             self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
+            self.level_duration_counter = 0
         if self.reinit_eq:
             self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
             self.reinit_eq = False
@@ -467,6 +502,7 @@ class Game:
         # popup window -------------------------------------------------------------------------------------------------
         ok_over = False
 
+        # controls popup
         if self.popup_window_controls:
             self.move = False
             if 0.25 > game_counter > 0:
@@ -481,8 +517,8 @@ class Game:
                              sheight / 2 - popup.get_height() / 2))
 
             if game_counter >= 0.25:
-                popup_controls_press, ok_over = self.ok_btn.draw_button(screen,
-                                                                        False, mouse_adjustment, events)
+                popup_controls_press, ok_over = self.ok_controls_btn.draw_button(screen,
+                                                                                 False, mouse_adjustment, events)
             else:
                 popup_controls_press = False
 
@@ -491,15 +527,16 @@ class Game:
         else:
             self.move = True
 
-        if self.tutorial_completed_popup:
+        # level completed popup
+        if self.lvl_completed_popup:
             self.move = False
             if 1.7 > self.level_duration_counter > 1.45:
                 scaling = self.level_duration_counter - 1.45
-                popup = pygame.transform.scale(self.tut_completed_popup,
-                                               (self.tut_completed_popup.get_width() * scaling * 4,
-                                                self.tut_completed_popup.get_height() * scaling * 4))
+                popup = pygame.transform.scale(self.level_completed_popup,
+                                               (self.level_completed_popup.get_width() * scaling * 4,
+                                                self.level_completed_popup.get_height() * scaling * 4))
             else:
-                popup = self.tut_completed_popup
+                popup = self.level_completed_popup
 
             if self.level_duration_counter > 1.45:
                 screen.blit(popup,
@@ -515,6 +552,34 @@ class Game:
                 popup_tut_completed_press = False
         else:
             popup_tut_completed_press = False
+
+        # bee info popup
+        if self.bee_info_popup and not self.bee_info_popup_done:
+            self.move = False
+            if 1.7 > self.level_duration_counter > 1.45:
+                scaling = self.level_duration_counter - 1.45
+                popup = pygame.transform.scale(self.bees_popup,
+                                               (self.bees_popup.get_width() * scaling * 4,
+                                                self.bees_popup.get_height() * scaling * 4))
+            else:
+                popup = self.bees_popup
+
+            if self.level_duration_counter > 1.45:
+                screen.blit(popup,
+                            (swidth / 2 - popup.get_width() / 2,
+                             sheight / 2 - popup.get_height() / 2))
+
+            if self.level_duration_counter > 1.7:
+                popup_bees_press, ok_over = self.ok_bee_btn.draw_button(screen,
+                                                                        False,
+                                                                        mouse_adjustment,
+                                                                        events)
+            else:
+                popup_bees_press = False
+
+            if popup_bees_press:
+                self.bee_info_popup = False
+                self.bee_info_popup_done = True
 
         if ok_over:
             game_button_over = True

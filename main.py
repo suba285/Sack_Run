@@ -301,8 +301,6 @@ while run:
     last_fps_adjust = fps_adjust
     display_fps = round(real_fps)
 
-    print(real_fps)
-
     clock.tick(fps)
 
     # running the menu -------------------------------------------------------------------------------------------------
@@ -500,13 +498,10 @@ while run:
 
             pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
-    #if slow_computer:
-    #    fps = 30
-    #else:
-    #    fps = 60
-
-    if not run_game and not run_level_selection:
-        fps = 35
+    if slow_computer:
+        fps = 30
+    else:
+        fps = 60
 
     # playing sounds ---------------------------------------------------------------------------------------------------
     if play_sounds:
@@ -575,11 +570,6 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and dead:
             pass
             # play = True
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_g:
-                fps = 10
-            if event.key == pygame.K_h:
-                fps = 60
 
     # circle experiment ------------------------------------------------------------------------------------------------
     if circle:
@@ -610,10 +600,15 @@ while run:
 
     # updating the display ---------------------------------------------------------------------------------------------
     if run_game:
-        menu_transition_counter -= (sheight / 25) * fps_adjust
+        if slow_computer:
+            animation_speed_adjust = 2
+        else:
+            animation_speed_adjust = 1
+        menu_transition_counter -= (sheight / 23) * animation_speed_adjust
         game_counter += 0.04 * fps_adjust
         scaling = game_counter * game_counter + 1
         if game_counter < -2:
+            run_level_selection = False
             main_screen.blit(level_selection_screen, (0, menu_transition_counter))
         elif game_counter < 0:
             output = pygame.transform.scale(screen, (swidth * scaling, sheight * scaling))
