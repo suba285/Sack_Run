@@ -121,6 +121,8 @@ class World:
 
         self.level_length = 0
 
+        self.angles = [0, 90, 180, 270]
+
         # dirt with rocks tile images ----------------------------------------------------------------------------------
         self.stone1 = img_loader('data/images/stone_dirt.PNG', tile_size, tile_size)
         self.stone2 = img_loader('data/images/stone2_dirt.PNG', tile_size, tile_size)
@@ -272,7 +274,8 @@ class World:
                     self.tile_list.append(tile)
                 if tile == 11:
                     # dirt
-                    tile = img_rect_pos(self.dirt, column_count, row_count)
+                    tile = img_rect_pos(pygame.transform.rotate(self.dirt, random.choice(self.angles)),
+                                        column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 12:
                     # dirt_grass

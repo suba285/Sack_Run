@@ -85,8 +85,8 @@ class eqManager:
             self.x += 2.5*tile_size
 
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
-    def draw_eq(self, screen, eq_list, mouse_adjustement, events, power_list, tutorial, fps_adjust, level_count,
-                blit_card_instructions, health):
+    def draw_eq(self, screen, eq_list, mouse_adjustment, events, power_list, tutorial, fps_adjust, level_count,
+                blit_card_instructions, health, move):
 
         self.jump_boost_trigger = False
         self.regeneration_trigger = False
@@ -107,11 +107,14 @@ class eqManager:
 
         key = pygame.key.get_pressed()
 
+        if not move:
+            mouse_adjustment = 0.001
+
         for button in self.eq_button_list:
             self.eq_button_counter += 1
             local_over = False
             if button[1] == 'jump boost':
-                press, local_over = button[0].draw_button(screen, True, mouse_adjustement, events)
+                press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 if press:
                     self.jump_boost_trigger = True
                     eq_list.remove('jump boost')
@@ -121,7 +124,7 @@ class eqManager:
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
             if button[1] == 'regeneration':
-                press, local_over = button[0].draw_button(screen, True, mouse_adjustement, events)
+                press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 if press:
                     self.regeneration_trigger = True
                     eq_list.remove('regeneration')
@@ -131,7 +134,7 @@ class eqManager:
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
             if button[1] == 'no gravity':
-                press, local_over = button[0].draw_button(screen, True, mouse_adjustement, events)
+                press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 if press:
                     self.no_gravity_trigger = True
                     eq_list.remove('no gravity')
@@ -141,7 +144,7 @@ class eqManager:
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
             if button[1] == 'no harm':
-                press, local_over = button[0].draw_button(screen, True, mouse_adjustement, events)
+                press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 if press:
                     self.no_harm_trigger = True
                     eq_list.remove('no harm')
@@ -151,7 +154,7 @@ class eqManager:
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
             if button[1] == 'shockwave+':
-                press, local_over = button[0].draw_button(screen, True, mouse_adjustement, events)
+                press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 if press:
                     self.shockwave_trigger = True
                     eq_list.remove('shockwave+')

@@ -164,6 +164,9 @@ menu_transition = False
 menu_y = 0
 game_y = swidth
 
+user_quit1 = False
+user_quit2 = False
+
 background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
 background = pygame.transform.scale(background_raw, (360, 296))
 
@@ -569,7 +572,20 @@ while run:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and dead:
             pass
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                user_quit1 = True
+            if event.key == pygame.K_z:
+                user_quit2 = True
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_q:
+                user_quit1 = False
+            if event.key == pygame.K_z:
+                user_quit2 = False
             # play = True
+
+    if user_quit1 and user_quit2:
+        run = False
 
     # circle experiment ------------------------------------------------------------------------------------------------
     if circle:

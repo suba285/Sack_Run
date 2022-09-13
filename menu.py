@@ -1,5 +1,7 @@
 from button import *
 from image_loader import img_loader
+from font_manager import Text
+import random
 
 local_tile_size = 32
 tile_size = local_tile_size
@@ -39,6 +41,12 @@ class mainMenu:
 
         self.settings_background = img_loader('data/images/settings_background2.PNG', tile_size * 2, tile_size * 2)
         self.logo = img_loader('data/images/sack_run_logo.PNG', tile_size * 4, tile_size)
+        self.logo_rect = self.logo.get_rect()
+        self.logo_rect.x = swidth / 2 - self.logo.get_width() / 2
+        self.logo_rect.y = 70
+
+        self.quit_txt = Text().make_text([' Quit (Z + Q)'])
+        self.quit_txt.set_alpha(200)
 
         # variables ----------------------------------------------------------------------------------------------------
         self.play_x = swidth / 2 - self.play_button.get_width() / 2
@@ -63,23 +71,37 @@ class mainMenu:
         self.settings = False
         self.settings_cooldown = 0
 
+        self.sack_run_logo_y = 70
+
+        self.logo_pos_counter = 0
+
+        self.particles = []
+
+        for i in range(20):
+            self.particles.append([random.randrange(0, swidth), random.randrange(30, 100 + self.logo.get_height())])
+
         # initiating button classes ------------------------------------------------------------------------------------
         self.p_button = Button(self.play_x, self.play_y, self.play_button, self.play_button_press,
                                self.play_button_down)
         self.s_button = Button(self.settings_x, self.settings_y, self.settings_button, self.settings_button_press,
                                self.settings_button_down)
-        self.f60_button = Button(self.fps_x, self.fps_y, self.fps60_button, self.fps60_button_press,
-                                 self.fps60_button)
-        self.f30_button = Button(self.fps_x, self.fps_y, self.fps30_button, self.fps30_button_press,
-                                 self.fps30_button)
-        self.res_btn = Button(self.resolution_x, self.resolution_y, self.resolution_button,
-                                     self.resolution_button_press, self.resolution_button)
 
 # UPDATING AND DRAWING MENU ============================================================================================
     def menu(self, menu_screen, slow_computer, mouse_adjustement, events):
 
         menu_screen.blit(self.menu_background, (0, 0))
-        menu_screen.blit(self.logo, (swidth / 2 - self.logo.get_width() / 2, 70))
+
+        for particle in self.particles:
+            particle[0] += 1
+            pygame.draw.circle(menu_screen, (136, 104, 134), particle, 1, 1)
+            if particle[0] > swidth:
+                particle[0] = 0
+                particle[1] = random.randrange(30, 100 + self.logo.get_height())
+
+        menu_screen.blit(self.logo, (self.logo_rect.x, self.sack_run_logo_y))
+        menu_screen.blit(self.quit_txt, (swidth / 2 - self.quit_txt.get_width() / 2, 230))
+
+        self.logo_pos_counter += 1
 
         play = False
         fps = False
@@ -89,6 +111,17 @@ class mainMenu:
         over2 = False
         over3 = False
         over4 = False
+
+        mouse_pos = pygame.mouse.get_pos()
+
+        if self.logo_rect.collidepoint((mouse_pos[0]/mouse_adjustement, mouse_pos[1]/mouse_adjustement)):
+            self.sack_run_logo_y = 68
+        else:
+            if self.logo_pos_counter >= 60:
+                self.sack_run_logo_y = 70
+                self.logo_pos_counter = 0
+            elif self.logo_pos_counter >= 50:
+                self.sack_run_logo_y = 69
 
         # play button
         play, over1 = self.p_button.draw_button(menu_screen, False, mouse_adjustement, events)

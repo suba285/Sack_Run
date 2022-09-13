@@ -46,7 +46,7 @@ level_bg_dictionary = {
 }
 
 level_pos_dictionary = {
-    "level1_1": (0, -4),
+    "level1_1": (0, -10),
     "level2_1": (3, -2),
     "level3_1": (3, -2),
     "level1_2": (0, -4),
@@ -483,7 +483,7 @@ class Game:
                 self.power_list,\
                 play_paper_sound = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment, events,
                                                            self.power_list, tutorial, fps_adjust, level_count,
-                                                           self.blit_card_instructions, self.health)
+                                                           self.blit_card_instructions, self.health, self.move)
 
         # resetting shockwave ------------------------------------------------------------------------------------------
         if self.shockwave_trigger:
@@ -496,7 +496,7 @@ class Game:
             self.fadeout = True
 
         # level count display ------------------------------------------------------------------------------------------
-        if not (tutorial and level_count == 3):
+        if not (tutorial and level_count == 3) and not (world_count == 2 and level_count == 9):
             self.level_display.draw_level_number(screen, game_counter)
 
         # popup window -------------------------------------------------------------------------------------------------
