@@ -8,10 +8,12 @@ from game import Game
 from menu import mainMenu
 from display_fps import display_frames_per_second
 from font_manager import Text
+from popup_bg_generator import popup_bg_generator
 from pause_screen import PauseScreen
 from world_selection import LevelSelection
 from game import level_dictionary, level_bg_dictionary
 from settings import SettingsMenu
+import threading
 
 pygame.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
@@ -35,8 +37,8 @@ tile_size = 32
 x = 180
 y = 132
 
-start_x = 0
-start_y = -3
+start_x = -4
+start_y = 1
 
 clock = pygame.time.Clock()
 fps = 60
@@ -173,6 +175,16 @@ user_quit2 = False
 background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
 background = pygame.transform.scale(background_raw, (360, 296))
 
+# loading message ------------------------------------------------------------------------------------------------------
+loading_text = Text().make_text(['Loading...'])
+loading_bg = popup_bg_generator((loading_text.get_width() + 20, loading_text.get_height() + 16))
+loading_bg.blit(loading_text, (loading_bg.get_width() / 2 - loading_text.get_width() / 2,
+                               loading_bg.get_height() / 2 - loading_text.get_height() / 2))
+
+screen_dim = pygame.Surface((swidth, sheight))
+screen_dim.set_alpha(80)
+screen_dim.fill((0, 0, 0))
+
 # sounds ---------------------------------------------------------------------------------------------------------------
 sounds = {
         'card_shuffle': pygame.mixer.Sound('data/sounds/card_shuffle.wav'),
@@ -258,6 +270,17 @@ settings_menu = SettingsMenu(controls, settings_counters, resolutions, recommend
 
 paused_text = Text()
 
+game_loaded = False
+loading = False
+
+
+def loadGame(local_world_data, local_bg_data, local_world_count):
+    global main_game, game_loaded
+    main_game = Game(x, y, slow_computer, screen, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters)
+    game_loaded = True
+
+
 # loading number images ------------------------------------------------------------------------------------------------
 display_numbers = []
 
@@ -313,6 +336,8 @@ while run:
     if run_menu:
         run_game = False
         game_paused = False
+        loading = False
+        game_loaded = False
         level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
                                                              slow_computer, mouse_adjustment, events)
@@ -348,7 +373,6 @@ while run:
         if play:
             if real_fps < 30:
                 slow_computer = True
-            main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, settings_counters)
             if world_count == 1:
                 pygame.mixer.music.load('data/sounds/gameplay_song2.wav')
             elif world_count == 2:
@@ -426,10 +450,26 @@ while run:
 
     # world selection --------------------------------------------------------------------------------------------------
     if run_level_selection:
-        play,\
+        play_press,\
             menu,\
             button_sound_trigger1,\
             world_count = level_select.draw_level_selection(level_selection_screen, mouse_adjustment, events)
+
+        if play_press:
+            world_data = level_dictionary[f'level1_{world_count}']
+            bg_data = level_bg_dictionary[f'level1_{world_count}_bg']
+            threading.Thread(target=loadGame, args=[world_data, bg_data, world_count]).start()
+            loading = True
+
+        if game_loaded:
+            play = True
+            game_loaded = False
+            loading = False
+
+        if loading:
+            level_selection_screen.blit(screen_dim, (0, 0))
+            level_selection_screen.blit(loading_bg,
+                             (swidth / 2 - loading_bg.get_width() / 2, sheight / 2 - loading_bg.get_height() / 2))
 
         if play:
             if not slow_computer:
@@ -440,9 +480,6 @@ while run:
             run_game = True
             paused = False
             level_count = 1
-            world_data = level_dictionary[f'level1_{world_count}']
-            bg_data = level_bg_dictionary[f'level1_{world_count}_bg']
-            world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls, settings_counters)
             run_level_selection = False
             menu_transition = True
             menu_transition_counter = 0

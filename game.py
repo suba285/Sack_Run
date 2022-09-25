@@ -255,7 +255,7 @@ class Game:
         self.player_moved = False
 
         self.start_x = 2
-        self.start_y = -4
+        self.start_y = -2
 
         self.restart_level = False
 
@@ -273,9 +273,9 @@ class Game:
         self.level_duration_counter = 0
 
         # initiating classes -------------------------------------------------------------------------------------------
-        self.player = Player(x, y, screen, self.controls, self.settings_counters)
         self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data, controls,
                            settings_counters)
+        self.player = Player(x, y, screen, self.controls, self.settings_counters)
         self.particles = Particles(particle_num, slow_computer)
         self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
         self.shockwave = Shockwave(screen, controls)
