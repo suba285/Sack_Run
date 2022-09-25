@@ -46,7 +46,11 @@ class mainMenu:
         self.logo_rect.y = 70
 
         self.quit_txt = Text().make_text([' Quit (Z + Q)'])
-        self.quit_txt.set_alpha(200)
+        self.quit_txt.set_alpha(180)
+        self.quit_txt_alpha = 0
+
+        self.author_txt = Text().make_text(['Made by Suba'])
+        self.author_txt_alpha = 255
 
         # variables ----------------------------------------------------------------------------------------------------
         self.play_x = swidth / 2 - self.play_button.get_width() / 2
@@ -71,14 +75,30 @@ class mainMenu:
         self.settings = False
         self.settings_cooldown = 0
 
-        self.sack_run_logo_y = 70
+        self.sack_run_logo_y = sheight / 2 - self.logo.get_height() / 2
+        self.final_sack_run_logo_y = 70
 
         self.logo_pos_counter = 0
 
         self.particles = []
 
+        self.logo_surface = pygame.Surface((swidth, 70 + self.logo.get_height()))
+        self.logo_surface.set_colorkey((0, 0, 0))
+        self.logo_surface.set_alpha(0)
+        self.logo_surface_y = sheight / 2 - self.logo_surface.get_height() / 2
+
+        self.button_surface = pygame.Surface((swidth, sheight))
+        self.surface_alpha = 0
+        self.button_surface.set_colorkey((0, 0, 0))
+        self.button_surface.set_alpha(0)
+
+        self.opening_animation_counter = 50
+
+        self.quit_txt_bright = False
+
         for i in range(20):
-            self.particles.append([random.randrange(0, swidth), random.randrange(30, 100 + self.logo.get_height())])
+            self.particles.append([random.randrange(0, swidth),
+                                   random.randrange(1, self.logo_surface.get_height() - 2)])
 
         # initiating button classes ------------------------------------------------------------------------------------
         self.p_button = Button(self.play_x, self.play_y, self.play_button, self.play_button_press,
@@ -91,17 +111,56 @@ class mainMenu:
 
         menu_screen.blit(self.menu_background, (0, 0))
 
+        key = pygame.key.get_pressed()
+
+        self.logo_surface.fill((0, 0, 0))
+        self.button_surface.fill((0, 0, 0))
+
+        self.opening_animation_counter += 1
+        self.logo_pos_counter += 1
+
         for particle in self.particles:
             particle[0] += 1
-            pygame.draw.circle(menu_screen, (136, 104, 134), particle, 1, 1)
+            pygame.draw.circle(self.logo_surface, (136, 104, 134), particle, 1, 1)
             if particle[0] > swidth:
                 particle[0] = 0
-                particle[1] = random.randrange(30, 100 + self.logo.get_height())
+                particle[1] = random.randrange(1, self.logo_surface.get_height() - 2)
+        menu_screen.blit(self.logo_surface, (0, 30))
 
         menu_screen.blit(self.logo, (self.logo_rect.x, self.sack_run_logo_y))
-        menu_screen.blit(self.quit_txt, (swidth / 2 - self.quit_txt.get_width() / 2, 230))
+        if self.author_txt_alpha > 0:
+            menu_screen.blit(self.author_txt, (swidth / 2 - self.author_txt.get_width() / 2, sheight/2 + 40))
 
-        self.logo_pos_counter += 1
+        if self.opening_animation_counter > 280:
+            if self.quit_txt_alpha < 180:
+                self.quit_txt_alpha += 15
+            if self.quit_txt_alpha <= 180:
+                self.quit_txt.set_alpha(self.quit_txt_alpha)
+
+            if key[pygame.K_q] or key[pygame.K_z]:
+                self.quit_txt.set_alpha(255)
+                self.quit_txt_bright = True
+            else:
+                if self.quit_txt_bright:
+                    self.quit_txt_bright = False
+                    self.quit_txt.set_alpha(180)
+
+            menu_screen.blit(self.quit_txt, (swidth / 2 - self.quit_txt.get_width() / 2, 230))
+
+        if self.opening_animation_counter > 230:
+            self.surface_alpha += 8
+            if self.surface_alpha <= 255:
+                self.button_surface.set_alpha(self.surface_alpha)
+                self.logo_surface.set_alpha(self.surface_alpha)
+
+        if self.opening_animation_counter > 200:
+            if self.sack_run_logo_y > self.final_sack_run_logo_y:
+                self.sack_run_logo_y -= 1
+
+        if self.opening_animation_counter > 180:
+            if self.author_txt_alpha > 0:
+                self.author_txt_alpha -= 10
+                self.author_txt.set_alpha(self.author_txt_alpha)
 
         play = False
         fps = False
@@ -112,11 +171,7 @@ class mainMenu:
         over3 = False
         over4 = False
 
-        mouse_pos = pygame.mouse.get_pos()
-
-        if self.logo_rect.collidepoint((mouse_pos[0]/mouse_adjustement, mouse_pos[1]/mouse_adjustement)):
-            self.sack_run_logo_y = 68
-        else:
+        if self.opening_animation_counter > 260:
             if self.logo_pos_counter >= 60:
                 self.sack_run_logo_y = 70
                 self.logo_pos_counter = 0
@@ -124,16 +179,14 @@ class mainMenu:
                 self.sack_run_logo_y = 69
 
         # play button
-        play, over1 = self.p_button.draw_button(menu_screen, False, mouse_adjustement, events)
-
-        if self.settings:
-            # drawing settings background onto the screen
-            menu_screen.blit(self.settings_background, (swidth / 2 - tile_size, sheight/2 + 59))
+        play, over1 = self.p_button.draw_button(self.button_surface, False, mouse_adjustement, events)
 
         # settings button
-        settings, over2 = self.s_button.draw_button(menu_screen, False, mouse_adjustement, events)
+        settings, over2 = self.s_button.draw_button(self.button_surface, False, mouse_adjustement, events)
 
-        if over1 or over2 or over4:
+        menu_screen.blit(self.button_surface, (0, 0))
+
+        if (over1 or over2 or over4) and self.opening_animation_counter > 250:
             end_over1 = True
 
         return play, slow_computer, end_over1, end_over2, settings

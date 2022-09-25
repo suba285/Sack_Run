@@ -447,6 +447,11 @@ class Player:
         dx = 0
         dy = 0
 
+        if self.airborn:
+            self.slide = 0.2
+        else:
+            self.slide = 0.4
+
         if self.vel_x_l < 0:
             self.vel_x_l += self.slide * fps_adjust
         else:
@@ -619,12 +624,12 @@ class Player:
                 and not (self.col_types['right'] or self.col_types['left']) and game_counter >= 0 and move:
             # player control
             self.transition = False
-            if key[self.controls['jump']]:
+            if key[self.controls['jump']] and not self.jumped:
                 if self.jump_boost:
                     self.first_power_jump = True
                 self.teleport_count = 0
                 self.player_moved = True
-                if not self.jumped and self.on_ground_counter > 0:
+                if not self.jumped and self.on_ground_counter > 0 and not self.airborn:
                     if self.jump_boost:
                         self.vel_y = -15
                     else:
@@ -632,10 +637,7 @@ class Player:
                     self.jumped = True
                     self.animate_walk = False
                     self.airborn = True
-                    if self.direction == 1:
-                        self.sack_img = self.sack_jumpf
-                    elif self.direction == 0:
-                        self.sack_img = self.sack_jumpb
+
             if not key[self.controls['jump']]:
                 self.jumped = False
                 if not self.airborn:
@@ -670,7 +672,7 @@ class Player:
                         else:
                             self.sack_img = self.sack0b
 
-            if self.airborn:
+            if self.airborn and not self.col_types['bottom']:
                 if self.direction == 1:
                     self.sack_offset = jump_offset_amount - 3
                     if self.vel_y < -5:
@@ -697,8 +699,8 @@ class Player:
                 walking_left = True
                 self.speed_adder += 0.1 * fps_adjust
                 self.speed += self.speed_adder
-                if self.speed > 2.5:
-                    self.speed = 2.5 * fps_adjust
+                if self.speed > 2.43:
+                    self.speed = 2.43 * fps_adjust
                 dx -= self.speed
                 self.vel_x_l = dx
                 self.vel_x_r = 0
@@ -722,8 +724,8 @@ class Player:
                 walking_right = True
                 self.speed_adder += 0.1 * fps_adjust
                 self.speed += self.speed_adder
-                if self.speed > 2.5:
-                    self.speed = 2.5 * fps_adjust
+                if self.speed > 2.43:
+                    self.speed = 2.43 * fps_adjust
                 dx += self.speed
                 self.vel_x_r = dx
                 self.vel_x_l = 0
@@ -804,7 +806,7 @@ class Player:
             sack_width = self.sack_width
 
         for tile in tile_list:
-            if tile[1].colliderect(temp_rect.x + x_adjust, temp_rect.y, sack_width, self.sack_height):
+            if tile[1].colliderect(temp_rect.x + x_adjust + dx, temp_rect.y, sack_width, self.sack_height):
                 hit_list_x.append(tile)
 
         if self.sack_rect.x + 20 > self.right_border:

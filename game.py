@@ -266,6 +266,7 @@ class Game:
         self.blit_card_instructions = False
 
         self.level_length = 0
+        self.bottom_y = sheight
 
         self.shockwave_radius = 0
 
@@ -366,7 +367,7 @@ class Game:
                                                                   self.left_border,
                                                                   self.right_border,
                                                                   game_counter,
-                                                                  self.move
+                                                                  self.move,
                                                                   )
 
         # updating solid tile positions --------------------------------------------------------------------------------
@@ -465,10 +466,10 @@ class Game:
 
         if self.restart_level:
             self.eq_power_list = []
-            self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
+            self.eq_manager.create_card_buttons(self.eq_power_list, True)
             self.level_duration_counter = 0
         if self.reinit_eq:
-            self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
+            self.eq_manager.create_card_buttons(self.eq_power_list, False)
             self.reinit_eq = False
 
         # updating and blitting the card bar ---------------------------------------------------------------------------

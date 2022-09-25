@@ -139,7 +139,10 @@ play = False
 run_level_selection = False
 level_selection = False
 
-draw_hitbox = False
+if settings_counters['hitbox'] == 1:
+    draw_hitbox = False
+else:
+    draw_hitbox = True
 draw_fps_counter = True
 play_background_music = True
 play_sounds = True
@@ -189,7 +192,7 @@ sounds['paper_crumbling'].set_volume(0.8)
 
 music_volumes = {
     '1': 0,
-    '2': 0.5,
+    '2': 0.3,
     '3': 1
 }
 

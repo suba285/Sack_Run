@@ -741,7 +741,7 @@ class SettingsMenu:
                                               self.vis_sound_button_start_y + self.gap + 7))
 
             if self.sounds_counter > 1:
-                sound_left_press, over1 = self.sounds_btn_left.draw_button(self.sound_screen,
+                sound_left_press, over3 = self.sounds_btn_left.draw_button(self.sound_screen,
                                                                            False, mouse_adjustment, events)
             else:
                 self.sound_screen.blit(self.left_button_grey,
@@ -749,7 +749,7 @@ class SettingsMenu:
                 inactive_button(self.left_btn_x, self.vis_sound_button_start_y + self.gap * 2, self.left_button_grey,
                                 mouse_adjustment)
             if self.sounds_counter < 2:
-                sound_right_press, over2 = self.sounds_btn_right.draw_button(self.sound_screen,
+                sound_right_press, over4 = self.sounds_btn_right.draw_button(self.sound_screen,
                                                                              False, mouse_adjustment, events)
             else:
                 self.sound_screen.blit(self.right_button_grey,
