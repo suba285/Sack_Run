@@ -203,8 +203,8 @@ class eqManager:
 
     def create_card_buttons(self, eq_list, reset):
         self.x = 0
-        if reset:
-            self.eq_button_list = []
+        self.eq_button_list = []
+
         for power in eq_list:
             if power == 'jump boost':
                 img = self.jump_boost_img1
