@@ -24,7 +24,7 @@ class eqManager:
         self.card_delete_counter = walk_counter
 
         self.card_info = False
-        self.card_info_type = 'jump boost'
+        self.card_info_type = 'blank'
 
         self.close_card_info_press = False
         self.card_info_press = False
@@ -46,6 +46,10 @@ class eqManager:
         self.card_info_counter = 0
 
         self.card_return_counter = 10
+
+        self.one_time_type_set = False
+
+        self.level_count = 1
 
         self.card_x = 0
         self.card_y = sheight - tile_size * 2
@@ -84,7 +88,7 @@ class eqManager:
 
         no_gravity_title = Text().make_text(['NO GRAVITY'])
         no_gravity_class = Text().make_text(['very rare'])
-        no_gravity_description = Text().make_text(['Pass tricky levels with ease'])
+        no_gravity_description = Text().make_text(['Literally walk on air'])
         no_gravity_duration = Text().make_text(['Duration: 3s'])
 
         shockwave_title = Text().make_text(['SHOCKWAVE +'])
@@ -281,6 +285,12 @@ class eqManager:
         over3 = False
         over4 = False
 
+        if self.level_count != level_count:
+            self.card_info = False
+            self.card_return_counter = 10
+            self.card_info_type = 'blank'
+            self.level_count = level_count
+
         key = pygame.key.get_pressed()
 
         for event in events:
@@ -303,7 +313,7 @@ class eqManager:
             self.eq_button_counter += 1
             local_over = False
             if button[1] == 'jump boost':
-                if (not self.card_info or self.card_info_type != 'jump boost') and self.card_return_counter >= 10:
+                if self.card_info_type != 'jump boost':
                     press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 else:
                     press = False
@@ -316,6 +326,7 @@ class eqManager:
                     if mousebuttondown_right:
                         self.card_info_press = True
                     if mousebuttonup and self.card_info_press:
+                        self.card_info_type = 'jump boost'
                         eqManager.prepare_card_animation(self, button[2], 'jump boost')
                         self.card_info_popup_text_surface = \
                             eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface, self.card_info_type)
@@ -324,7 +335,7 @@ class eqManager:
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
             if button[1] == 'regeneration':
-                if (not self.card_info or self.card_info_type != 'regeneration') and self.card_return_counter >= 10:
+                if self.card_info_type != 'regeneration':
                     press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 else:
                     press = False
@@ -337,6 +348,7 @@ class eqManager:
                     if mousebuttondown_right:
                         self.card_info_press = True
                     if mousebuttonup and self.card_info_press:
+                        self.card_info_type = 'regeneration'
                         eqManager.prepare_card_animation(self, button[2], 'regeneration')
                         self.card_info_popup_text_surface = \
                             eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface, self.card_info_type)
@@ -345,7 +357,7 @@ class eqManager:
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
             if button[1] == 'no gravity':
-                if (not self.card_info or self.card_info_type != 'no gravity') and self.card_return_counter >= 10:
+                if self.card_info_type != 'no gravity':
                     press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 else:
                     press = False
@@ -358,6 +370,7 @@ class eqManager:
                     if mousebuttondown_right:
                         self.card_info_press = True
                     if mousebuttonup and self.card_info_press:
+                        self.card_info_type = 'no gravity'
                         eqManager.prepare_card_animation(self, button[2], 'no gravity')
                         self.card_info_popup_text_surface = \
                             eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface, self.card_info_type)
@@ -366,7 +379,7 @@ class eqManager:
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
             if button[1] == 'no harm':
-                if (not self.card_info or self.card_info_type != 'no harm') and self.card_return_counter >= 10:
+                if self.card_info_type != 'no harm':
                     press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 else:
                     press = False
@@ -379,6 +392,7 @@ class eqManager:
                     if mousebuttondown_right:
                         self.card_info_press = True
                     if mousebuttonup and self.card_info_press:
+                        self.card_info_type = 'no harm'
                         eqManager.prepare_card_animation(self, button[2], 'no harm')
                         self.card_info_popup_text_surface = \
                             eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface, self.card_info_type)
@@ -387,7 +401,7 @@ class eqManager:
                     self.eq_button_list.remove(button)
                     paper_sound_trigger = True
             if button[1] == 'shockwave+':
-                if (not self.card_info or self.card_info_type != 'shockwave+') and self.card_return_counter >= 10:
+                if self.card_info_type != 'shockwave+':
                     press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 else:
                     press = False
@@ -400,6 +414,7 @@ class eqManager:
                     if mousebuttondown_right:
                         self.card_info_press = True
                     if mousebuttonup and self.card_info_press:
+                        self.card_info_type = 'shockwave+'
                         eqManager.prepare_card_animation(self, button[2], 'shockwave+')
                         self.card_info_popup_text_surface = \
                             eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface,
@@ -445,7 +460,7 @@ class eqManager:
                 center_height = sheight / 3 - tile_size / 2 + tile_size / 4
 
                 total_tutorial_width = img.get_width() * 2 + self.use_text.get_width() + self.bin_text.get_width() +\
-                                       self.info_text.get_width() + 2 + key_img.get_width() + gap * 7
+                                       self.info_text.get_width() + 2 + key_img.get_width() + gap * 9
                 tutorial_x = center_width - total_tutorial_width / 2
 
                 screen.blit(img, (tutorial_x, center_height - tile_size / 3))
@@ -454,9 +469,9 @@ class eqManager:
                 tutorial_x += (self.use_text.get_width() + gap)
                 pygame.draw.line(screen, (255, 255, 255), (tutorial_x, center_height - 2),
                                  (tutorial_x, center_height + tile_size / 2 + 2))
-                tutorial_x += (1 + gap)
+                tutorial_x += (1 + gap*2)
                 screen.blit(key_img, (tutorial_x, center_height))
-                tutorial_x += (key_img.get_width() + gap)
+                tutorial_x += (key_img.get_width() + gap*2)
                 screen.blit(self.bin_text, (tutorial_x, center_height + 5))
                 tutorial_x += (self.bin_text.get_width() + gap)
                 pygame.draw.line(screen, (255, 255, 255), (tutorial_x, center_height - 2),
@@ -527,6 +542,11 @@ class eqManager:
             screen.blit(self.card_info_dict[self.card_info_type], (self.card_x, self.card_y))
             self.card_x -= self.card_frame_movement_x
             self.card_y += self.card_frame_movement_y
+            self.one_time_type_set = True
+
+        if self.card_return_counter >= 10 and self.one_time_type_set:
+            self.card_info_type = 'blank'
+            self.one_time_type_set = False
 
         return eq_list, self.jump_boost_trigger, self.regeneration_trigger, self.no_gravity_trigger,\
                self.no_harm_trigger, self.shockwave_trigger, over, power_list, paper_sound_trigger

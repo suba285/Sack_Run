@@ -2,7 +2,6 @@ import time
 import pygame
 import json
 
-from world import World
 from levels import *
 from game import Game
 from menu import mainMenu
@@ -34,7 +33,7 @@ wiheight_big = sheight * 3
 wiwidth_big = swidth * 3
 tile_size = 32
 
-x = 180
+x = 164
 y = 132
 
 start_x = -4
@@ -84,7 +83,7 @@ recommended_resolution = resolution_1
 resolution_counter = 3
 
 for res in list_of_resolutions:
-    if res[1] < (monitor_height * 0.8):
+    if res[1] < (monitor_height * 0.85):
         recommended_resolution = res
         break
     resolution_counter -= 1
@@ -165,6 +164,8 @@ game_paused = False
 
 menu_transition_counter = 0
 menu_transition = False
+
+proceed_with_transition = False
 
 menu_y = 0
 game_y = swidth
@@ -261,7 +262,6 @@ mouse_vis = True
 show_cursor = True
 
 # initiating classes ---------------------------------------------------------------------------------------------------
-world = World(world_data, screen, slow_computer, start_x, start_y, bg_data, controls, settings_counters)
 main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, settings_counters)
 main_menu = mainMenu()
 pause_menu = PauseScreen(pause_screen)
@@ -386,15 +386,13 @@ while run:
             play_lock_sound,\
             play_bear_trap_cling_sound,\
             play_healing_sound,\
-            world_data,\
             dead,\
-            bg_data,\
             button_sound_trigger2,\
             play_paper_sound,\
             play_music_trigger,\
             fadeout_music,\
             lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
-                                           draw_hitbox, mouse_adjustment, events, world_data, bg_data,
+                                           draw_hitbox, mouse_adjustment, events,
                                            game_counter, world_count)
 
         if play_music_trigger:
@@ -460,11 +458,14 @@ while run:
             bg_data = level_bg_dictionary[f'level1_{world_count}_bg']
             threading.Thread(target=loadGame, args=[world_data, bg_data, world_count]).start()
             loading = True
+            proceed_with_transition = False
 
         if game_loaded:
-            play = True
-            game_loaded = False
             loading = False
+            if proceed_with_transition:
+                play = True
+                game_loaded = False
+            proceed_with_transition = True
 
         if loading:
             level_selection_screen.blit(screen_dim, (0, 0))
@@ -615,12 +616,12 @@ while run:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q:
                 user_quit1 = True
-            if event.key == pygame.K_z:
+            if event.key == pygame.K_LCTRL:
                 user_quit2 = True
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_q:
                 user_quit1 = False
-            if event.key == pygame.K_z:
+            if event.key == pygame.K_LCTRL:
                 user_quit2 = False
             # play = True
 

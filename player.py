@@ -304,10 +304,12 @@ class Player:
         self.right_col = False
         self.left_col = False
         self.col_types = {'left': False, 'right': False, 'top': False, 'bottom': False}
+        self.first_collision = False
 
         # --------------------------------------------------------------------------------------------------------------
         self.camera_movement_x = 0
         self.camera_movement_y = 0
+        self.camera_movement_amount = 0
 
         # --------------------------------------------------------------------------------------------------------------
         self.health_bar_part_list = []
@@ -616,6 +618,7 @@ class Player:
                     self.new_level_cooldown = 0
                     self.teleport_count = 0
                     self.player_moved = False
+                    self.first_collision = False
                     # player direction
                     self.direction = 1
 
@@ -773,6 +776,7 @@ class Player:
         if self.restart_counter > 50 and self.single_restart:
             self.restart_level = True
             self.player_moved = False
+            self.first_collision = False
             self.play_music = True
             self.single_restart = False
 
@@ -850,6 +854,7 @@ class Player:
                 self.vel_y = 0
                 self.col_types['bottom'] = True
                 self.airborn = False
+                self.first_collision = True
                 self.on_ground_counter = self.default_on_ground_counter
                 self.animate_walk = True
             if dy < 0:
@@ -866,6 +871,8 @@ class Player:
 
         # ensuring the player sprite is always in the middle level of the screen
         self.sack_rect.x = 164
+        if not self.first_collision:
+            self.sack_rect.y = 132
 
         # preventing the player from falling out of the world
         if self.sack_rect.bottom > sheight:
@@ -882,13 +889,15 @@ class Player:
         # updating player coordinates ----------------------------------------------------------------------------------
         self.camera_movement_x = round(-self.vel_x)
         dx = 0
-        if self.sack_rect.y > 180 and dy*fps_adjust > 0:
+        if self.sack_rect.y > 180 and dy * fps_adjust > 0:
             self.camera_movement_y = round(-dy)
-        elif self.sack_rect.y < top_border and dy*fps_adjust < 0:
+        elif self.sack_rect.y < top_border and dy * fps_adjust < 0:
+            self.camera_movement_y = round(-dy)
+        elif not self.first_collision:
             self.camera_movement_y = round(-dy)
         else:
-            self.camera_movement_y = round(-dy/2)
-            self.sack_rect.y += round(dy/2)
+            self.camera_movement_y = round(-dy / 2)
+            self.sack_rect.y += round(dy / 2)
 
         self.dx = dx
         self.dy = dy

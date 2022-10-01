@@ -1,3 +1,4 @@
+
 from button import *
 from image_loader import img_loader
 from font_manager import Text
@@ -45,7 +46,7 @@ class mainMenu:
         self.logo_rect.x = swidth / 2 - self.logo.get_width() / 2
         self.logo_rect.y = 70
 
-        self.quit_txt = Text().make_text([' Quit (Z + Q)'])
+        self.quit_txt = Text().make_text([' Quit (ctrl + Q)'])
         self.quit_txt.set_alpha(180)
         self.quit_txt_alpha = 0
 
@@ -137,7 +138,7 @@ class mainMenu:
             if self.quit_txt_alpha <= 180:
                 self.quit_txt.set_alpha(self.quit_txt_alpha)
 
-            if key[pygame.K_q] or key[pygame.K_z]:
+            if key[pygame.K_q] or key[pygame.K_LCTRL]:
                 self.quit_txt.set_alpha(255)
                 self.quit_txt_bright = True
             else:
@@ -178,11 +179,15 @@ class mainMenu:
             elif self.logo_pos_counter >= 50:
                 self.sack_run_logo_y = 69
 
-        # play button
-        play, over1 = self.p_button.draw_button(self.button_surface, False, mouse_adjustement, events)
+        if self.opening_animation_counter > 230:
+            # play button
+            play, over1 = self.p_button.draw_button(self.button_surface, False, mouse_adjustement, events)
 
-        # settings button
-        settings, over2 = self.s_button.draw_button(self.button_surface, False, mouse_adjustement, events)
+            # settings button
+            settings, over2 = self.s_button.draw_button(self.button_surface, False, mouse_adjustement, events)
+        else:
+            settings = False
+            play = False
 
         menu_screen.blit(self.button_surface, (0, 0))
 

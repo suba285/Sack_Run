@@ -39,7 +39,7 @@ def key_animation(img1, img2, counter, fps_adjust):
 
 
 class World:
-    def __init__(self, data, screen, slow_computer, start_x, start_y, bg_data, controls, settings_counters):
+    def __init__(self, data, screen, slow_computer, bg_data, controls, settings_counters):
 
         if slow_computer:
             self.fps_adjust = 0.5
@@ -48,6 +48,13 @@ class World:
 
         self.controls = controls
         self.settings_counters = settings_counters
+
+        self.data = data
+        self.bg_data = bg_data
+
+        self.screen = screen
+
+        self.slow_computer = slow_computer
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.tile_list = []
@@ -77,6 +84,8 @@ class World:
         self.anchor_eye_list = []
         self.tree_list = []
         self.wheat_list = []
+
+        self.list_of_lists = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -120,6 +129,7 @@ class World:
         self.bear_trap = BearTrap()
 
         self.level_length = 0
+        self.level_height = 0
 
         self.angles = [0, 90, 180, 270]
 
@@ -143,14 +153,13 @@ class World:
         self.bear_trap_shut_img = img_loader('data/images/bear_trap_shut.PNG', tile_size, tile_size / 2)
 
         # portal tile images -------------------------------------------------------------------------------------------
-        portal1 = pygame.image.load('data/images/portal1.PNG').convert()
+        self.portal1 = pygame.image.load('data/images/portal1.PNG').convert()
         self.portal1 = img_loader('data/images/portal1.PNG', tile_size, tile_size)
         self.portal2 = img_loader('data/images/portal2.PNG', tile_size, tile_size)
         self.portal3 = img_loader('data/images/portal3.PNG', tile_size, tile_size)
         self.portal4 = img_loader('data/images/portal4.PNG', tile_size, tile_size)
 
         # moving grass tile images -------------------------------------------------------------------------------------
-        grass1 = pygame.image.load('data/images/grass0.PNG').convert()
         self.grass2 = img_loader('data/images/grass1.PNG', tile_size, tile_size)
         self.grass3 = img_loader('data/images/grass2.PNG', tile_size, tile_size)
 
@@ -174,19 +183,19 @@ class World:
         self.bg_tile_two_corners = img_loader('data/images/background_tile_edges.PNG', tile_size, tile_size)
 
         # bee hive tile images -----------------------------------------------------------------------------------------
-        bee_hive_raw = pygame.image.load('data/images/bee_hive.PNG').convert()
-        bee_hive = pygame.transform.scale(bee_hive_raw, (tile_size, tile_size))
-        bee_hive.set_colorkey((0, 0, 0))
+        self.bee_hive_raw = pygame.image.load('data/images/bee_hive.PNG').convert()
+        self.bee_hive = pygame.transform.scale(self.bee_hive_raw, (tile_size, tile_size))
+        self.bee_hive.set_colorkey((0, 0, 0))
         self.bee_hive = img_loader('data/images/bee_hive.PNG', tile_size, 2 * tile_size)
 
         # chest tile images and card animation class init --------------------------------------------------------------
-        chest0_raw = pygame.image.load('data/images/chest0.PNG').convert()
-        chest1_raw = pygame.image.load('data/images/chest1.PNG').convert()
-        chest2_raw = pygame.image.load('data/images/chest2.PNG').convert()
-        chest_open_raw = pygame.image.load('data/images/chest_open.PNG').convert()
-        self.chest1 = pygame.transform.scale(chest1_raw, (tile_size, tile_size))
-        self.chest2 = pygame.transform.scale(chest2_raw, (tile_size, tile_size))
-        self.chest_open = pygame.transform.scale(chest_open_raw, (tile_size, tile_size))
+        self.chest0_raw = pygame.image.load('data/images/chest0.PNG').convert()
+        self.chest1_raw = pygame.image.load('data/images/chest1.PNG').convert()
+        self.chest2_raw = pygame.image.load('data/images/chest2.PNG').convert()
+        self.chest_open_raw = pygame.image.load('data/images/chest_open.PNG').convert()
+        self.chest1 = pygame.transform.scale(self.chest1_raw, (tile_size, tile_size))
+        self.chest2 = pygame.transform.scale(self.chest2_raw, (tile_size, tile_size))
+        self.chest_open = pygame.transform.scale(self.chest_open_raw, (tile_size, tile_size))
         self.chest1.set_colorkey((0, 0, 0))
         self.chest2.set_colorkey((0, 0, 0))
         self.chest_open.set_colorkey((0, 0, 0))
@@ -199,9 +208,6 @@ class World:
         self.tree = img_loader('data/images/tree.PNG', 2 * tile_size, 2 * tile_size)
 
         # foliage tile images ------------------------------------------------------------------------------------------
-        short_grass_raw = pygame.image.load('data/images/short_grass.PNG').convert()
-        short_grass_left_raw = pygame.image.load('data/images/short_grass_left.PNG').convert()
-        short_grass_right_raw = pygame.image.load('data/images/short_grass_right.PNG').convert()
         self.short_grass = img_loader('data/images/short_grass.PNG', tile_size, tile_size)
         self.short_grass_left = img_loader('data/images/short_grass_left.PNG', tile_size, tile_size)
         self.short_grass_right = img_loader('data/images/short_grass_right.PNG', tile_size, tile_size)
@@ -209,24 +215,24 @@ class World:
         self.short_flowers_together = img_loader('data/images/short_flowers_together.PNG', tile_size, tile_size)
 
         # toxic flower tile images -------------------------------------------------------------------------------------
-        toxic_flower_raw = pygame.image.load('data/images/toxic_flowers.PNG').convert()
+        self.toxic_flower_raw = pygame.image.load('data/images/toxic_flowers.PNG').convert()
         self.toxic_flower = img_loader('data/images/toxic_flowers.PNG', tile_size, tile_size)
 
         # spitting plant tile images -----------------------------------------------------------------------------------
-        spitting_plant0_raw = pygame.image.load('data/images/spitting_plant0.PNG').convert()
+        self.spitting_plant0_raw = pygame.image.load('data/images/spitting_plant0.PNG').convert()
         self.spitting_plant0l = img_loader('data/images/spitting_plant0.PNG', tile_size, tile_size)
         self.spitting_plant1l = img_loader('data/images/spitting_plant1.PNG', tile_size, tile_size)
         self.spitting_plant2l = img_loader('data/images/spitting_plant2.PNG', tile_size, tile_size)
         self.spitting_plant0r = pygame.transform.flip(self.spitting_plant0l, True, False)
         self.spitting_plant1r = pygame.transform.flip(self.spitting_plant1l, True, False)
         self.spitting_plant2r = pygame.transform.flip(self.spitting_plant2l, True, False)
-        spitting_plant_up0_raw = pygame.image.load('data/images/spitting_plant_up0.PNG').convert()
+        self.spitting_plant_up0_raw = pygame.image.load('data/images/spitting_plant_up0.PNG').convert()
         self.spitting_plant_up0 = img_loader('data/images/spitting_plant_up0.PNG', tile_size, tile_size)
         self.spitting_plant_up1 = img_loader('data/images/spitting_plant_up1.PNG', tile_size, tile_size)
         self.spitting_plant_up2 = img_loader('data/images/spitting_plant_up2.PNG', tile_size, tile_size)
 
         # log frames ---------------------------------------------------------------------------------------------------
-        log0 = pygame.image.load('data/images/log0.PNG').convert()
+        self.log0 = pygame.image.load('data/images/log0.PNG').convert()
         self.log0 = img_loader('data/images/log0.PNG', 2 * tile_size, tile_size)
         self.log1 = img_loader('data/images/log1.PNG', 2 * tile_size, tile_size)
         self.log1.set_colorkey((0, 0, 0))
@@ -261,10 +267,45 @@ class World:
         self.eq_full_txt = eq_full_text.make_text(['eq is full, bin cards to free up space'])
         self.blit_eq_full = False
 
+    def create_world(self, start_x, start_y, data, bg_data):
+
+        # lists (a lot of lists) ---------------------------------------------------------------------------------------
+        self.tile_list = []
+        self.bg_tile_list = []
+        self.next_level_list = []
+        self.portal1_list = []
+        self.grass1_list = []
+        self.mushroom_list = []
+        self.mushroom_pick_list = []
+        self.bear_trap_rect_list = []
+        self.grn_mushroom_list = []
+        self.bee_hive_list = []
+        self.chest_list = []
+        self.shut_trap_list = []
+        self.bush_list = []
+        self.slope_list = []
+        self.decoration_list = []
+        self.toxic_flower_list = []
+        self.bee_list = []
+        self.spitting_plant_list_left = []
+        self.spitting_plant_list_right = []
+        self.spitting_plant_list_up = []
+        self.spit_list_left = []
+        self.spit_list_right = []
+        self.spit_list_up = []
+        self.log_list = []
+        self.anchor_eye_list = []
+        self.tree_list = []
+        self.wheat_list = []
+
         # assigning tiles to corresponding coordinates by the level map ------------------------------------------------
         row_count = start_y
         self.level_height = 0
-        for row in data:
+
+        self.data = data
+        self.bg_data = bg_data
+
+        for row in self.data:
             column_count = start_x
             self.level_length = 0
             for tile in row:
@@ -321,7 +362,7 @@ class World:
                     self.decoration_list.append(tile)
                 if tile == 20:
                     # portal
-                    img1 = pygame.transform.scale(portal1, (tile_size, tile_size))
+                    img1 = pygame.transform.scale(self.portal1, (tile_size, tile_size))
                     img1.set_colorkey((0, 0, 0))
                     img1_rectangle = img1.get_rect()
                     img1_rectangle.x = column_count * tile_size
@@ -392,20 +433,20 @@ class World:
                     pass
                 if tile == 28:
                     # bee hive
-                    img = pygame.transform.scale(bee_hive, (tile_size, 2 * tile_size))
+                    img = pygame.transform.scale(self.bee_hive, (tile_size, 2 * tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
                     img_rectangle.y = row_count * tile_size
                     bee_list = []
                     for i in range(4):
-                        bee = Bee(screen, img_rectangle.x, img_rectangle.y, slow_computer)
+                        bee = Bee(self.screen, img_rectangle.x, img_rectangle.y, self.slow_computer)
                         bee_list.append(bee)
                     tile = (img, img_rectangle, bee_list)
                     self.bee_hive_list.append(tile)
                 if tile == 29:
                     # chest
-                    img = pygame.transform.scale(chest0_raw, (tile_size, tile_size))
+                    img = pygame.transform.scale(self.chest0_raw, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
@@ -440,7 +481,7 @@ class World:
                     self.tile_list.append(tile)
                 if tile == 33:
                     # short grass
-                    img = pygame.transform.scale(short_grass_raw, (tile_size, tile_size))
+                    img = pygame.transform.scale(self.short_grass, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
@@ -449,7 +490,7 @@ class World:
                     self.decoration_list.append(tile)
                 if tile == 34:
                     # short left
-                    img = pygame.transform.scale(short_grass_left_raw, (tile_size, tile_size))
+                    img = pygame.transform.scale(self.short_grass_left, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
@@ -458,7 +499,7 @@ class World:
                     self.decoration_list.append(tile)
                 if tile == 35:
                     # short right
-                    img = pygame.transform.scale(short_grass_right_raw, (tile_size, tile_size))
+                    img = pygame.transform.scale(self.short_grass_right, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
@@ -467,7 +508,7 @@ class World:
                     self.decoration_list.append(tile)
                 if tile == 36:
                     # toxic flower
-                    img = pygame.transform.scale(toxic_flower_raw, (tile_size, tile_size))
+                    img = pygame.transform.scale(self.toxic_flower_raw, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
@@ -476,7 +517,7 @@ class World:
                     self.toxic_flower_list.append(tile)
                 if tile == 37:
                     # spitting plant left
-                    img = pygame.transform.scale(spitting_plant0_raw, (tile_size, tile_size))
+                    img = pygame.transform.scale(self.spitting_plant0_raw, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
@@ -491,7 +532,7 @@ class World:
                     self.spitting_plant_list_left.append(tile)
                 if tile == 38:
                     # spitting plant right
-                    img_raw = pygame.transform.scale(spitting_plant0_raw, (tile_size, tile_size))
+                    img_raw = pygame.transform.scale(self.spitting_plant0_raw, (tile_size, tile_size))
                     img = pygame.transform.flip(img_raw, True, False)
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
@@ -507,7 +548,7 @@ class World:
                     self.spitting_plant_list_right.append(tile)
                 if tile == 39:
                     # spitting plant up
-                    img = pygame.transform.scale(spitting_plant_up0_raw, (tile_size, tile_size))
+                    img = pygame.transform.scale(self.spitting_plant_up0_raw, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
@@ -522,7 +563,7 @@ class World:
                     self.spitting_plant_list_up.append(tile)
                 if tile == 40:
                     # log
-                    img = pygame.transform.scale(log0, (tile_size*2, tile_size))
+                    img = pygame.transform.scale(self.log0, (tile_size*2, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
@@ -581,11 +622,10 @@ class World:
 
         # background tiles ---------------------------------------------------------------------------------------------
         self.bg_surface = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
-
         bg_row_count = 0
         self.background_y = start_y * tile_size
         self.background_x = start_x * tile_size
-        for row in bg_data:
+        for row in self.bg_data:
             bg_col_count = 0
             for bg_tile in row:
                 if bg_tile == 47:

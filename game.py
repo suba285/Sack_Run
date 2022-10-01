@@ -88,6 +88,9 @@ class LevelDisplay:
 class Game:
     def __init__(self, x, y, slow_computer, screen, world_data, bg_data, controls, world_count, settings_counters):
 
+        self.world_data = world_data
+        self.bg_data = bg_data
+
         # loading in images --------------------------------------------------------------------------------------------
         background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
         self.background = pygame.transform.scale(background_raw, (360, 264))
@@ -255,7 +258,7 @@ class Game:
         self.player_moved = False
 
         self.start_x = 2
-        self.start_y = -2
+        self.start_y = -1
 
         self.restart_level = False
 
@@ -273,8 +276,9 @@ class Game:
         self.level_duration_counter = 0
 
         # initiating classes -------------------------------------------------------------------------------------------
-        self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data, controls,
+        self.world = World(world_data, screen, slow_computer, bg_data, controls,
                            settings_counters)
+        self.world.create_world(self.start_x, self.start_y, world_data, bg_data)
         self.player = Player(x, y, screen, self.controls, self.settings_counters)
         self.particles = Particles(particle_num, slow_computer)
         self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
@@ -319,8 +323,8 @@ class Game:
         return world_data_level_checker, bg_data
 
 # THE GAME =============================================================================================================
-    def game(self, screen, level_count, slow_computer, fps_adjust, draw_hitbox, mouse_adjustment, events, world_data,
-             bg_data, game_counter, world_count):
+    def game(self, screen, level_count, slow_computer, fps_adjust, draw_hitbox, mouse_adjustment, events,
+             game_counter, world_count):
 
         play_card_pull_sound = False
         play_healing_sound = False
@@ -409,9 +413,8 @@ class Game:
 
         # updating the world data if new level -------------------------------------------------------------------------
         if self.level_check < level_count or self.restart_level:
-            world_data, bg_data = Game.level_checker(self, level_count, world_count)
-            self.world = World(world_data, screen, slow_computer, self.start_x, self.start_y, bg_data, self.controls,
-                               self.settings_counters)
+            self.world_data, self.bg_data = Game.level_checker(self, level_count, world_count)
+            self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data)
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
             self.particles = Particles(particle_num, slow_computer)
@@ -598,5 +601,5 @@ class Game:
         # pygame.mouse.set_visible(False)
 
         return level_count, menu, play_card_pull_sound, play_lock_sound, play_bear_trap_cling_sound,\
-            play_healing_sound, world_data, self.dead, bg_data, game_button_over, play_paper_sound, self.play_music,\
+            play_healing_sound, self.dead, game_button_over, play_paper_sound, self.play_music,\
             self.fadeout, popup_tut_completed_press
