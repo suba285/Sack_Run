@@ -110,6 +110,12 @@ pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUS
 
 pygame.display.set_caption('sack run')
 
+
+background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
+background = pygame.transform.scale(background_raw, (360, 296))
+big_background = pygame.transform.scale(background_raw, (wiwidth, wiheight))
+window.blit(big_background, (0, 0))
+
 world_data = level1_1
 bg_data = level1_1_bg
 first_level = 1
@@ -172,9 +178,6 @@ game_y = swidth
 
 user_quit1 = False
 user_quit2 = False
-
-background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
-background = pygame.transform.scale(background_raw, (360, 296))
 
 # loading message ------------------------------------------------------------------------------------------------------
 loading_text = Text().make_text(['Loading...'])
@@ -345,8 +348,8 @@ while run:
         if settings_not_saved_error:
             settings_not_saved_error_counter -= 1*fps_adjust
             if settings_not_saved_error_counter >= 0:
-                menu_screen.blit(settings_not_saved_error_txt, (swidth / 2 - settings_not_loaded_error_txt.get_width() / 2,
-                                                                3))
+                menu_screen.blit(settings_not_saved_error_txt,
+                                 (swidth / 2 - settings_not_loaded_error_txt.get_width() / 2, 3))
 
         if level_selection:
             if not slow_computer:
@@ -392,8 +395,8 @@ while run:
             play_music_trigger,\
             fadeout_music,\
             lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
-                                           draw_hitbox, mouse_adjustment, events,
-                                           game_counter, world_count)
+                                                 draw_hitbox, mouse_adjustment, events,
+                                                 game_counter, world_count)
 
         if play_music_trigger:
             play_music = True
@@ -470,7 +473,8 @@ while run:
         if loading:
             level_selection_screen.blit(screen_dim, (0, 0))
             level_selection_screen.blit(loading_bg,
-                             (swidth / 2 - loading_bg.get_width() / 2, sheight / 2 - loading_bg.get_height() / 2))
+                                        (swidth / 2 - loading_bg.get_width() / 2,
+                                         sheight / 2 - loading_bg.get_height() / 2))
 
         if play:
             if not slow_computer:

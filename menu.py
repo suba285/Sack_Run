@@ -195,6 +195,3 @@ class mainMenu:
             end_over1 = True
 
         return play, slow_computer, end_over1, end_over2, settings
-
-
-

@@ -815,13 +815,11 @@ class Player:
 
         if self.sack_rect.x + 20 > self.right_border:
             if self.vel_x > 0:
-                dx = 0
                 self.vel_x_r = 0
                 self.vel_x = 0
                 self.sack_rect.x = self.right_border - 20
         if self.sack_rect.x < self.left_border:
             if self.vel_x < 0:
-                dx = 0
                 self.vel_x_l = 0
                 self.vel_x = 0
                 self.sack_rect.x = self.left_border
@@ -829,13 +827,11 @@ class Player:
         for tile in hit_list_x:
             if self.vel_x > 0:
                 self.sack_rect.right = tile[1].left
-                dx = 0
                 self.vel_x = 0
                 self.vel_x_r = 0
                 self.col_types['right'] = True
             if self.vel_x < 0:
                 self.sack_rect.left = tile[1].right
-                dx = 0
                 self.vel_x = 0
                 self.vel_x_l = 0
                 self.col_types['left'] = True
@@ -914,7 +910,7 @@ class Player:
                self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown
 
 # UPDATING PLAYER SPRITE HEALTH ========================================================================================
-    def update_health(self, screen, fps_adjust, mouse_adjustment):
+    def update_health(self, screen, fps_adjust):
         sound_trigger = False
 
         if self.dead:
@@ -1047,7 +1043,7 @@ class Player:
             screen.blit(img, (swidth / 2 - tile_size, sheight / 3 - (tile_size / 2)))
 
 # draws control instruction buttons ------------------------------------------------------------------------------------
-    def draw_inst_buttons(self, screen, fps_adjust, level_count, world_count):
+    def draw_inst_buttons(self, screen, fps_adjust, level_count):
         self.inst_mouse_counter += 1 * fps_adjust
         self.inst_button_counter += 1 * fps_adjust
 

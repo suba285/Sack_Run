@@ -39,4 +39,3 @@ class CircleTransition:
                 self.trans = False
 
         return self.trans
-

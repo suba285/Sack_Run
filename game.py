@@ -61,17 +61,6 @@ level_pos_dictionary = {
 }
 
 
-# not in use
-def intro_map(screen, int_map, map_img, map_btn):
-    GB = min(0, max(0, round(255 * (1 - 0.3))))
-    screen.fill((0, GB, GB), special_flags=pygame.BLEND_MULT)
-    screen.blit(map_img, (0, 0))
-    press = map_btn.draw_button(screen)
-    if press:
-        int_map = False
-    return int_map
-
-
 class LevelDisplay:
     def __init__(self, level_count):
         level_text = Text()
@@ -141,9 +130,6 @@ class Game:
         interaction_controls_txt = Text().make_text([f"interaction: {self.nums_to_text[f'interact{interaction_counter}']}"])
         shockwave_controls_txt = Text().make_text([f"shockwave: {self.nums_to_text[f'shockwave{shockwave_counter}']}"])
         tip1_txt = Text().make_text(['follow the compass in the top-left corner'])
-
-        tip2_txt = Text().make_text(['use shockwaves against bees'])
-        tip3_txt = Text().make_text(['regain health by eating red mushrooms'])
 
         self.controls_popup = popup_bg_generator((tip1_txt.get_width() + 6, 130))
         cont_bg_center = self.controls_popup.get_width() / 2
@@ -294,7 +280,6 @@ class Game:
 
 # LEVEL CHECKING =======================================================================================================
     def level_checker(self, level_count, world_count):
-        world_data_level_checker = level1_2
         # the level position needs to be offset by a certain amount to set the right spawn for the player (center)
         # calculated by tiles from the center of the mould (tiles fitting in the window)
 
@@ -331,8 +316,6 @@ class Game:
         play_paper_sound = False
 
         self.level_duration_counter += 0.04 * fps_adjust
-
-        chest_opened = False
 
         self.restart_level = False
 
@@ -435,7 +418,6 @@ class Game:
         self.world.draw_tile_list(screen)
 
         self.trap_harm, play_bear_trap_cling_sound = self.world.draw_bear_trap_list(screen, sack_rect)
-        self.world.draw_grass_list(screen, sack_rect, sack_direction, fps_adjust)
         self.mush_regeneration_trigger, self.health = self.world.draw_mushroom(screen, sack_rect, self.health,
                                                                                self.camera_move_x,
                                                                                self.camera_move_y, fps_adjust,
@@ -457,22 +439,22 @@ class Game:
         self.player.blit_respawn_instructions(screen, fps_adjust)
 
         # control instructions -----------------------------------------------------------------------------------------
-        self.player.draw_inst_buttons(screen, fps_adjust, level_count, world_count)
+        self.player.draw_inst_buttons(screen, fps_adjust, level_count)
 
         # eq full message ----------------------------------------------------------------------------------------------
         self.world.draw_eq_full(screen)
 
         # updating player health and blitting health bar ---------------------------------------------------------------
-        play_card_pull_sound3 = self.player.update_health(screen, fps_adjust, mouse_adjustment)
+        play_card_pull_sound3 = self.player.update_health(screen, fps_adjust)
         self.world.draw_portal_compass(sack_rect, screen)
         self.player.player_power_indicator(screen)
 
         if self.restart_level:
             self.eq_power_list = []
-            self.eq_manager.create_card_buttons(self.eq_power_list, True)
+            self.eq_manager.create_card_buttons(self.eq_power_list)
             self.level_duration_counter = 0
         if self.reinit_eq:
-            self.eq_manager.create_card_buttons(self.eq_power_list, False)
+            self.eq_manager.create_card_buttons(self.eq_power_list)
             self.reinit_eq = False
 
         # updating and blitting the card bar ---------------------------------------------------------------------------

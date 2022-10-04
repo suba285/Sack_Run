@@ -63,5 +63,3 @@ def inactive_button(x, y, image, mouse_adjustment):
     rect.y = y
     if rect.collidepoint((pos[0] / mouse_adjustment, pos[1] / mouse_adjustment)):
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_NO)
-
-

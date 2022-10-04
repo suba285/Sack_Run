@@ -30,7 +30,6 @@ class eqManager:
         self.card_info_press = False
 
         self.y = 264 - 2*tile_size
-        num_cards = len(eq_list)
         self.x = 0
         self.eq_button_list = []
 
@@ -205,7 +204,7 @@ class eqManager:
 
             self.x += 2.5*tile_size
 
-    def create_card_buttons(self, eq_list, reset):
+    def create_card_buttons(self, eq_list):
         self.x = 0
         self.eq_button_list = []
 
@@ -280,6 +279,7 @@ class eqManager:
 
         over = False
         local_over = False
+
         over1 = False
         over2 = False
         over3 = False
@@ -438,7 +438,7 @@ class eqManager:
 
         # tutorial on how to use cards
         if tutorial and self.eq_button_list and level_count != 3 and blit_card_instructions and not self.card_info and\
-            self.card_return_counter >= 10:
+                self.card_return_counter >= 10:
             gap = 3
             img = self.mouse3
             if self.card_delete_counter == 1:
@@ -460,7 +460,7 @@ class eqManager:
                 center_height = sheight / 3 - tile_size / 2 + tile_size / 4
 
                 total_tutorial_width = img.get_width() * 2 + self.use_text.get_width() + self.bin_text.get_width() +\
-                                       self.info_text.get_width() + 2 + key_img.get_width() + gap * 9
+                                        self.info_text.get_width() + 2 + key_img.get_width() + gap * 9
                 tutorial_x = center_width - total_tutorial_width / 2
 
                 screen.blit(img, (tutorial_x, center_height - tile_size / 3))
