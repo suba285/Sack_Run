@@ -14,11 +14,8 @@ card_tile_size = 2 * tile_size
 
 class eqManager:
     def __init__(self, eq_list, controls, walk_counter):
-        self.jump_boost_trigger = False
-        self.regeneration_trigger = False
-        self.no_gravity_trigger = False
-        self.no_harm_trigger = False
-        self.shockwave_trigger = False
+        self.mid_air_jump_trigger = False
+        self.speed_dash_trigger = False
 
         self.controls = controls
         self.card_delete_counter = walk_counter
@@ -28,6 +25,8 @@ class eqManager:
 
         self.close_card_info_press = False
         self.card_info_press = False
+
+        self.card_checked = False
 
         self.y = 264 - 2*tile_size
         self.x = 0
@@ -53,13 +52,24 @@ class eqManager:
         self.card_x = 0
         self.card_y = sheight - tile_size * 2
 
+        self.card_vel_y = 0
+        self.card_back_default_y = sheight - 18
+        self.card_back_y = self.card_back_default_y
+        self.card_jump_speed = 0.7
+        self.animate_card_jump = False
+        self.card_jump_animation_done = False
+        self.card_jump_counter = 0
+
+        self.new_card_final_y = sheight / 2 - 3 * tile_size / 2 + 5
+        self.new_card_y_counter = sheight - self.new_card_final_y
+        self.new_card_y = sheight - (self.new_card_final_y - self.new_card_y_counter)
+        self.new_card_x = swidth / 2 - tile_size
+
         # card images --------------------------------------------------------------------------------------------------
         self.card_down_img = img_loader('data/images/card_down.PNG', card_tile_size, card_tile_size)
-        self.jump_boost_img1 = img_loader('data/images/card_jump_boost.PNG', card_tile_size, card_tile_size)
-        self.regeneration_img1 = img_loader('data/images/card_regeneration.PNG', card_tile_size, card_tile_size)
-        self.no_grav_img1 = img_loader('data/images/card_no_gravity.PNG', card_tile_size, card_tile_size)
-        self.no_harm_img1 = img_loader('data/images/card_no_harm.PNG', card_tile_size, card_tile_size)
-        self.shockwave_img1 = img_loader('data/images/card_shockwave.PNG', card_tile_size, card_tile_size)
+        self.card_back_img = img_loader('data/images/card_back.PNG', card_tile_size, card_tile_size)
+        self.mid_air_jump_img = img_loader('data/images/card_mid-air_jump.PNG', card_tile_size, card_tile_size)
+        self.speed_dash_img = img_loader('data/images/card_speed_dash.PNG', card_tile_size, card_tile_size)
 
         self.card_info_gap = 6
         self.card_info_y = 90
@@ -70,90 +80,50 @@ class eqManager:
         self.dark_surface.fill((0, 0, 0))
         self.dark_surface.set_alpha(0)
 
-        jump_boost_title = Text().make_text(['JUMP BOOST'])
-        jump_boost_class = Text().make_text(['rare'])
-        jump_boost_description = Text().make_text(['Reach new heights'])
-        jump_boost_duration = Text().make_text(['Duration: 7.5s'])
+        mid_air_jump_title = Text().make_text(['MID-AIR JUMP'])
+        mid_air_jump_info1 = Text().make_text(['Jump without touching the ground.'])
+        mid_air_jump_info2 = Text().make_text(['You can only jump while falling.'])
+        mid_air_jump_info3 = Text().make_text(['Duration: 7.5s'])
 
-        no_harm_title = Text().make_text(['NO HARM'])
-        no_harm_class = Text().make_text(['common'])
-        no_harm_description = Text().make_text(['Pass tricky levels with ease'])
-        no_harm_duration = Text().make_text(['Duration: 5s'])
+        speed_dash_title = Text().make_text(['SPEED DASH'])
+        speed_dash_info1 = Text().make_text(['When activated, move to dash.'])
+        speed_dash_info2 = Text().make_text(['Press space to stop.'])
+        speed_dash_info3 = Text().make_text(['You take twice as much damage.'])
 
-        regeneration_title = Text().make_text(['REGENERATION'])
-        regeneration_class = Text().make_text(['common'])
-        regeneration_description = Text().make_text(['Fully restore player health'])
-        regeneration_duration = Text().make_text(['Duration: -'])
+        self.full_mid_air_jump_card = pygame.Surface((2 * tile_size, 3 * tile_size))
+        self.full_mid_air_jump_card.set_colorkey((0, 0, 0))
+        self.full_mid_air_jump_card.blit(pygame.transform.flip(self.mid_air_jump_img, False, True), (0, 17))
+        self.full_mid_air_jump_card.blit(self.mid_air_jump_img, (0, 0))
 
-        no_gravity_title = Text().make_text(['NO GRAVITY'])
-        no_gravity_class = Text().make_text(['very rare'])
-        no_gravity_description = Text().make_text(['Literally walk on air'])
-        no_gravity_duration = Text().make_text(['Duration: 3s'])
+        self.full_speed_dash_card = pygame.Surface((2 * tile_size, 3 * tile_size))
+        self.full_speed_dash_card.set_colorkey((0, 0, 0))
+        self.full_speed_dash_card.blit(pygame.transform.flip(self.speed_dash_img, False, True), (0, 17))
+        self.full_speed_dash_card.blit(self.speed_dash_img, (0, 0))
 
-        shockwave_title = Text().make_text(['SHOCKWAVE +'])
-        shockwave_class = Text().make_text(['rare'])
-        shockwave_description = Text().make_text(['Fully restore shockwave limit'])
-        shockwave_duration = Text().make_text(['Duration: -'])
+        self.full_back_card = pygame.Surface((2 * tile_size, 3 * tile_size))
+        self.full_back_card.set_colorkey((0, 0, 0))
+        self.full_back_card.blit(pygame.transform.flip(self.card_back_img, False, True), (0, 17))
+        self.full_back_card.blit(self.card_back_img, (0, 0))
 
-        self.full_jump_boost_card = pygame.Surface((2 * tile_size, 3 * tile_size))
-        self.full_jump_boost_card.set_colorkey((0, 0, 0))
-        self.full_jump_boost_card.blit(pygame.transform.flip(self.jump_boost_img1, False, True), (0, 16))
-        self.full_jump_boost_card.blit(self.jump_boost_img1, (0, 0))
-
-        self.full_no_harm_card = pygame.Surface((2 * tile_size, 3 * tile_size))
-        self.full_no_harm_card.set_colorkey((0, 0, 0))
-        self.full_no_harm_card.blit(pygame.transform.flip(self.no_harm_img1, False, True), (0, 16))
-        self.full_no_harm_card.blit(self.no_harm_img1, (0, 0))
-
-        self.full_no_gravity_card = pygame.Surface((2 * tile_size, 3 * tile_size))
-        self.full_no_gravity_card.set_colorkey((0, 0, 0))
-        self.full_no_gravity_card.blit(pygame.transform.flip(self.no_grav_img1, False, True), (0, 16))
-        self.full_no_gravity_card.blit(self.no_grav_img1, (0, 0))
-
-        self.full_regeneration_card = pygame.Surface((2 * tile_size, 3 * tile_size))
-        self.full_regeneration_card.set_colorkey((0, 0, 0))
-        self.full_regeneration_card.blit(pygame.transform.flip(self.regeneration_img1, False, True), (0, 16))
-        self.full_regeneration_card.blit(self.regeneration_img1, (0, 0))
-
-        self.full_shockwave_card = pygame.Surface((2 * tile_size, 3 * tile_size))
-        self.full_shockwave_card.set_colorkey((0, 0, 0))
-        self.full_shockwave_card.blit(pygame.transform.flip(self.jump_boost_img1, False, True), (0, 16))
-        self.full_shockwave_card.blit(self.shockwave_img1, (0, 0))
-
-        self.target_x = swidth / 2 - self.full_no_harm_card.get_width() / 2
+        self.target_x = swidth / 2 - self.full_mid_air_jump_card.get_width() / 2
         self.target_y = sheight - 4.5 * tile_size
         self.card_frame_movement_x = 0
         self.card_frame_movement_y = (self.target_y - (sheight - tile_size * 2)) / -9
 
         self.card_info_dict = {
-            'jump boost': self.full_jump_boost_card,
-            'no harm': self.full_no_harm_card,
-            'regeneration': self.full_regeneration_card,
-            'no gravity': self.full_no_gravity_card,
-            'shockwave+': self.full_shockwave_card
+            'mid-air_jump': self.full_mid_air_jump_card,
+            'speed_dash': self.full_speed_dash_card
         }
 
         self.card_info_popup_text = {
-            'jump boost title': jump_boost_title,
-            'jump boost class': jump_boost_class,
-            'jump boost description': jump_boost_description,
-            'jump boost duration': jump_boost_duration,
-            'no harm title': no_harm_title,
-            'no harm class': no_harm_class,
-            'no harm description': no_harm_description,
-            'no harm duration': no_harm_duration,
-            'regeneration title': regeneration_title,
-            'regeneration class': regeneration_class,
-            'regeneration description': regeneration_description,
-            'regeneration duration': regeneration_duration,
-            'no gravity title': no_gravity_title,
-            'no gravity class': no_gravity_class,
-            'no gravity description': no_gravity_description,
-            'no gravity duration': no_gravity_duration,
-            'shockwave+ title': shockwave_title,
-            'shockwave+ class': shockwave_class,
-            'shockwave+ description': shockwave_description,
-            'shockwave+ duration': shockwave_duration,
+            'mid-air_jump title': mid_air_jump_title,
+            'mid-air_jump info1': mid_air_jump_info1,
+            'mid-air_jump info2': mid_air_jump_info2,
+            'mid-air_jump info3': mid_air_jump_info3,
+            'speed_dash title': speed_dash_title,
+            'speed_dash info1': speed_dash_info1,
+            'speed_dash info2': speed_dash_info2,
+            'speed_dash info3': speed_dash_info3,
         }
 
         # mouse and keys animation images ------------------------------------------------------------------------------
@@ -166,10 +136,7 @@ class eqManager:
         self.key_q_press = img_loader('data/images/key_q_press.PNG', tile_size / 2, tile_size / 2)
         self.key_full_stop = img_loader('data/images/key_full_stop.PNG', tile_size / 2, tile_size / 2)
         self.key_full_stop_press = img_loader('data/images/key_full_stop_press.PNG', tile_size / 2, tile_size / 2)
-        self.use_text = img_loader('data/images/text_use.PNG', tile_size / 2, tile_size / 2)
-        self.bin_text = img_loader('data/images/text_bin.PNG', tile_size / 2, tile_size / 2)
         self.use_text = Text().make_text(['USE'])
-        self.bin_text = Text().make_text(['BIN'])
         self.info_text = Text().make_text(['INFO'])
 
         self.press_counter = 0
@@ -179,20 +146,11 @@ class eqManager:
 
         # creating buttons of elements in the equipped cards list ------------------------------------------------------
         for power in eq_list:
-            if power == 'jump boost':
-                img = self.jump_boost_img1
+            if power == 'mid-air_jump':
+                img = self.mid_air_jump_img
 
-            elif power == 'regeneration':
-                img = self.regeneration_img1
-
-            elif power == 'no gravity':
-                img = self.no_grav_img1
-
-            elif power == 'no harm':
-                img = self.no_harm_img1
-
-            elif power == 'shockwave+':
-                img = self.shockwave_img1
+            elif power == 'speed_dash':
+                img = self.speed_dash_img
 
             else:
                 img = self.card_down_img
@@ -209,20 +167,11 @@ class eqManager:
         self.eq_button_list = []
 
         for power in eq_list:
-            if power == 'jump boost':
-                img = self.jump_boost_img1
+            if power == 'mid-air_jump':
+                img = self.mid_air_jump_img
 
-            elif power == 'regeneration':
-                img = self.regeneration_img1
-
-            elif power == 'no gravity':
-                img = self.no_grav_img1
-
-            elif power == 'no harm':
-                img = self.no_harm_img1
-
-            elif power == 'shockwave+':
-                img = self.shockwave_img1
+            elif power == 'speed_dash':
+                img = self.speed_dash_img
 
             else:
                 img = self.card_down_img
@@ -232,18 +181,21 @@ class eqManager:
             btn_info = [button, power, x]
             self.eq_button_list.append(btn_info)
 
-            self.x += 2.5*tile_size
+            self.animate_card_jump = True
+            self.card_vel_y = -7
+
+            self.x += 2.5 * tile_size
 
     def blit_text_to_surf(self, surface, category):
         surface.fill((0, 0, 0))
         title = self.card_info_popup_text[f'{category} title']
-        card_class = self.card_info_popup_text[f'{category} class']
-        description = self.card_info_popup_text[f'{category} description']
-        duration = self.card_info_popup_text[f'{category} duration']
+        info1 = self.card_info_popup_text[f'{category} info1']
+        info2 = self.card_info_popup_text[f'{category} info2']
+        info3 = self.card_info_popup_text[f'{category} info3']
         surface.blit(title, (surface.get_width() / 2 - title.get_width() / 2, 6))
-        surface.blit(description, (surface.get_width() / 2 - description.get_width() / 2, 22))
-        surface.blit(card_class, (surface.get_width() / 2 - card_class.get_width() / 2, 38))
-        surface.blit(duration, (surface.get_width() / 2 - duration.get_width() / 2, 53))
+        surface.blit(info1, (surface.get_width() / 2 - info1.get_width() / 2, 22))
+        surface.blit(info2, (surface.get_width() / 2 - info2.get_width() / 2, 38))
+        surface.blit(info3, (surface.get_width() / 2 - info3.get_width() / 2, 53))
 
         return surface
 
@@ -256,21 +208,42 @@ class eqManager:
         self.card_info_type = card_type
         self.card_info_counter = 0
 
+    def card_jump_animation(self, fps_adjust, screen):
+        self.card_vel_y += self.card_jump_speed * fps_adjust
+        self.card_back_y += self.card_vel_y
+        card_back_x = 0
+        y_offset = 0
+        if self.card_back_y > self.card_back_default_y:
+            self.card_back_y = self.card_back_default_y
+            self.card_jump_counter += 1
+            if self.card_jump_counter == 1:
+                self.card_vel_y = -5
+            else:
+                self.animate_card_jump = False
+                self.card_jump_counter = 0
+        for card in self.eq_button_list:
+            screen.blit(self.card_back_img, (card_back_x, self.card_back_y))
+            card_back_x += tile_size * 2.5
+
+    def new_card(self, card_type, screen, fps_adjust):
+        self.new_card_y_counter -= 15 * fps_adjust
+        if self.new_card_y_counter < 0:
+            self.new_card_y_counter = 0
+
+        self.new_card_y = (self.new_card_final_y + self.new_card_y_counter)
+
+        screen.blit(self.card_info_dict[card_type], (self.new_card_x, self.new_card_y))
+
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
     def draw_eq(self, screen, eq_list, mouse_adjustment, events, power_list, tutorial, fps_adjust, level_count,
-                blit_card_instructions, health, move):
+                health, move, player_moved, gem_equipped):
 
-        self.jump_boost_trigger = False
-        self.regeneration_trigger = False
-        self.no_gravity_trigger = False
-        self.no_harm_trigger = False
-        self.shockwave_trigger = False
+        self.mid_air_jump_trigger = False
+        self.speed_dash_trigger = False
 
         self.press_counter += 1 * fps_adjust
 
         self.card_return_counter += 1 * fps_adjust
-
-        paper_sound_trigger = False
 
         mousebuttondown = False
         mousebuttonup = False
@@ -284,6 +257,9 @@ class eqManager:
         over2 = False
         over3 = False
         over4 = False
+
+        if not gem_equipped:
+            self.card_jump_animation_done = False
 
         if self.level_count != level_count:
             self.card_info = False
@@ -312,117 +288,39 @@ class eqManager:
         for button in self.eq_button_list:
             self.eq_button_counter += 1
             local_over = False
-            if button[1] == 'jump boost':
-                if self.card_info_type != 'jump boost':
+            if button[1] == 'mid-air_jump':
+                if self.card_info_type != 'mid-air_jump':
                     press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 else:
                     press = False
                     local_over = False
-                if press:
-                    self.jump_boost_trigger = True
-                    eq_list.remove('jump boost')
-                    self.eq_button_list.remove(button)
+                if press and not self.card_info_press and gem_equipped:
+                    self.mid_air_jump_trigger = True
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
                     if mousebuttonup and self.card_info_press:
-                        self.card_info_type = 'jump boost'
-                        eqManager.prepare_card_animation(self, button[2], 'jump boost')
+                        self.card_info_type = 'mid-air_jump'
+                        eqManager.prepare_card_animation(self, button[2], 'mid-air_jump')
                         self.card_info_popup_text_surface = \
                             eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface, self.card_info_type)
-                if key[self.controls['bin_card']] and local_over and 'jump boost' in eq_list:
-                    eq_list.remove('jump boost')
-                    self.eq_button_list.remove(button)
-                    paper_sound_trigger = True
-            if button[1] == 'regeneration':
-                if self.card_info_type != 'regeneration':
+
+            if button[1] == 'speed_dash':
+                if self.card_info_type != 'speed_dash':
                     press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
                 else:
                     press = False
                     local_over = False
-                if press and not self.card_info_press:
-                    self.regeneration_trigger = True
-                    eq_list.remove('regeneration')
-                    self.eq_button_list.remove(button)
+                if press and not self.card_info_press and gem_equipped:
+                    self.speed_dash_trigger = True
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
                     if mousebuttonup and self.card_info_press:
-                        self.card_info_type = 'regeneration'
-                        eqManager.prepare_card_animation(self, button[2], 'regeneration')
+                        self.card_info_type = 'speed_dash'
+                        eqManager.prepare_card_animation(self, button[2], 'speed_dash')
                         self.card_info_popup_text_surface = \
                             eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface, self.card_info_type)
-                if key[self.controls['bin_card']] and local_over and 'regeneration' in eq_list:
-                    eq_list.remove('regeneration')
-                    self.eq_button_list.remove(button)
-                    paper_sound_trigger = True
-            if button[1] == 'no gravity':
-                if self.card_info_type != 'no gravity':
-                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
-                else:
-                    press = False
-                    local_over = False
-                if press and not self.card_info_press:
-                    self.no_gravity_trigger = True
-                    eq_list.remove('no gravity')
-                    self.eq_button_list.remove(button)
-                if local_over and not self.card_info:
-                    if mousebuttondown_right:
-                        self.card_info_press = True
-                    if mousebuttonup and self.card_info_press:
-                        self.card_info_type = 'no gravity'
-                        eqManager.prepare_card_animation(self, button[2], 'no gravity')
-                        self.card_info_popup_text_surface = \
-                            eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface, self.card_info_type)
-                if key[self.controls['bin_card']] and local_over and 'no gravity' in eq_list:
-                    eq_list.remove('no gravity')
-                    self.eq_button_list.remove(button)
-                    paper_sound_trigger = True
-            if button[1] == 'no harm':
-                if self.card_info_type != 'no harm':
-                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
-                else:
-                    press = False
-                    local_over = False
-                if press:
-                    self.no_harm_trigger = True
-                    eq_list.remove('no harm')
-                    self.eq_button_list.remove(button)
-                if local_over and not self.card_info:
-                    if mousebuttondown_right:
-                        self.card_info_press = True
-                    if mousebuttonup and self.card_info_press:
-                        self.card_info_type = 'no harm'
-                        eqManager.prepare_card_animation(self, button[2], 'no harm')
-                        self.card_info_popup_text_surface = \
-                            eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface, self.card_info_type)
-                if key[self.controls['bin_card']] and local_over and 'no harm' in eq_list:
-                    eq_list.remove('no harm')
-                    self.eq_button_list.remove(button)
-                    paper_sound_trigger = True
-            if button[1] == 'shockwave+':
-                if self.card_info_type != 'shockwave+':
-                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
-                else:
-                    press = False
-                    local_over = False
-                if press and not self.card_info_press:
-                    self.shockwave_trigger = True
-                    eq_list.remove('shockwave+')
-                    self.eq_button_list.remove(button)
-                if local_over and not self.card_info:
-                    if mousebuttondown_right:
-                        self.card_info_press = True
-                    if mousebuttonup and self.card_info_press:
-                        self.card_info_type = 'shockwave+'
-                        eqManager.prepare_card_animation(self, button[2], 'shockwave+')
-                        self.card_info_popup_text_surface = \
-                            eqManager.blit_text_to_surf(self, self.card_info_popup_text_surface,
-                                                        self.card_info_type)
-                if key[self.controls['bin_card']] and local_over and 'shockwave+' in eq_list:
-                    eq_list.remove('shockwave+')
-                    self.eq_button_list.remove(button)
-                    paper_sound_trigger = True
 
             if local_over:
                 if self.eq_button_counter == 1:
@@ -435,10 +333,18 @@ class eqManager:
 
         if over1 or over2 or over3:
             over = True
+            self.card_checked = True
+
+        if gem_equipped and not self.animate_card_jump and not self.card_jump_animation_done:
+            self.animate_card_jump = True
+            self.card_jump_animation_done = True
+            self.card_vel_y = -7
+
+        if self.animate_card_jump:
+            eqManager.card_jump_animation(self, fps_adjust, screen)
 
         # tutorial on how to use cards
-        if tutorial and self.eq_button_list and level_count != 3 and blit_card_instructions and not self.card_info and\
-                self.card_return_counter >= 10:
+        if tutorial and self.eq_button_list and level_count != 3 and player_moved:
             gap = 3
             img = self.mouse3
             if self.card_delete_counter == 1:
@@ -459,8 +365,8 @@ class eqManager:
                 center_width = swidth / 2
                 center_height = sheight / 3 - tile_size / 2 + tile_size / 4
 
-                total_tutorial_width = img.get_width() * 2 + self.use_text.get_width() + self.bin_text.get_width() +\
-                                        self.info_text.get_width() + 2 + key_img.get_width() + gap * 9
+                total_tutorial_width = img.get_width() * 2 + self.use_text.get_width() +\
+                                        self.info_text.get_width() + 2 + gap * 4
                 tutorial_x = center_width - total_tutorial_width / 2
 
                 screen.blit(img, (tutorial_x, center_height - tile_size / 3))
@@ -469,21 +375,12 @@ class eqManager:
                 tutorial_x += (self.use_text.get_width() + gap)
                 pygame.draw.line(screen, (255, 255, 255), (tutorial_x, center_height - 2),
                                  (tutorial_x, center_height + tile_size / 2 + 2))
-                tutorial_x += (1 + gap*2)
-                screen.blit(key_img, (tutorial_x, center_height))
-                tutorial_x += (key_img.get_width() + gap*2)
-                screen.blit(self.bin_text, (tutorial_x, center_height + 5))
-                tutorial_x += (self.bin_text.get_width() + gap)
-                pygame.draw.line(screen, (255, 255, 255), (tutorial_x, center_height - 2),
-                                 (tutorial_x, center_height + tile_size / 2 + 2))
                 tutorial_x += (1 + gap)
                 screen.blit(pygame.transform.flip(img, True, False), (tutorial_x, center_height - tile_size / 3))
                 tutorial_x += (img.get_width() + gap)
                 screen.blit(self.info_text, (tutorial_x, center_height + 5))
 
-            else:
-                if self.press_counter >= 30:
-                    screen.blit(self.white_arrow_down, (tile_size - tile_size/4, sheight - tile_size * 1.5))
+            elif not self.card_checked:
                 if self.press_counter >= 60:
                     img = self.mouse0
                     self.press_counter = 0
@@ -548,5 +445,4 @@ class eqManager:
             self.card_info_type = 'blank'
             self.one_time_type_set = False
 
-        return eq_list, self.jump_boost_trigger, self.regeneration_trigger, self.no_gravity_trigger,\
-               self.no_harm_trigger, self.shockwave_trigger, over, power_list, paper_sound_trigger
+        return eq_list, self.mid_air_jump_trigger, self.speed_dash_trigger, over, power_list

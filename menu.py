@@ -108,7 +108,7 @@ class mainMenu:
                                self.settings_button_down)
 
 # UPDATING AND DRAWING MENU ============================================================================================
-    def menu(self, menu_screen, slow_computer, mouse_adjustement, events):
+    def menu(self, menu_screen, slow_computer, mouse_adjustement, events, fps_adjust):
 
         menu_screen.blit(self.menu_background, (0, 0))
 
@@ -117,11 +117,11 @@ class mainMenu:
         self.logo_surface.fill((0, 0, 0))
         self.button_surface.fill((0, 0, 0))
 
-        self.opening_animation_counter += 1
-        self.logo_pos_counter += 1
+        self.opening_animation_counter += 1 * fps_adjust
+        self.logo_pos_counter += 1 * fps_adjust
 
         for particle in self.particles:
-            particle[0] += 1
+            particle[0] += 1 * fps_adjust
             pygame.draw.circle(self.logo_surface, (136, 104, 134), particle, 1, 1)
             if particle[0] > swidth:
                 particle[0] = 0
@@ -134,7 +134,7 @@ class mainMenu:
 
         if self.opening_animation_counter > 280:
             if self.quit_txt_alpha < 180:
-                self.quit_txt_alpha += 15
+                self.quit_txt_alpha += 15 * fps_adjust
             if self.quit_txt_alpha <= 180:
                 self.quit_txt.set_alpha(self.quit_txt_alpha)
 
@@ -149,18 +149,18 @@ class mainMenu:
             menu_screen.blit(self.quit_txt, (swidth / 2 - self.quit_txt.get_width() / 2, 230))
 
         if self.opening_animation_counter > 230:
-            self.surface_alpha += 8
+            self.surface_alpha += 8 * fps_adjust
             if self.surface_alpha <= 255:
                 self.button_surface.set_alpha(self.surface_alpha)
                 self.logo_surface.set_alpha(self.surface_alpha)
 
         if self.opening_animation_counter > 200:
             if self.sack_run_logo_y > self.final_sack_run_logo_y:
-                self.sack_run_logo_y -= 1
+                self.sack_run_logo_y -= 1 * fps_adjust
 
         if self.opening_animation_counter > 180:
             if self.author_txt_alpha > 0:
-                self.author_txt_alpha -= 10
+                self.author_txt_alpha -= 10 * fps_adjust
                 self.author_txt.set_alpha(self.author_txt_alpha)
 
         play = False

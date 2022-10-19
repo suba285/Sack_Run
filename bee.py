@@ -48,8 +48,8 @@ class Bee():
         self.image = self.bee0f
         self.bee_radius = 0
 
-    def update_bee(self, screen, sack_rect, fps_adjust, tile_list, camera_move_x, camera_move_y, x, y,
-                   toxic_flower_list, health, radius, player_moved):
+    def update_bee(self, screen, sack_rect, fps_adjust, camera_move_x, camera_move_y, x, y,
+                   toxic_flower_list, health, shockwave_data_list, player_moved):
         dx = 0
         dy = 0
 
@@ -64,9 +64,14 @@ class Bee():
         self.angry_counter += 1
         self.animation_counter += 1*fps_adjust
 
-        self.bee_radius = math.sqrt((sack_rect.x - self.x)**2 + (sack_rect.y - self.y)**2)
-        if self.bee_radius < radius and self.bee_radius > radius - 10:
-            self.dead = True
+        for shockwave in shockwave_data_list:
+            radius = shockwave[2]
+            shockwave_x = shockwave[0]
+            shockwave_y = shockwave[1]
+            print(shockwave)
+            self.bee_radius = math.sqrt((shockwave_x - self.x) ** 2 + (shockwave_y - self.y) ** 2)
+            if radius > self.bee_radius > radius - 10:
+                self.dead = True
 
         # bee speed, direction, animation and death update -------------------------------------------------------------
         if not self.dead and player_moved:

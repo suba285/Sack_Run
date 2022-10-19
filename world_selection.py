@@ -41,7 +41,7 @@ class LevelSelection:
         self.tutorial = self.tut.make_text(["'tutorial'"])
 
         self.tut_desc = Text()
-        self.tutorial_description = self.tut_desc.make_text(["learn to play the game"])
+        self.tutorial_description = self.tut_desc.make_text(["learn the basics the game"])
 
         self.wrld1 = Text()
         self.world1_txt = self.wrld1.make_text(["'world 1'"])
