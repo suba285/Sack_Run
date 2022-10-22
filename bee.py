@@ -5,11 +5,7 @@ tile_size = 32
 
 
 class Bee():
-    def __init__(self, screen, x, y, slow_computer):
-        if slow_computer:
-            self.fps_adjust = 0.5
-        else:
-            self.fps_adjust = 1
+    def __init__(self, x, y,):
 
         # variables ----------------------------------------------------------------------------------------------------
         self.speed = 2
@@ -75,7 +71,7 @@ class Bee():
 
         # bee speed, direction, animation and death update -------------------------------------------------------------
         if not self.dead and player_moved:
-            if (self.angry_counter > 10 * self.fps_adjust) and health > 0:
+            if (self.angry_counter > 10 * fps_adjust) and health > 0:
                 angle = math.atan2(sack_rect.y - self.y, sack_rect.x - self.x)
                 dx = math.cos(angle) * self.speed * fps_adjust
                 dy = math.sin(angle) * self.speed * fps_adjust

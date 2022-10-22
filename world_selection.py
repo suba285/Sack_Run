@@ -29,6 +29,13 @@ class LevelSelection:
         self.right_button_grey = img_loader('data/images/button_right_grey.PNG', button_size, button_size)
         self.left_button_grey = pygame.transform.flip(self.right_button_grey, True, False)
 
+        self.arrow_button_mask = pygame.mask.from_surface(self.right_button)
+        self.arrow_button_outline = pygame.mask.Mask.outline(self.arrow_button_mask)
+        self.arrow_button_outline_surf = pygame.Surface((button_size, button_size))
+        self.arrow_button_outline_surf.set_colorkey((0, 0, 0))
+        for pixel in self.arrow_button_outline:
+            self.arrow_button_outline_surf.set_at((pixel[0], pixel[1]), (255, 255, 255))
+
         self.menu_button = img_loader('data/images/button_back.PNG', tile_size * 1.5, tile_size * 0.75)
         self.menu_button_press = img_loader('data/images/button_back_press.PNG', tile_size * 1.5, tile_size * 0.75)
         self.menu_button_down = img_loader('data/images/button_back_down.PNG', tile_size * 1.5, tile_size * 0.75)
@@ -82,6 +89,9 @@ class LevelSelection:
         self.play_btn = Button(swidth * (2/3) - play_w / 2 - 8, sheight * (2/3),
                                self.play_button, self.play_button_press, self.play_button_down)
 
+        self.joystick_counter = -1
+        self.joystick_moved = False
+
     def draw_level_selection(self, level_screen, mouse_adjustment, events):
 
         level_screen.blit(self.menu_background, (0, 0))
@@ -101,22 +111,76 @@ class LevelSelection:
         text = self.world1_txt
         description = self.world1_description
 
+        for event in events:
+            if event.type == pygame.JOYAXISMOTION:
+                if event.axis == 0:
+                    if abs(event.value) > 0.3 and not self.joystick_moved:
+                        self.joystick_counter = self.joystick_counter * -1
+                        self.joystick_moved = True
+                    if event.value == 0:
+                        self.joystick_moved = False
+                if event.axis == 1:
+                    if event.value > 0.3 and not self.joystick_moved:
+                        if self.joystick_counter >= 1:
+                            self.joystick_counter -= 1
+                            if self.joystick_counter < 1:
+                                self.joystick_counter = 1
+                            self.joystick_moved = True
+                        if self.joystick_counter <= -1:
+                            self.joystick_counter += 1
+                            if self.joystick_counter > -1:
+                                self.joystick_counter = -1
+                            self.joystick_moved = True
+                    if event.value < -0.3 and not self.joystick_moved:
+                        if self.joystick_counter >= 1:
+                            self.joystick_counter += 1
+                            if self.joystick_counter > 2:
+                                self.joystick_counter = 2
+                            self.joystick_moved = True
+                        if self.joystick_counter <= -1:
+                            self.joystick_counter -= 1
+                            if self.joystick_counter < -2:
+                                self.joystick_counter = -2
+                            self.joystick_moved = True
+                    if event.value == 0:
+                        self.joystick_moved = False
+
+        joystick_over1 = False
+        joystick_over2 = False
+        joystick_over_1 = False
+        joystick_over_2 = False
+
+        if self.joystick_counter == 1:
+            joystick_over1 = True
+        if self.joystick_counter == 2:
+            joystick_over2 = True
+        if self.joystick_counter == -1:
+            joystick_over_1 = True
+        if self.joystick_counter == -2:
+            joystick_over_2 = True
+
         if self.world_count > 1:
-            left_press, over1 = self.left_btn.draw_button(level_screen, False, mouse_adjustment, events)
+            left_press, over1 = self.left_btn.draw_button(level_screen, False, mouse_adjustment, events, joystick_over2)
         else:
             level_screen.blit(self.left_button_grey, (self.left_x, self.button_y))
             inactive_button(self.left_x, self.button_y, self.left_button_grey,
                             mouse_adjustment)
+            if joystick_over2:
+                level_screen.blit(self.arrow_button_outline_surf, (self.left_x, self.button_y))
         if self.world_count < 4:
-            right_press, over2 = self.right_btn.draw_button(level_screen, False, mouse_adjustment, events)
+            right_press, over2 = self.right_btn.draw_button(level_screen, False, mouse_adjustment, events,
+                                                            joystick_over_2)
         else:
             level_screen.blit(self.right_button_grey, (self.right_x, self.button_y))
             inactive_button(self.right_x, self.button_y, self.right_button_grey,
                             mouse_adjustment)
+            if joystick_over_2:
+                level_screen.blit(self.arrow_button_outline_surf, (self.right_x, self.button_y))
 
-        menu_press, over3 = self.menu_btn.draw_button(level_screen, False, mouse_adjustment, events)
+        menu_press, over3 = self.menu_btn.draw_button(level_screen, False, mouse_adjustment, events, joystick_over1)
         if self.world_count <= 2:
-            play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, events)
+            play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, events,
+                                                          joystick_over_1)
 
         if left_press:
             update_value = -1

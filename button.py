@@ -6,6 +6,13 @@ class Button:
         self.image1 = image1
         self.image2 = image2
         self.image3 = image3
+        self.mask1 = pygame.mask.from_surface(self.image1)
+        self.outline1 = pygame.mask.Mask.outline(self.mask1)
+        self.outline1_surf = pygame.Surface((self.image1.get_width(), self.image1.get_height()))
+        self.outline1_surf.set_colorkey((0, 0, 0))
+        for pixel in self.outline1:
+            self.outline1_surf.set_at((pixel[0], pixel[1]), (255, 255, 255))
+
         self.image = self.image1
         self.image_rect = self.image.get_rect()
         self.image_rect.x = x
@@ -18,31 +25,40 @@ class Button:
         self.cursor_over = False
         self.play_over_sound = True
         self.button_down = False
+        self.joystick_over_button = False
 
-    def draw_button(self, screen, card, mouse_adjustment, events):
+    def draw_button(self, screen, card, mouse_adjustment, events, joystick_over):
         action = False
         self.cursor_over = False
         self.image = self.image1
         self.image_rect.x = self.x
         self.image_rect.y = self.y
+        joystick_count = pygame.joystick.get_count()
+        self.joystick_over_button = joystick_over
+        if joystick_count == 0:
+            self.joystick_over_button = False
 
         # cursor position
         pos = pygame.mouse.get_pos()
 
-        if self.image_rect.collidepoint((pos[0] / mouse_adjustment,
-                                         pos[1] / mouse_adjustment)) and pygame.mouse.get_focused():
+        if (self.image_rect.collidepoint((pos[0] / mouse_adjustment,
+                                         pos[1] / mouse_adjustment)) and
+            pygame.mouse.get_focused() and joystick_count == 0) or \
+                self.joystick_over_button:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             self.image = self.image2
             self.cursor_over = True
             for event in events:
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1) or \
+                        (event.type == pygame.JOYBUTTONDOWN and event.button == 0):
                     self.image = self.image1
                     self.image_rect.x = self.x
                     self.image_rect.y = self.y
                     self.button_down = True
 
         for event in events:
-            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if (event.type == pygame.MOUSEBUTTONUP and event.button == 1) or \
+                    (event.type == pygame.JOYBUTTONUP and event.button == 0):
                 if self.button_down:
                     action = True
                 self.button_down = False
@@ -51,6 +67,8 @@ class Button:
             self.image = self.image3
 
         screen.blit(self.image, self.image_rect)
+        if self.joystick_over_button and not self.button_down and not card:
+            screen.blit(self.outline1_surf, self.image_rect)
 
         return action, self.cursor_over
 
@@ -63,3 +81,5 @@ def inactive_button(x, y, image, mouse_adjustment):
     rect.y = y
     if rect.collidepoint((pos[0] / mouse_adjustment, pos[1] / mouse_adjustment)):
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_NO)
+
+

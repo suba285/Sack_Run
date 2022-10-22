@@ -2,6 +2,7 @@
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
+import pygame
 
 sheight = 264
 swidth = 352
@@ -11,6 +12,9 @@ tile_size = 32
 class PauseScreen:
     def __init__(self, pause_screen):
         self.pause_screen = pause_screen
+
+        self.joystick_counter = 0
+        self.joystick_moved = False
 
         self.background = img_loader('data/images/menu_background.PNG', swidth, sheight)
 
@@ -49,9 +53,35 @@ class PauseScreen:
 
         final_over1 = False
 
-        resume, over1 = self.resume_btn.draw_button(self.pause_screen, False, mouse_adjustment, events)
-        menu, over2 = self.menu_btn.draw_button(self.pause_screen, False, mouse_adjustment, events)
-        settings, over3 = self.s_button.draw_button(self.pause_screen, False, mouse_adjustment, events)
+        joystick_over0 = False
+        joystick_over1 = False
+        joystick_over2 = False
+
+        for event in events:
+            if event.type == pygame.JOYAXISMOTION and event.axis == 1:
+                if event.value > 0.1 and not self.joystick_moved:
+                    self.joystick_counter += 1
+                    self.joystick_moved = True
+                    if self.joystick_counter > 2:
+                        self.joystick_counter = 0
+                elif event.value < -0.1 and not self.joystick_moved:
+                    self.joystick_counter -= 1
+                    self.joystick_moved = True
+                    if self.joystick_counter < 0:
+                        self.joystick_counter = 2
+                elif event.value == 0:
+                    self.joystick_moved = False
+
+        if self.joystick_counter == 0:
+            joystick_over0 = True
+        if self.joystick_counter == 1:
+            joystick_over1 = True
+        if self.joystick_counter == 2:
+            joystick_over2 = True
+
+        resume, over1 = self.resume_btn.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over0)
+        menu, over2 = self.menu_btn.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over1)
+        settings, over3 = self.s_button.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over2)
 
         if over1 or over2 or over3:
             final_over1 = True

@@ -13,11 +13,11 @@ card_tile_size = 2 * tile_size
 
 
 class eqManager:
-    def __init__(self, eq_list, controls, walk_counter):
+    def __init__(self, eq_list, eq_controls, walk_counter):
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
 
-        self.controls = controls
+        self.eq_controls = eq_controls
         self.card_delete_counter = walk_counter
 
         self.card_info = False
@@ -48,6 +48,12 @@ class eqManager:
         self.one_time_type_set = False
 
         self.level_count = 1
+
+        self.joystick_counter = 0
+        self.joystick_card_over_time = 1.5 * 60
+        self.joystick_over_counter = 0
+
+        self.eq_button_list_length = 0
 
         self.card_x = 0
         self.card_y = sheight - tile_size * 2
@@ -132,10 +138,14 @@ class eqManager:
         self.mouse2 = img_loader('data/images/mouse2.PNG', tile_size / 2, tile_size)
         self.mouse3 = img_loader('data/images/mouse3.PNG', tile_size / 2, tile_size)
         self.mouse_press = img_loader('data/images/mouse_press.PNG', tile_size / 2, tile_size)
-        self.key_q = img_loader('data/images/key_q.PNG', tile_size / 2, tile_size / 2)
-        self.key_q_press = img_loader('data/images/key_q_press.PNG', tile_size / 2, tile_size / 2)
-        self.key_full_stop = img_loader('data/images/key_full_stop.PNG', tile_size / 2, tile_size / 2)
-        self.key_full_stop_press = img_loader('data/images/key_full_stop_press.PNG', tile_size / 2, tile_size / 2)
+        self.a_btn = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
+        self.a_btn_press = img_loader('data/images/buttons/button_a_press.PNG', tile_size / 2, tile_size / 2)
+        self.b_btn = img_loader('data/images/buttons/button_b.PNG', tile_size / 2, tile_size / 2)
+        self.b_btn_press = img_loader('data/images/buttons/button_b_press.PNG', tile_size / 2, tile_size / 2)
+        self.button_rb = img_loader('data/images/buttons/button_rb.PNG', tile_size / 2, tile_size / 2)
+        self.button_rb_press = img_loader('data/images/buttons/button_rb_press.PNG', tile_size / 2, tile_size / 2)
+        self.button_lb = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
+        self.button_lb_press = img_loader('data/images/buttons/button_lb_press.PNG', tile_size / 2, tile_size / 2)
         self.use_text = Text().make_text(['USE'])
         self.info_text = Text().make_text(['INFO'])
 
@@ -160,6 +170,8 @@ class eqManager:
             btn_info = [button, power, x]
             self.eq_button_list.append(btn_info)
 
+            self.eq_button_list_length = len(self.eq_button_list)
+
             self.x += 2.5*tile_size
 
     def create_card_buttons(self, eq_list):
@@ -180,6 +192,8 @@ class eqManager:
             button = Button(x, self.y, self.card_down_img, img, img)
             btn_info = [button, power, x]
             self.eq_button_list.append(btn_info)
+
+            self.eq_button_list_length = len(self.eq_button_list)
 
             self.animate_card_jump = True
             self.card_vel_y = -7
@@ -235,20 +249,36 @@ class eqManager:
         screen.blit(self.card_info_dict[card_type], (self.new_card_x, self.new_card_y))
 
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
-    def draw_eq(self, screen, eq_list, mouse_adjustment, events, power_list, tutorial, fps_adjust, level_count,
-                health, move, player_moved, gem_equipped):
+    def draw_eq(self, screen, eq_list, mouse_adjustment, events, tutorial, fps_adjust, level_count,
+                health, move, player_moved, gem_equipped, eq_controls):
 
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
+
+        self.eq_controls = eq_controls
 
         self.press_counter += 1 * fps_adjust
 
         self.card_return_counter += 1 * fps_adjust
 
+        self.joystick_over_counter -= 1 * fps_adjust
+
+        if self.eq_button_list:
+            card_num = self.eq_button_list_length - 1
+        else:
+            card_num = -1
+
         mousebuttondown = False
         mousebuttonup = False
         keydown = False
         mousebuttondown_right = False
+
+        joystick_over0 = False
+        joystick_over1 = False
+
+        joy_bumper_pressed = False
+        joystick_info_press = False
+        joystick_action = False
 
         over = False
         local_over = False
@@ -278,6 +308,33 @@ class eqManager:
                     mousebuttondown_right = True
             if event.type == pygame.MOUSEBUTTONUP:
                 mousebuttonup = True
+            if event.type == pygame.JOYBUTTONDOWN:
+                if event.button == self.eq_controls[0]:
+                    joy_bumper_pressed = True
+                    self.joystick_counter -= 1
+                    if self.joystick_counter < 0:
+                        if card_num >= 0:
+                            self.joystick_counter = card_num
+                if event.button == self.eq_controls[1]:
+                    joy_bumper_pressed = True
+                    self.joystick_counter += 1
+                    if self.joystick_counter > card_num >= 0:
+                        self.joystick_counter = 0
+                if event.button == 1:
+                    joystick_info_press = True
+                if (not joystick_info_press or self.card_info) and not joy_bumper_pressed:
+                    joystick_action = True
+            if event.type == pygame.JOYAXISMOTION:
+                joystick_action = True
+
+        if joy_bumper_pressed:
+            self.joystick_over_counter = self.joystick_card_over_time
+
+        if self.joystick_over_counter >= 0 and not self.card_info:
+            if self.joystick_counter == 0:
+                joystick_over0 = True
+            if self.joystick_counter == 1:
+                joystick_over1 = True
 
         if not move or self.card_info:
             mouse_adjustment = 0.001
@@ -290,16 +347,17 @@ class eqManager:
             local_over = False
             if button[1] == 'mid-air_jump':
                 if self.card_info_type != 'mid-air_jump':
-                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
+                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events, joystick_over0)
                 else:
                     press = False
                     local_over = False
                 if press and not self.card_info_press and gem_equipped:
                     self.mid_air_jump_trigger = True
+                    self.joystick_over_counter = 0
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
-                    if mousebuttonup and self.card_info_press:
+                    if (mousebuttonup and self.card_info_press) or joystick_info_press:
                         self.card_info_type = 'mid-air_jump'
                         eqManager.prepare_card_animation(self, button[2], 'mid-air_jump')
                         self.card_info_popup_text_surface = \
@@ -307,16 +365,17 @@ class eqManager:
 
             if button[1] == 'speed_dash':
                 if self.card_info_type != 'speed_dash':
-                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events)
+                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events, joystick_over1)
                 else:
                     press = False
                     local_over = False
                 if press and not self.card_info_press and gem_equipped:
                     self.speed_dash_trigger = True
+                    self.joystick_over_counter = 0
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
-                    if mousebuttonup and self.card_info_press:
+                    if (mousebuttonup and self.card_info_press) or joystick_info_press:
                         self.card_info_type = 'speed_dash'
                         eqManager.prepare_card_animation(self, button[2], 'speed_dash')
                         self.card_info_popup_text_surface = \
@@ -335,6 +394,9 @@ class eqManager:
             over = True
             self.card_checked = True
 
+        if joystick_action:
+            self.joystick_over_counter = -1
+
         if gem_equipped and not self.animate_card_jump and not self.card_jump_animation_done:
             self.animate_card_jump = True
             self.card_jump_animation_done = True
@@ -344,23 +406,17 @@ class eqManager:
             eqManager.card_jump_animation(self, fps_adjust, screen)
 
         # tutorial on how to use cards
-        if tutorial and self.eq_button_list and level_count != 3 and player_moved:
+        if tutorial and self.eq_button_list and level_count != 3:
             gap = 3
             img = self.mouse3
-            if self.card_delete_counter == 1:
-                delete_key_images = (self.key_q, self.key_q_press)
-            else:
-                delete_key_images = (self.key_full_stop, self.key_full_stop_press)
 
             if over:
                 if self.press_counter >= 30:
                     img = self.mouse_press
-                    key_img = delete_key_images[1]
                     if self.press_counter >= 40:
                         self.press_counter = 0
                 else:
                     img = self.mouse3
-                    key_img = delete_key_images[0]
 
                 center_width = swidth / 2
                 center_height = sheight / 3 - tile_size / 2 + tile_size / 4
@@ -380,7 +436,7 @@ class eqManager:
                 tutorial_x += (img.get_width() + gap)
                 screen.blit(self.info_text, (tutorial_x, center_height + 5))
 
-            elif not self.card_checked:
+            elif not self.card_checked and player_moved:
                 if self.press_counter >= 60:
                     img = self.mouse0
                     self.press_counter = 0
@@ -427,8 +483,9 @@ class eqManager:
                 screen.blit(self.card_info_dict[self.card_info_type],
                             (self.target_x, self.target_y))
 
-            if (mousebuttonup and self.close_card_info_press) or keydown:
+            if (mousebuttonup and self.close_card_info_press) or keydown or joystick_action:
                 self.card_info = False
+                self.joystick_over_counter = self.joystick_card_over_time
                 self.close_card_info_press = False
                 self.card_return_counter = 0
                 self.press_counter = 0
@@ -445,4 +502,4 @@ class eqManager:
             self.card_info_type = 'blank'
             self.one_time_type_set = False
 
-        return eq_list, self.mid_air_jump_trigger, self.speed_dash_trigger, over, power_list
+        return eq_list, self.mid_air_jump_trigger, self.speed_dash_trigger, over

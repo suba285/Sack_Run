@@ -83,6 +83,9 @@ class mainMenu:
 
         self.particles = []
 
+        self.joystick_counter = 0
+        self.joystick_moved = False
+
         self.logo_surface = pygame.Surface((swidth, 70 + self.logo.get_height()))
         self.logo_surface.set_colorkey((0, 0, 0))
         self.logo_surface.set_alpha(0)
@@ -113,6 +116,34 @@ class mainMenu:
         menu_screen.blit(self.menu_background, (0, 0))
 
         key = pygame.key.get_pressed()
+
+        joystick_sound = False
+
+        for event in events:
+            if event.type == pygame.JOYAXISMOTION and event.axis == 1:
+                if event.value > 0.1 and not self.joystick_moved:
+                    self.joystick_counter += 1
+                    self.joystick_moved = True
+                    joystick_sound = True
+                    if self.joystick_counter > 1:
+                        self.joystick_counter = 0
+                elif event.value < -0.1 and not self.joystick_moved:
+                    self.joystick_counter -= 1
+                    joystick_sound = True
+                    self.joystick_moved = True
+                    if self.joystick_counter < 0:
+                        self.joystick_counter = 1
+                elif event.value == 0:
+                    self.joystick_moved = False
+
+        if self.joystick_counter == 1:
+            joystick_over1 = True
+        else:
+            joystick_over1 = False
+        if self.joystick_counter == 0:
+            joystick_over0 = True
+        else:
+            joystick_over0 = False
 
         self.logo_surface.fill((0, 0, 0))
         self.button_surface.fill((0, 0, 0))
@@ -181,10 +212,12 @@ class mainMenu:
 
         if self.opening_animation_counter > 230:
             # play button
-            play, over1 = self.p_button.draw_button(self.button_surface, False, mouse_adjustement, events)
+            play, over1 = self.p_button.draw_button(self.button_surface, False,
+                                                    mouse_adjustement, events, joystick_over0)
 
             # settings button
-            settings, over2 = self.s_button.draw_button(self.button_surface, False, mouse_adjustement, events)
+            settings, over2 = self.s_button.draw_button(self.button_surface, False,
+                                                        mouse_adjustement, events, joystick_over1)
         else:
             settings = False
             play = False
@@ -192,6 +225,9 @@ class mainMenu:
         menu_screen.blit(self.button_surface, (0, 0))
 
         if (over1 or over2 or over4) and self.opening_animation_counter > 250:
+            end_over1 = True
+
+        if joystick_sound:
             end_over1 = True
 
         return play, slow_computer, end_over1, end_over2, settings
