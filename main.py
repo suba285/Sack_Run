@@ -223,6 +223,7 @@ card_swoosh_counter = 0
 joystick_moved = False
 joystick_idle = True
 joystick_connected = False
+joystick_configured = False
 joystick_name = ''
 
 # controls -------------------------------------------------------------------------------------------------------------
@@ -236,7 +237,7 @@ controls_nums = {
     'jump3': pygame.K_UP,
     'configuration1': [4, 5, 10, 1],  # controller button configuration [lb, rb, pause, settings_counter]
     'configuration2': [9, 10, 6, 2],
-    'configuration3': [],
+    'configuration3': [100, 100, 100, 3],
     'rumble1': pygame.K_x,
     'rumble2': pygame.K_e,
     'rumble3': pygame.K_SLASH,
@@ -260,7 +261,7 @@ cursor = pygame.transform.scale(cursor_raw, (tile_size/4, tile_size/4))
 cursor.set_colorkey((0, 0, 0))
 
 # initiating classes ---------------------------------------------------------------------------------------------------
-main_game = Game(slow_computer, world_data, bg_data, controls, world_count, settings_counters)
+main_game = Game(slow_computer, world_data, bg_data, controls, world_count, settings_counters, joystick_connected)
 main_menu = mainMenu()
 pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
@@ -271,10 +272,10 @@ game_loaded = False
 loading = False
 
 
-def loadGame(local_world_data, local_bg_data, local_world_count):
+def loadGame(local_world_data, local_bg_data, local_world_count, local_joystick_connected):
     global main_game, game_loaded
     main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters)
+                     settings_counters, local_joystick_connected)
     game_loaded = True
 
 
@@ -287,17 +288,59 @@ for num in range(10):
     number = pygame.transform.scale(number_raw, (tile_size/4, tile_size/4))
     display_numbers.append(number)
 
-# text -----------------------------------------------------------------------------------------------------------------
-paused_txt = Text().make_text(['paused'])
+# TEXT -----------------------------------------------------------------------------------------------------------------
 
 # error variables and error messages
 settings_not_saved_error_counter = 300
 settings_not_saved_error_txt = Text().make_text(['error while saving settings configuration'])
 settings_not_loaded_error_txt = Text().make_text(['error while loading settings configuration'])
+# controller connections
 controller_not_configured_txt = Text().make_text(['Controller not configured [settings]'])
 controller_not_configured_counter = 0
+
 controller_connected_txt = Text().make_text(['Controller connected'])
+controller_disconnected_txt = Text().make_text(['Controller disconnected'])
+controller_connected_no_conf_txt = Text().make_text(['Controller connected, NOT CONFIGURED'])
+controller_connected_popup = popup_bg_generator((controller_connected_txt.get_width() + 10, 15))
+controller_disconnected_popup = popup_bg_generator((controller_disconnected_txt.get_width() + 10, 15))
+controller_connected_no_conf_popup = popup_bg_generator((controller_connected_no_conf_txt.get_width() + 10, 15))
+controller_connected_popup.blit(controller_connected_txt, (7, 7))
+controller_connected_no_conf_popup.blit(controller_connected_no_conf_txt, (7, 7))
+controller_disconnected_popup.blit(controller_disconnected_txt, (7, 7))
 controller_connected_counter = 0
+controller_disconnected_counter = 0
+controller_popup = controller_connected_popup
+
+controller_warning_text_title = Text().make_text(['WARNING!'])
+controller_warning_text1 = Text().make_text(['Your controller is not configured,'])
+controller_warning_text2 = Text().make_text(['so it might not work properly'])
+controller_warning_popup = popup_bg_generator((controller_warning_text1.get_width() + 10, 60))
+controller_warning_popup.blit(controller_warning_text_title,
+                              (controller_warning_popup.get_width() / 2 - controller_warning_text_title.get_width() / 2,
+                               6))
+controller_warning_popup.blit(controller_warning_text1,
+                              (controller_warning_popup.get_width() / 2 - controller_warning_text1.get_width() / 2,
+                               25))
+controller_warning_popup.blit(controller_warning_text2,
+                              (controller_warning_popup.get_width() / 2 - controller_warning_text2.get_width() / 2,
+                               40))
+controller_warning_counter = 0
+
+controller_incompatible_text_title = Text().make_text(['WARNING!'])
+controller_incompatible_text1 = Text().make_text(['Controller incompatible,'])
+controller_incompatible_text2 = Text().make_text(['the game requires a controller with sticks'])
+controller_incompatible_popup = popup_bg_generator((controller_incompatible_text2.get_width() + 10,
+                                                    60))
+controller_incompatible_popup.blit(controller_incompatible_text_title,
+                                   (controller_incompatible_popup.get_width() / 2 -
+                                    controller_incompatible_text_title.get_width() / 2, 6))
+controller_incompatible_popup.blit(controller_incompatible_text1,
+                                   (controller_incompatible_popup.get_width() / 2 -
+                                    controller_incompatible_text1.get_width() / 2, 25))
+controller_incompatible_popup.blit(controller_incompatible_text2,
+                                   (controller_incompatible_popup.get_width() / 2 -
+                                    controller_incompatible_text2.get_width() / 2, 40))
+controller_incompatible_counter = 0
 
 # fps variables --------------------------------------------------------------------------------------------------------
 last_time = time.time()
@@ -325,10 +368,6 @@ while run:
     button_sound_trigger2 = False
     button_sound_trigger3 = False
 
-    # joystick variables
-    joystick_moved = False
-    joystick_over_card = False
-
     mouse_adjustment = wiwidth / swidth
 
     # fps adjustment ---------------------------------------------------------------------------------------------------
@@ -341,6 +380,14 @@ while run:
 
     clock.tick(fps)
 
+    # joystick variables and counters
+    joystick_moved = False
+    joystick_over_card = False
+    controller_disconnected_counter -= 1 * fps_adjust
+    controller_connected_counter -= 1 * fps_adjust
+    controller_warning_counter -= 1 * fps_adjust
+    controller_incompatible_counter -= 1 * fps_adjust
+
     # running the menu -------------------------------------------------------------------------------------------------
     if run_menu:
         run_game = False
@@ -348,7 +395,6 @@ while run:
         loading = False
         game_loaded = False
         controller_not_configured_counter -= 1 * fps_adjust
-        controller_connected_counter -= 1 * fps_adjust
         level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
                                                              slow_computer, mouse_adjustment, events, fps_adjust)
@@ -361,7 +407,7 @@ while run:
                                  (swidth / 2 - settings_not_loaded_error_txt.get_width() / 2, 3))
 
         # changing the displayed screens
-        if level_selection and (controllers[joystick_name] or not joystick_connected):
+        if level_selection and (joystick_configured or not joystick_connected):
             if not slow_computer:
                 fps = 60
             else:
@@ -375,20 +421,12 @@ while run:
             game_y = swidth
 
         # controller not configured message trigger
-        if level_selection and joystick_connected and not controllers[joystick_name]:
+        if level_selection and joystick_connected and not joystick_configured:
             controller_not_configured_counter = 80
 
         # controller not configured message
         if controller_not_configured_counter > 0:
             menu_screen.blit(controller_not_configured_txt, (swidth / 2 - controller_not_configured_txt.get_width() / 2, 130))
-
-        # controller connected message
-        if controller_connected_counter > 0:
-            cont_connect_y = 10
-            if controller_connected_counter < 20:
-                cont_connect_y = controller_connected_counter - 10
-            menu_screen.blit(controller_connected_txt,
-                             (swidth / 2 - controller_connected_txt.get_width() / 2, cont_connect_y))
 
         # changing the displayed screens
         if settings:
@@ -423,7 +461,7 @@ while run:
             fadeout_music,\
             lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
                                                  draw_hitbox, mouse_adjustment, events,
-                                                 game_counter, world_count, controls)
+                                                 game_counter, world_count, controls, joystick_configured)
 
         if play_music_trigger:
             play_music = True
@@ -488,7 +526,7 @@ while run:
         if play_press:
             world_data = level_dictionary[f'level1_{world_count}']
             bg_data = level_bg_dictionary[f'level1_{world_count}_bg']
-            threading.Thread(target=loadGame, args=[world_data, bg_data, world_count]).start()
+            threading.Thread(target=loadGame, args=[world_data, bg_data, world_count, joystick_connected]).start()
             loading = True
             proceed_with_transition = False
 
@@ -552,6 +590,7 @@ while run:
             run_settings = False
             run_level_selection = False
             controller_not_configured_counter = 0
+            joystick_configured = True
             if game_paused:
                 paused = True
                 run_menu = False
@@ -613,22 +652,46 @@ while run:
         if event.type == pygame.JOYDEVICEADDED:
             joystick = pygame.joystick.Joystick(event.device_index)
             joysticks[joystick.get_instance_id()] = joystick
-            pygame.mouse.set_visible(False)
             joystick_connected = True
             joystick_name = str(joystick.get_name())
-            controller_connected_counter = 90
+            if joystick.get_numaxes() == 0:
+                controller_incompatible_counter = 5 * 60
+            if joystick_name in controllers:
+                controller_connected_counter = 90
+                pygame.mouse.set_visible(False)
+                joystick_configured = True
+                controller_popup = controller_connected_popup
+            else:
+                controller_connected_counter = 90
+                joystick_configured = False
+                pygame.mouse.set_visible(True)
+                controller_popup = controller_connected_no_conf_popup
 
-            if joystick.get_name() not in controllers:
-                controllers[joystick_name] = []
+            try:
+                if joystick.get_name() not in controllers:
+                    if run_game:
+                        controllers[joystick_name] = [4, 5, 10, 1]
+                        joystick_configured = False
+                        controller_warning_counter = 60 * 6
+                    else:
+                        controllers[joystick_name] = []
 
-            if joystick_name in controllers and controllers[joystick_name]:
-                settings_counters['configuration'] = controllers[joystick_name][3]
-                settings_menu.update_settings_counters(settings_counters)
+                if joystick_name in controllers and controllers[joystick_name]:
+                    settings_counters['configuration'] = controllers[joystick_name][3]
+                    controls['configuration'] = controllers[joystick_name]
+                    joystick_configured = True
+                    settings_menu.update_settings_counters(settings_counters)
+            except Exception:
+                joystick_connection_error = True
 
         if event.type == pygame.JOYDEVICEREMOVED:
+            controller_disconnected_counter = 90
             del joysticks[event.instance_id]
+            if not joystick_configured:
+                del controllers[joystick_name]
             joystick_connected = False
             joystick_name = ''
+            joystick_configured = False
 
         if event.type == pygame.JOYAXISMOTION:
             if joystick_idle and abs(event.value) > 0.3:
@@ -724,7 +787,7 @@ while run:
     else:
         show_cursor = False
 
-    if pygame.mouse.get_focused() and not joysticks:
+    if pygame.mouse.get_focused() and not joystick_configured:
         mouse_pos = pygame.mouse.get_pos()
         if mouse_pos == last_mouse_pos and not show_cursor and not run_level_selection and not paused:
             mouse_still_count += 1
@@ -742,11 +805,7 @@ while run:
 
     # updating the display ---------------------------------------------------------------------------------------------
     if run_game:
-        if slow_computer:
-            animation_speed_adjust = 2
-        else:
-            animation_speed_adjust = 1
-        menu_transition_counter -= (sheight / 23) * animation_speed_adjust
+        menu_transition_counter -= (sheight / 23) / fps_adjust
         game_counter += 0.04 * fps_adjust
         scaling = game_counter * game_counter + 1
         if game_counter < -2:
@@ -770,6 +829,32 @@ while run:
 
     else:
         main_screen.blit(menu_screen, (0, 0))
+
+    # controller errors and messages -----------------------------------------------------------------------------------
+
+    # controller connected message
+    if controller_connected_counter > -10:
+        cont_connect_y = 10
+        if controller_connected_counter < 5:
+            cont_connect_y = controller_connected_counter * 2
+        main_screen.blit(controller_popup,
+                         (swidth / 2 - controller_popup.get_width() / 2, cont_connect_y))
+    # controller disconnected message
+    if controller_disconnected_counter > -10:
+        cont_connect_y = 10
+        if controller_disconnected_counter < 5:
+            cont_connect_y = controller_disconnected_counter * 2
+        main_screen.blit(controller_disconnected_popup,
+                         (swidth / 2 - controller_disconnected_popup.get_width() / 2, cont_connect_y))
+    # controller not configured warning popup
+    if controller_warning_counter > 0:
+        main_screen.blit(controller_warning_popup, (swidth / 2 - controller_warning_popup.get_width() / 2,
+                                                    sheight / 2 - controller_warning_popup.get_height() / 2))
+    # controller incompatible popup
+    if controller_incompatible_counter > 0:
+        main_screen.blit(controller_incompatible_popup,
+                         (swidth / 2 - controller_incompatible_popup.get_width() / 2,
+                          sheight / 2 - controller_incompatible_popup.get_height() / 2))
 
     window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)), (0, 0))
     pygame.display.update()

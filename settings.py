@@ -101,7 +101,7 @@ class SettingsMenu:
             'jump3': pygame.K_UP,
             'configuration1': [4, 5, 10, 1],
             'configuration2': [9, 10, 6, 2],
-            'configuration3': [4, 5, 10],
+            'configuration3': [4, 5, 10, 3],
             'rumble1': pygame.K_x,
             'rumble2': pygame.K_e,
             'rumble3': pygame.K_SLASH,

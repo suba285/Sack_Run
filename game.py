@@ -101,7 +101,8 @@ class Gradient:
 
 
 class Game:
-    def __init__(self, slow_computer, world_data, bg_data, controls, world_count, settings_counters):
+    def __init__(self, slow_computer, world_data, bg_data, controls, world_count, settings_counters,
+                 joystick_connected):
 
         self.world_data = world_data
         self.bg_data = bg_data
@@ -151,15 +152,22 @@ class Game:
         configuration_counter = settings_counters['configuration']
         if configuration_counter == 1:
             self.controller_type = 'xbox'
+            jump_btn = 'A'
         elif configuration_counter == 2:
             self.controller_type = 'ps4'
+            jump_btn = 'cross'
         else:
             self.controller_type = 'other'
+            jump_btn = 'A or cross'
 
         # controls popup window
         controls_txt = Text().make_text(['CONTROLS'])
-        walking_controls_txt = Text().make_text([f"walking: {self.nums_to_text[f'walk{walk_counter}']}"])
-        jumping_controls_txt = Text().make_text([f"jumping: {self.nums_to_text[f'jump{jump_counter}']}"])
+        if not joystick_connected:
+            walking_controls_txt = Text().make_text([f"walking: {self.nums_to_text[f'walk{walk_counter}']}"])
+            jumping_controls_txt = Text().make_text([f"jumping: {self.nums_to_text[f'jump{jump_counter}']}"])
+        else:
+            walking_controls_txt = Text().make_text(['walking: Left stick'])
+            jumping_controls_txt = Text().make_text([f'jumping: {jump_btn} button'])
         tip1_txt = Text().make_text(['Follow the compass in the top-left corner,'])
         tip1_2_txt = Text().make_text(['it will lead you to portals.'])
         tip2_txt = Text().make_text(['Use cards to gain special abilities.'])
@@ -402,7 +410,7 @@ class Game:
 
 # THE GAME =============================================================================================================
     def game(self, screen, level_count, slow_computer, fps_adjust, draw_hitbox, mouse_adjustment, events,
-             game_counter, world_count, controls):
+             game_counter, world_count, controls, joystick_connected):
 
         power_list_not_saved_error = False
 
@@ -554,9 +562,10 @@ class Game:
                 self.mid_air_jump_trigger,\
                 self.speed_dash_trigger,\
                 play_card_pull_sound = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment, events,
-                                                        tutorial, fps_adjust, level_count,
-                                                          self.health, self.move, self.player_moved,
-                                                          self.gem_equipped, self.controls['configuration'])
+                                                               tutorial, fps_adjust, level_count,
+                                                               self.health, self.move, self.player_moved,
+                                                               self.gem_equipped, self.controls['configuration'],
+                                                               joystick_connected, self.controller_type)
 
         if self.mid_air_jump_trigger or self.speed_dash_trigger:
             self.gem_equipped = False

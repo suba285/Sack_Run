@@ -34,8 +34,6 @@ class eqManager:
 
         self.eq_button_counter = 5
 
-        self.completed_txt = Text().make_text(["congrats, you've completed the tutorial"])
-
         self.card_info_popup = popup_bg_generator((180, 160))
         self.card_info_popup_text_surface = pygame.Surface((self.card_info_popup.get_width(),
                                                             self.card_info_popup.get_height()))
@@ -93,8 +91,8 @@ class eqManager:
 
         speed_dash_title = Text().make_text(['SPEED DASH'])
         speed_dash_info1 = Text().make_text(['When activated, move to dash.'])
-        speed_dash_info2 = Text().make_text(['Press space to stop.'])
-        speed_dash_info3 = Text().make_text(['You take twice as much damage.'])
+        speed_dash_info2 = Text().make_text(['You can dash left or right.'])
+        speed_dash_info3 = Text().make_text(['Press space to stop.'])
 
         self.full_mid_air_jump_card = pygame.Surface((2 * tile_size, 3 * tile_size))
         self.full_mid_air_jump_card.set_colorkey((0, 0, 0))
@@ -139,9 +137,9 @@ class eqManager:
         self.mouse3 = img_loader('data/images/mouse3.PNG', tile_size / 2, tile_size)
         self.mouse_press = img_loader('data/images/mouse_press.PNG', tile_size / 2, tile_size)
         self.a_btn = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
-        self.a_btn_press = img_loader('data/images/buttons/button_a_press.PNG', tile_size / 2, tile_size / 2)
         self.b_btn = img_loader('data/images/buttons/button_b.PNG', tile_size / 2, tile_size / 2)
-        self.b_btn_press = img_loader('data/images/buttons/button_b_press.PNG', tile_size / 2, tile_size / 2)
+        self.cross_btn = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
+        self.circle_btn = img_loader('data/images/buttons/button_circle.PNG', tile_size / 2, tile_size / 2)
         self.button_rb = img_loader('data/images/buttons/button_rb.PNG', tile_size / 2, tile_size / 2)
         self.button_rb_press = img_loader('data/images/buttons/button_rb_press.PNG', tile_size / 2, tile_size / 2)
         self.button_lb = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
@@ -149,10 +147,52 @@ class eqManager:
         self.use_text = Text().make_text(['USE'])
         self.info_text = Text().make_text(['INFO'])
 
+        controller_btn_width = self.a_btn.get_width()
+        controller_btn_height = self.a_btn.get_height()
+
+        or_txt = Text().make_text(['or'])
+        or_width = or_txt.get_width()
+
+        self.two_btn_surface1 = pygame.Surface((controller_btn_width * 2 + or_width + 1, controller_btn_height))
+        self.two_btn_surface2 = pygame.Surface((controller_btn_width * 2 + or_width + 1, controller_btn_height))
+        self.two_btn_surface1.set_colorkey((0, 0, 0))
+        self.two_btn_surface2.set_colorkey((0, 0, 0))
+
+        self.two_btn_surface1.blit(self.a_btn, (0, 0))
+        self.two_btn_surface1.blit(self.cross_btn, (controller_btn_width + or_width, 0))
+        self.two_btn_surface1.blit(or_txt, (controller_btn_width + 1, 4))
+        self.two_btn_surface2.blit(self.b_btn, (0, 0))
+        self.two_btn_surface2.blit(self.circle_btn, (controller_btn_width + or_width, 0))
+        self.two_btn_surface2.blit(or_txt, (controller_btn_width + 1, 4))
+
+        self.xbox_btns = {
+            '1': self.a_btn,
+            '2': self.b_btn,
+        }
+
+        self.ps4_btns = {
+            '1': self.cross_btn,
+            '2': self.circle_btn,
+        }
+
+        self.mixed_controller_btns = {
+            '1': self.two_btn_surface1,
+            '2': self.two_btn_surface2,
+        }
+
+        self.controller_buttons = {
+            'xbox': self.xbox_btns,
+            'ps4': self.ps4_btns,
+            'other': self.mixed_controller_btns
+        }
+
         self.press_counter = 0
 
         self.white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
         self.white_arrow_down = pygame.transform.flip(self.white_arrow_up, False, True)
+
+        self.no_gem_text = Text().make_text(['Collect gems to use cards'])
+        self.no_gem_counter = 0
 
         # creating buttons of elements in the equipped cards list ------------------------------------------------------
         for power in eq_list:
@@ -250,7 +290,7 @@ class eqManager:
 
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
     def draw_eq(self, screen, eq_list, mouse_adjustment, events, tutorial, fps_adjust, level_count,
-                health, move, player_moved, gem_equipped, eq_controls):
+                health, move, player_moved, gem_equipped, eq_controls, joystick_connected, controller_type):
 
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
@@ -276,8 +316,11 @@ class eqManager:
         joystick_over0 = False
         joystick_over1 = False
 
+        self.no_gem_counter -= 1 * fps_adjust
+
         joy_bumper_pressed = False
         joystick_info_press = False
+        joystick_use_press = False
         joystick_action = False
 
         over = False
@@ -322,6 +365,8 @@ class eqManager:
                         self.joystick_counter = 0
                 if event.button == 1:
                     joystick_info_press = True
+                if event.button == 0:
+                    joystick_use_press = True
                 if (not joystick_info_press or self.card_info) and not joy_bumper_pressed:
                     joystick_action = True
             if event.type == pygame.JOYAXISMOTION:
@@ -402,57 +447,78 @@ class eqManager:
             self.card_jump_animation_done = True
             self.card_vel_y = -7
 
+        if over and joystick_use_press and not gem_equipped:
+            self.no_gem_counter = 100
+
+        if not over and self.no_gem_counter > 0:
+            screen.blit(self.no_gem_text, (swidth / 2 - self.no_gem_text.get_width() / 2,
+                                           sheight / 2 - self.no_gem_text.get_height() / 2 - 10))
+
         if self.animate_card_jump:
             eqManager.card_jump_animation(self, fps_adjust, screen)
 
-        # tutorial on how to use cards
+        # tutorial on how to use cards ---------------------------------------------------------------------------------
         if tutorial and self.eq_button_list and level_count != 3:
             gap = 3
-            img = self.mouse3
 
             if over:
-                if self.press_counter >= 30:
-                    img = self.mouse_press
-                    if self.press_counter >= 40:
+                if self.press_counter >= 40:
+                    keybrd_img = self.mouse_press
+                    if self.press_counter >= 50:
                         self.press_counter = 0
                 else:
-                    img = self.mouse3
+                    keybrd_img = self.mouse3
+
+                cont_img = self.controller_buttons[controller_type]['1']
+                cont_img2 = self.controller_buttons[controller_type]['2']
+
+                keybrd_img2 = pygame.transform.flip(keybrd_img, True, False)
 
                 center_width = swidth / 2
                 center_height = sheight / 3 - tile_size / 2 + tile_size / 4
 
-                total_tutorial_width = img.get_width() * 2 + self.use_text.get_width() +\
+                if joystick_connected:
+                    img1 = cont_img
+                    img2 = cont_img2
+                    img_y = center_height
+                else:
+                    img1 = keybrd_img
+                    img2 = keybrd_img2
+                    img_y = center_height - tile_size / 3
+
+                total_tutorial_width = img1.get_width() * 2 + self.use_text.get_width() +\
                                         self.info_text.get_width() + 2 + gap * 4
                 tutorial_x = center_width - total_tutorial_width / 2
 
-                screen.blit(img, (tutorial_x, center_height - tile_size / 3))
-                tutorial_x += (img.get_width() + gap)
+                screen.blit(img1, (tutorial_x, img_y))
+                tutorial_x += (img1.get_width() + gap)
                 screen.blit(self.use_text, (tutorial_x, center_height + 5))
                 tutorial_x += (self.use_text.get_width() + gap)
                 pygame.draw.line(screen, (255, 255, 255), (tutorial_x, center_height - 2),
                                  (tutorial_x, center_height + tile_size / 2 + 2))
                 tutorial_x += (1 + gap)
-                screen.blit(pygame.transform.flip(img, True, False), (tutorial_x, center_height - tile_size / 3))
-                tutorial_x += (img.get_width() + gap)
+                screen.blit(img2, (tutorial_x, img_y))
+                tutorial_x += (img2.get_width() + gap)
                 screen.blit(self.info_text, (tutorial_x, center_height + 5))
 
             elif not self.card_checked and player_moved:
                 if self.press_counter >= 60:
-                    img = self.mouse0
+                    keybrd_img = self.mouse0
                     self.press_counter = 0
                 elif self.press_counter >= 40:
-                    img = self.mouse0
+                    keybrd_img = self.mouse0
                 elif self.press_counter >= 30:
-                    img = self.mouse3
+                    keybrd_img = self.mouse3
                 elif self.press_counter >= 20:
-                    img = self.mouse2
+                    keybrd_img = self.mouse2
                 elif self.press_counter >= 10:
-                    img = self.mouse1
+                    keybrd_img = self.mouse1
                 else:
-                    img = self.mouse0
-                if health > 1:
-                    screen.blit(img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
+                    keybrd_img = self.mouse0
+                if health > 0:
+                    screen.blit(keybrd_img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
 
+        # CARD INFO ----------------------------------------------------------------------------------------------------
         if self.card_info:
             self.card_info_counter += 0.04*fps_adjust
             popup = self.card_info_popup
