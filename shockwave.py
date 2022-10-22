@@ -9,21 +9,16 @@ swidth = 352
 
 
 class Shockwave:
-    def __init__(self, screen, controls):
+    def __init__(self, screen):
         self.radius = 0
         self.speed = 4
         self.x = 0
         self.y = 0
+        self.width = 4
         self.surface = screen
         self.expand = False
-        self.shock_num = 2
-
-        self.controls = controls
 
         self.blit_bar = True
-
-        self.attention_counter = 60
-        self.flash_counter = 0
 
         self.shockwave_bar1 = img_loader('data/images/shockwave_counter1.PNG', 2 * tile_size, tile_size)
         self.shockwave_bar2 = img_loader('data/images/shockwave_counter2.PNG', 2 * tile_size, tile_size)
@@ -36,53 +31,22 @@ class Shockwave:
         self.shockwave_col_rect = (self.shockwave_rect[0], self.shockwave_rect[1]+6, self.shockwave_rect.width, 22)
         self.info_move = 0
 
-        self.shock_img = self.shockwave_bar2
-        self.blit_shock = True
-        self.info = False
-
-    def update_shockwave(self, sack_rect, fps_adjust, camera_move_x, camera_move_y, mouse_adjustement, health):
-        key = pygame.key.get_pressed()
-        sound_trigger = False
-        self.attention_counter -= 1*fps_adjust
-        self.flash_counter += 1*fps_adjust
-        self.info = False
-        if key[self.controls['shockwave']] and not self.expand and self.shock_num > 0 and health > 0:
+    def update_shockwave(self, position, fps_adjust, trigger):
+        if trigger and not self.expand:
             self.expand = True
-            self.blit_shock = False
-            self.x = sack_rect.x + 10
-            self.y = sack_rect.y + 15
+            self.x = position[0]
+            self.y = position[1]
         if self.expand:
-            self.x += camera_move_x
-            self.y += camera_move_y
+            self.x = position[0]
+            self.y = position[1]
             self.speed -= 0.075
             self.radius += self.speed * fps_adjust
-            pygame.draw.circle(self.surface, (255, 255, 255), (self.x, self.y), self.radius, 1)
+            self.width -= 0.08
+            pygame.draw.circle(self.surface, (255, 255, 255), (self.x, self.y), self.radius, round(self.width))
         if self.radius >= 100:
             self.expand = False
             self.speed = 4
             self.radius = 0
-            self.shock_num -= 1
-            self.blit_shock = True
-
-        if self.shock_num == 2:
-            self.shock_img = self.shockwave_bar2
-        elif self.shock_num == 1:
-            self.shock_img = self.shockwave_bar1
-        else:
-            self.shock_img = self.shockwave_bar0
-        if not self.blit_shock:
-            self.shock_img = self.shockwave_bar_pale
-
-        if self.attention_counter > 0:
-            if self.flash_counter > 7:
-                self.flash_counter = 0
-                self.blit_bar = not self.blit_bar
-
-        if self.attention_counter <= 0:
-            self.blit_bar = True
-
-        # blitting shockwave bar
-        if self.blit_bar:
-            self.surface.blit(self.shock_img, (self.shockwave_rect[0], self.shockwave_rect[1]))
+            self.width = 4
 
         return self.radius

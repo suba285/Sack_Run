@@ -1,6 +1,7 @@
 import time
 import pygame
 import json
+import threading
 
 from levels import *
 from game import Game
@@ -12,32 +13,23 @@ from pause_screen import PauseScreen
 from world_selection import LevelSelection
 from game import level_dictionary, level_bg_dictionary
 from settings import SettingsMenu
-import threading
 
 pygame.init()
+pygame.joystick.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
+joysticks = {}
 
 # basic game variables -------------------------------------------------------------------------------------------------
-screen_dimentions = pygame.display.Info()
-monitor_height = screen_dimentions.current_h
-monitor_width = screen_dimentions.current_w
+screen_dimensions = pygame.display.Info()
+monitor_height = screen_dimensions.current_h
+monitor_width = screen_dimensions.current_w
 screen_width = monitor_height * (360 / 264)
-
-ratio = 4 / 3
 
 sheight = 264
 swidth = 352
 wiheight = sheight * 2
 wiwidth = swidth * 2
-wiheight_big = sheight * 3
-wiwidth_big = swidth * 3
 tile_size = 32
-
-x = 164
-y = 132
-
-start_x = -4
-start_y = 1
 
 clock = pygame.time.Clock()
 fps = 60
@@ -48,6 +40,14 @@ settings_not_loaded_error = False
 
 # loading settings data
 try:
+    with open('data/controllers.json', 'r') as json_file:
+        controllers = json.load(json_file)
+
+except Exception:
+    settings_not_loaded_error = True
+    controllers = {}
+
+try:
     with open('data/settings_configuration.json', 'r') as json_file:
         settings_counters = json.load(json_file)
 
@@ -57,8 +57,8 @@ except Exception:
     settings_counters = {
         'walking': 1,
         'jumping': 1,
-        'shockwave': 1,
-        'interaction': 1,
+        'rumble': 1,
+        'configuration': 1,
         'resolution': 1,
         'performance': 1,
         'hitbox': 1,
@@ -122,16 +122,10 @@ first_level = 1
 world_count = 1
 level_count = first_level
 
-resolution = "small"
-
 default_game_counter = -3
 game_counter = default_game_counter
 
-# error variables and error messages
-settings_not_saved_error_counter = 300
-settings_not_saved_error_txt = Text().make_text(['error while saving settings configuration'])
-settings_not_loaded_error_txt = Text().make_text(['error while loading settings configuration'])
-
+# variables ------------------------------------------------------------------------------------------------------------
 if settings_counters['performance'] == 1:
     slow_computer = False
 else:
@@ -141,40 +135,40 @@ run_game = False
 run_menu = True
 run_settings = False
 paused = False
+game_paused = False
 play_press = False
 play = False
 run_level_selection = False
 level_selection = False
+menu_transition_counter = 0
+menu_transition = False
+proceed_with_transition = False
+menu_y = 0
+game_y = swidth
 
 if settings_counters['hitbox'] == 1:
     draw_hitbox = False
 else:
     draw_hitbox = True
 draw_fps_counter = True
+
+# mouse
+last_mouse_pos = pygame.mouse.get_pos()
+mouse_still_count = 0
+mouse_vis = True
+show_cursor = True
+
+# music
+play_music = False
+play_music_trigger = False
+fadeout_music = False
+world_completed_sound_played = False
 play_background_music = True
 play_sounds = True
 if settings_counters['sounds'] == 1:
     play_sounds = False
-
-last_mouse_pos = pygame.mouse.get_pos()
-mouse_still_count = 0
-play_music = False
-play_music_trigger = False
-fadeout_music = False
-
-circle = False
-
-dead = False
-
-game_paused = False
-
-menu_transition_counter = 0
-menu_transition = False
-
-proceed_with_transition = False
-
-menu_y = 0
-game_y = swidth
+if settings_counters['music_volume'] == 1:
+    play_background_music = False
 
 user_quit1 = False
 user_quit2 = False
@@ -197,7 +191,8 @@ sounds = {
         'bear_trap_cling': pygame.mixer.Sound('data/sounds/bear_trap_cling.wav'),
         'healing_sound': pygame.mixer.Sound('data/sounds/healing_sound2.wav'),
         'button_click': pygame.mixer.Sound('data/sounds/button_click.wav'),
-        'paper_crumbling': pygame.mixer.Sound('data/sounds/paper_crumbling.wav')
+        'paper_crumbling': pygame.mixer.Sound('data/sounds/paper_crumbling.wav'),
+        'world_completed': pygame.mixer.Sound('data/sounds/world_completed_sound.wav')
     }
 
 sounds['card_pull'].set_volume(0.4)
@@ -205,6 +200,7 @@ sounds['lock_click'].set_volume(1.4)
 sounds['bear_trap_cling'].set_volume(0.6)
 sounds['button_click'].set_volume(0.9)
 sounds['paper_crumbling'].set_volume(0.8)
+sounds['world_completed'].set_volume(0.6)
 
 music_volumes = {
     '1': 0,
@@ -215,12 +211,19 @@ music_volumes = {
 pygame.mixer.music.load('data/sounds/gameplay_song1.wav')
 pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
+# sound locks
 one_time_play_card_pull = True
 one_time_play_button1 = True
 one_time_play_button2 = True
 one_time_play_lock = True
 card_swoosh_chest = False
 card_swoosh_counter = 0
+
+# joystick variables
+joystick_moved = False
+joystick_idle = True
+joystick_connected = False
+joystick_name = ''
 
 # controls -------------------------------------------------------------------------------------------------------------
 controls_nums = {
@@ -231,23 +234,20 @@ controls_nums = {
     'jump1': pygame.K_SPACE,
     'jump2': pygame.K_w,
     'jump3': pygame.K_UP,
-    'shockwave1': pygame.K_z,
-    'shockwave2': pygame.K_f,
-    'shockwave3': pygame.K_RSHIFT,
-    'interact1': pygame.K_x,
-    'interact2': pygame.K_e,
-    'interact3': pygame.K_SLASH,
-    'delete_card1': pygame.K_q,
-    'delete_card2': pygame.K_PERIOD
+    'configuration1': [4, 5, 10, 1],  # controller button configuration [lb, rb, pause, settings_counter]
+    'configuration2': [9, 10, 6, 2],
+    'configuration3': [],
+    'rumble1': pygame.K_x,
+    'rumble2': pygame.K_e,
+    'rumble3': pygame.K_SLASH,
 }
 
 controls = {
     'left': controls_nums[f"left{settings_counters['walking']}"],
     'right': controls_nums[f"right{settings_counters['walking']}"],
     'jump': controls_nums[f"jump{settings_counters['jumping']}"],
-    'interact': controls_nums[f"interact{settings_counters['interaction']}"],
-    'shockwave': controls_nums[f"shockwave{settings_counters['shockwave']}"],
-    'bin_card': controls_nums[f"delete_card{settings_counters['walking']}"],
+    'configuration': controls_nums[f"configuration{settings_counters['configuration']}"],
+    'rumble': controls_nums[f"rumble{settings_counters['rumble']}"],
 }
 
 # custom cursor setup --------------------------------------------------------------------------------------------------
@@ -258,28 +258,22 @@ pointer = pygame.transform.scale(pointer_raw, (tile_size/4, tile_size/4))
 pointer.set_colorkey((0, 0, 0))
 cursor = pygame.transform.scale(cursor_raw, (tile_size/4, tile_size/4))
 cursor.set_colorkey((0, 0, 0))
-cursor_list = []
-
-mouse_vis = True
-
-show_cursor = True
 
 # initiating classes ---------------------------------------------------------------------------------------------------
-main_game = Game(x, y, slow_computer, screen, world_data, bg_data, controls, world_count, settings_counters)
+main_game = Game(slow_computer, world_data, bg_data, controls, world_count, settings_counters)
 main_menu = mainMenu()
 pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
 settings_menu = SettingsMenu(controls, settings_counters, resolutions, recommended_res_counter)
 
-paused_text = Text()
-
+# function for loading the game as a separate thread
 game_loaded = False
 loading = False
 
 
 def loadGame(local_world_data, local_bg_data, local_world_count):
     global main_game, game_loaded
-    main_game = Game(x, y, slow_computer, screen, local_world_data, local_bg_data, controls, local_world_count,
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
                      settings_counters)
     game_loaded = True
 
@@ -294,7 +288,16 @@ for num in range(10):
     display_numbers.append(number)
 
 # text -----------------------------------------------------------------------------------------------------------------
-paused_txt = paused_text.make_text(['paused'])
+paused_txt = Text().make_text(['paused'])
+
+# error variables and error messages
+settings_not_saved_error_counter = 300
+settings_not_saved_error_txt = Text().make_text(['error while saving settings configuration'])
+settings_not_loaded_error_txt = Text().make_text(['error while loading settings configuration'])
+controller_not_configured_txt = Text().make_text(['Controller not configured [settings]'])
+controller_not_configured_counter = 0
+controller_connected_txt = Text().make_text(['Controller connected'])
+controller_connected_counter = 0
 
 # fps variables --------------------------------------------------------------------------------------------------------
 last_time = time.time()
@@ -311,6 +314,7 @@ while run:
 
     screen.blit(background, (0, 0))
 
+    # sound triggers
     play_card_pull_sound = False
     play_lock_sound = False
     play_bear_trap_cling_sound = False
@@ -321,9 +325,11 @@ while run:
     button_sound_trigger2 = False
     button_sound_trigger3 = False
 
-    mouse_adjustment = wiwidth / swidth
+    # joystick variables
+    joystick_moved = False
+    joystick_over_card = False
 
-    cursor_list = []
+    mouse_adjustment = wiwidth / swidth
 
     # fps adjustment ---------------------------------------------------------------------------------------------------
     real_fps = clock.get_fps()
@@ -341,17 +347,21 @@ while run:
         game_paused = False
         loading = False
         game_loaded = False
+        controller_not_configured_counter -= 1 * fps_adjust
+        controller_connected_counter -= 1 * fps_adjust
         level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
-                                                             slow_computer, mouse_adjustment, events)
+                                                             slow_computer, mouse_adjustment, events, fps_adjust)
 
+        # settings not saved error
         if settings_not_saved_error:
             settings_not_saved_error_counter -= 1*fps_adjust
             if settings_not_saved_error_counter >= 0:
                 menu_screen.blit(settings_not_saved_error_txt,
                                  (swidth / 2 - settings_not_loaded_error_txt.get_width() / 2, 3))
 
-        if level_selection:
+        # changing the displayed screens
+        if level_selection and (controllers[joystick_name] or not joystick_connected):
             if not slow_computer:
                 fps = 60
             else:
@@ -364,6 +374,23 @@ while run:
             menu_y = 0
             game_y = swidth
 
+        # controller not configured message trigger
+        if level_selection and joystick_connected and not controllers[joystick_name]:
+            controller_not_configured_counter = 80
+
+        # controller not configured message
+        if controller_not_configured_counter > 0:
+            menu_screen.blit(controller_not_configured_txt, (swidth / 2 - controller_not_configured_txt.get_width() / 2, 130))
+
+        # controller connected message
+        if controller_connected_counter > 0:
+            cont_connect_y = 10
+            if controller_connected_counter < 20:
+                cont_connect_y = controller_connected_counter - 10
+            menu_screen.blit(controller_connected_txt,
+                             (swidth / 2 - controller_connected_txt.get_width() / 2, cont_connect_y))
+
+        # changing the displayed screens
         if settings:
             run_game = False
             run_menu = False
@@ -374,12 +401,13 @@ while run:
     if run_game:
         game_paused = False
         if play:
+            world_completed_sound_played = False
             if real_fps < 30:
                 slow_computer = True
             if world_count == 1:
-                pygame.mixer.music.load('data/sounds/gameplay_song2.wav')
+                pygame.mixer.music.load('data/sounds/game_song1.wav')
             elif world_count == 2:
-                pygame.mixer.music.load('data/sounds/gameplay_song4.wav')
+                pygame.mixer.music.load('data/sounds/game_song1.wav')
             play = False
 
         run_menu = False
@@ -389,18 +417,18 @@ while run:
             play_lock_sound,\
             play_bear_trap_cling_sound,\
             play_healing_sound,\
-            dead,\
             button_sound_trigger2,\
             play_paper_sound,\
             play_music_trigger,\
             fadeout_music,\
             lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
                                                  draw_hitbox, mouse_adjustment, events,
-                                                 game_counter, world_count)
+                                                 game_counter, world_count, controls)
 
         if play_music_trigger:
             play_music = True
 
+        # changing the displayed screens
         if menu_press or key[pygame.K_ESCAPE]:
             run_menu = False
             run_game = False
@@ -408,6 +436,7 @@ while run:
             run_level_selection = False
             fadeout_music = True
 
+        # changing the displayed screens
         if lvl_selection_press:
             game_counter = default_game_counter
             run_game = False
@@ -505,7 +534,8 @@ while run:
             current_resolution,\
             adjust_resolution,\
             control_counters,\
-            settings_counters = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events, fps_adjust)
+            settings_counters = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events,
+                                                                 fps_adjust)
 
         if performance_counter == 1:
             slow_computer = False
@@ -521,6 +551,7 @@ while run:
             run_game = False
             run_settings = False
             run_level_selection = False
+            controller_not_configured_counter = 0
             if game_paused:
                 paused = True
                 run_menu = False
@@ -533,6 +564,14 @@ while run:
                     json.dump(settings_counters, json_file)
             except Exception:
                 settings_not_saved_error = True
+
+            if joystick_connected and joystick_name != '':
+                controllers[joystick_name] = controls['configuration']
+                try:
+                    with open('data/controllers.json', 'w') as json_file:
+                        json.dump(controllers, json_file)
+                except Exception:
+                    settings_not_saved_error = True
 
             if settings_counters['sounds'] == 1:
                 play_sounds = False
@@ -551,9 +590,70 @@ while run:
     else:
         fps = 60
 
+    # displaying fps ---------------------------------------------------------------------------------------------------
+    if draw_fps_counter:
+        display_frames_per_second(screen, display_fps, display_numbers)
+
+    # game quit handling and respawn -----------------------------------------------------------------------------------
+    for event in events:
+        if event.type == pygame.QUIT:
+            run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                user_quit1 = True
+            if event.key == pygame.K_LCTRL:
+                user_quit2 = True
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_q:
+                user_quit1 = False
+            if event.key == pygame.K_LCTRL:
+                user_quit2 = False
+            # play = True
+
+        if event.type == pygame.JOYDEVICEADDED:
+            joystick = pygame.joystick.Joystick(event.device_index)
+            joysticks[joystick.get_instance_id()] = joystick
+            pygame.mouse.set_visible(False)
+            joystick_connected = True
+            joystick_name = str(joystick.get_name())
+            controller_connected_counter = 90
+
+            if joystick.get_name() not in controllers:
+                controllers[joystick_name] = []
+
+            if joystick_name in controllers and controllers[joystick_name]:
+                settings_counters['configuration'] = controllers[joystick_name][3]
+                settings_menu.update_settings_counters(settings_counters)
+
+        if event.type == pygame.JOYDEVICEREMOVED:
+            del joysticks[event.instance_id]
+            joystick_connected = False
+            joystick_name = ''
+
+        if event.type == pygame.JOYAXISMOTION:
+            if joystick_idle and abs(event.value) > 0.3:
+                joystick_moved = True
+                joystick_idle = False
+            if event.value == 0:
+                joystick_idle = True
+
+        if event.type == pygame.JOYBUTTONDOWN:
+            if event.button == controls['configuration'][0] or event.button == controls['configuration'][1]:
+                joystick_over_card = True
+            if event.button == controls['configuration'][2]:
+                run_menu = False
+                run_game = False
+                paused = True
+                run_level_selection = False
+                fadeout_music = True
+
+    if user_quit1 and user_quit2:
+        run = False
+
     # playing sounds ---------------------------------------------------------------------------------------------------
     if play_sounds:
-        if play_card_pull_sound and one_time_play_card_pull:
+        if (play_card_pull_sound and one_time_play_card_pull)\
+                or (joystick_over_card and run_game):
             sounds['card_pull'].play()
             one_time_play_card_pull = False
         if not play_card_pull_sound:
@@ -591,7 +691,8 @@ while run:
     if button_sound_trigger1 or button_sound_trigger2:
         play_button_sound = True
 
-    if play_button_sound and one_time_play_button1:
+    if (play_button_sound and one_time_play_button1)\
+            or (joystick_moved and (run_menu or run_settings or run_level_selection or paused)):
         sounds['button_click'].play()
         one_time_play_button1 = False
     if not play_button_sound:
@@ -599,7 +700,17 @@ while run:
 
     # music
     if play_background_music:
+        if not world_completed_sound_played:
+            if world_count == 1 and level_count == 3:
+                sounds['world_completed'].play()
+                world_completed_sound_played = True
         if play_music:
+            if world_count == 1 and level_count == 3:
+                play_x_times = 1
+                print('correct level')
+            else:
+                play_x_times = -1
+            print('music_playing')
             pygame.mixer.music.play(-1, 0.0, 300)
             play_music = False
 
@@ -607,43 +718,13 @@ while run:
         pygame.mixer.music.fadeout(300)
         fadeout_music = False
 
-    # displaying fps ---------------------------------------------------------------------------------------------------
-    if draw_fps_counter:
-        display_frames_per_second(screen, display_fps, display_numbers)
-
-    # game quit handling and respawn -----------------------------------------------------------------------------------
-    for event in events:
-        if event.type == pygame.QUIT:
-            run = False
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and dead:
-            pass
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_q:
-                user_quit1 = True
-            if event.key == pygame.K_LCTRL:
-                user_quit2 = True
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_q:
-                user_quit1 = False
-            if event.key == pygame.K_LCTRL:
-                user_quit2 = False
-            # play = True
-
-    if user_quit1 and user_quit2:
-        run = False
-
-    # circle experiment ------------------------------------------------------------------------------------------------
-    if circle:
-        pygame.draw.circle(screen, (255, 255, 255), (100, 100), 50, width=1, draw_top_right=True, draw_top_left=True,
-                           draw_bottom_left=True, draw_bottom_right=True)
-
     # custom mouse cursor ----------------------------------------------------------------------------------------------
     if not run_game:
         show_cursor = True
     else:
         show_cursor = False
 
-    if pygame.mouse.get_focused():
+    if pygame.mouse.get_focused() and not joysticks:
         mouse_pos = pygame.mouse.get_pos()
         if mouse_pos == last_mouse_pos and not show_cursor and not run_level_selection and not paused:
             mouse_still_count += 1

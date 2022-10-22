@@ -2,9 +2,9 @@ import pygame
 from bee import Bee
 from bear_trap_class import BearTrap
 from plant_spit import PlantSpit
-from new_card_animation import CardAnimation
 from image_loader import img_loader
 from font_manager import Text
+from shockwave import Shockwave
 import random
 import math
 
@@ -38,6 +38,34 @@ def key_animation(img1, img2, counter, fps_adjust):
     return counter, img
 
 
+class CircleAnimation:
+    def __init__(self):
+        self.counter = -10
+        self.radius1 = 0
+        self.radius2 = 0
+        self.max_radius = 25
+        self.radius_speed = 2
+
+    def draw_circle_animation(self, position, screen, fps_adjust):
+        self.counter += 0.8 * fps_adjust
+        self.radius_speed -= 0.1
+        if self.radius_speed < 0:
+            self.radius_speed = 0
+        self.radius1 += self.radius_speed * fps_adjust
+        if self.counter > 0:
+            self.radius2 += 1.5 * fps_adjust
+
+        width = self.radius1 - self.radius2
+
+        if width > 0:
+            pygame.draw.circle(screen, (255, 255, 255), position, int(self.radius1), int(width))
+            finished = False
+        else:
+            finished = True
+
+        return finished
+
+
 class World:
     def __init__(self, data, screen, slow_computer, bg_data, controls, settings_counters):
         self.controls = controls
@@ -54,9 +82,6 @@ class World:
         self.tile_list = []
         self.next_level_list = []
         self.portal1_list = []
-        self.grass1_list = []
-        self.mushroom_list = []
-        self.mushroom_pick_list = []
         self.bear_trap_rect_list = []
         self.grn_mushroom_list = []
         self.bee_hive_list = []
@@ -70,20 +95,18 @@ class World:
         self.spitting_plant_list_right = []
         self.spitting_plant_list_up = []
         self.log_list = []
-        self.anchor_eye_list = []
         self.tree_list = []
         self.wheat_list = []
+        self.gem_list = []
+        self.shockwave_mushroom_list = []
+        self.shockwave_center_list = []
 
         self.list_of_lists = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
-        self.mushroom_picked = False
         self.bee_release_counter = 400
         self.bee_counter = 0
-        self.chest_counter = 0
-        self.chest_press = False
-        self.eq_full = False
         self.bee_harm = False
         self.spitting_counter_left = 0
         self.spitting_counter_right = 0
@@ -93,8 +116,12 @@ class World:
         self.spit_counter_up = 0
         self.log_counter = 0
         self.wood_num = 0
+        self.gem_bob_counter = 0
+        self.gem_flicker_counter = 0
+        self.gem_equipped = False
         self.wood_particles = []
         self.mush_particles = []
+        self.gem_particles = []
 
         self.key_press_counter = 0
 
@@ -133,11 +160,23 @@ class World:
         self.bear_trap_shut_img = img_loader('data/images/bear_trap_shut.PNG', tile_size, tile_size / 2)
 
         # portal tile images -------------------------------------------------------------------------------------------
-        self.portal1 = pygame.image.load('data/images/portal1.PNG').convert()
         self.portal1 = img_loader('data/images/portal1.PNG', tile_size, tile_size)
         self.portal2 = img_loader('data/images/portal2.PNG', tile_size, tile_size)
         self.portal3 = img_loader('data/images/portal3.PNG', tile_size, tile_size)
         self.portal4 = img_loader('data/images/portal4.PNG', tile_size, tile_size)
+
+        self.portal1_mask = pygame.mask.from_surface(self.portal1)
+        self.portal2_mask = pygame.mask.from_surface(self.portal2)
+        self.portal3_mask = pygame.mask.from_surface(self.portal3)
+        self.portal4_mask = pygame.mask.from_surface(self.portal4)
+        self.portal1_white = pygame.mask.Mask.to_surface(self.portal1_mask, setcolor=(255, 255, 254))
+        self.portal2_white = pygame.mask.Mask.to_surface(self.portal2_mask, setcolor=(255, 255, 254))
+        self.portal3_white = pygame.mask.Mask.to_surface(self.portal3_mask, setcolor=(255, 255, 254))
+        self.portal4_white = pygame.mask.Mask.to_surface(self.portal4_mask, setcolor=(255, 255, 254))
+        self.portal1_white.set_colorkey((0, 0, 0))
+        self.portal2_white.set_colorkey((0, 0, 0))
+        self.portal3_white.set_colorkey((0, 0, 0))
+        self.portal4_white.set_colorkey((0, 0, 0))
 
         # platform img -------------------------------------------------------------------------------------------------
         self.platform = img_loader('data/images/platform.PNG', tile_size, tile_size)
@@ -147,8 +186,20 @@ class World:
         self.mushroom_pick = img_loader('data/images/mushroom_pick.PNG', tile_size, tile_size)
         self.mushroom_dirt = img_loader('data/images/mushroom_dirt_pile.PNG', tile_size, tile_size)
 
+        # shockwave mushroom tile images -------------------------------------------------------------------------------
+        self.shockwave_mushroom = img_loader('data/images/shockwave_mushroom.PNG', tile_size, tile_size / 2)
+        self.shockwave_mushroom_dark = img_loader('data/images/shockwave_mushroom_dark.PNG', tile_size, tile_size / 2)
+
         # green mushroom -----------------------------------------------------------------------------------------------
         self.green_mushroom = img_loader('data/images/green_mushroom.PNG', tile_size / 2, tile_size / 2)
+
+        # gem ----------------------------------------------------------------------------------------------------------
+        self.gem = img_loader('data/images/gem.PNG', tile_size / 2, tile_size / 2)
+        self.gem.set_colorkey((0, 0, 0))
+        self.gem_surface = pygame.Surface((tile_size / 2, tile_size / 2))
+        gem_mask = pygame.mask.from_surface(self.gem)
+        self.gem_mask_surf = pygame.mask.Mask.to_surface(gem_mask, setcolor=(255, 0, 0))
+        self.gem_mask_surf.set_colorkey((255, 0, 0))
 
         # dark background dirt tiles -----------------------------------------------------------------------------------
         self.bg_tile = img_loader('data/images/background_tile.PNG', tile_size, tile_size)
@@ -222,18 +273,6 @@ class World:
         self.white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
         self.white_arrow_down = pygame.transform.flip(self.white_arrow_up, False, True)
 
-        key_images = {
-            'interact1': img_loader('data/images/key_x.PNG', tile_size / 2, tile_size / 2),
-            'interact1_press': img_loader('data/images/key_x_press.PNG', tile_size / 2, tile_size / 2),
-            'interact2': img_loader('data/images/key_e.PNG', tile_size / 2, tile_size / 2),
-            'interact2_press': img_loader('data/images/key_e_press.PNG', tile_size / 2, tile_size / 2),
-            'interact3': img_loader('data/images/key_slash.PNG', tile_size / 2, tile_size / 2),
-            'interact3_press': img_loader('data/images/key_slash_press.PNG', tile_size / 2, tile_size / 2)
-        }
-
-        self.interaction_key = key_images[f'interact{settings_counters["interaction"]}']
-        self.interaction_key_press = key_images[f'interact{settings_counters["interaction"]}_press']
-
         # text ---------------------------------------------------------------------------------------------------------
         eq_full_text = Text()
         self.eq_full_txt = eq_full_text.make_text(['eq is full, bin cards to free up space'])
@@ -245,9 +284,6 @@ class World:
         self.tile_list = []
         self.next_level_list = []
         self.portal1_list = []
-        self.grass1_list = []
-        self.mushroom_list = []
-        self.mushroom_pick_list = []
         self.bear_trap_rect_list = []
         self.grn_mushroom_list = []
         self.bee_hive_list = []
@@ -261,18 +297,15 @@ class World:
         self.spitting_plant_list_right = []
         self.spitting_plant_list_up = []
         self.log_list = []
-        self.anchor_eye_list = []
         self.tree_list = []
         self.wheat_list = []
+        self.gem_list = []
+        self.shockwave_mushroom_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
-        self.mushroom_picked = False
         self.bee_release_counter = 400
         self.bee_counter = 0
-        self.chest_counter = 0
-        self.chest_press = False
-        self.eq_full = False
         self.bee_harm = False
         self.spitting_counter_left = 0
         self.spitting_counter_right = 0
@@ -284,6 +317,7 @@ class World:
         self.wood_num = 0
         self.wood_particles = []
         self.mush_particles = []
+        self.gem_particles = []
 
         # assigning tiles to corresponding coordinates by the level map ------------------------------------------------
         row_count = start_y
@@ -410,11 +444,8 @@ class World:
                     tile = [base_rect, tall_rect, short_rect, medium_rect]
                     self.grn_mushroom_list.append(tile)
                 if tile == 26:
-                    # mushroom
-                    tile = img_rect_pos(self.mushroom, column_count, row_count)
-                    self.mushroom_list.append(tile)
-                    tile = img_rect_pos(self.mushroom_pick, column_count, row_count)
-                    self.mushroom_pick_list.append(tile)
+                    # free tile
+                    pass
                 if tile == 27:
                     # weed
                     pass
@@ -427,22 +458,21 @@ class World:
                     img_rectangle.y = row_count * tile_size
                     bee_list = []
                     for i in range(4):
-                        bee = Bee(self.screen, img_rectangle.x, img_rectangle.y, self.slow_computer)
+                        bee = Bee(img_rectangle.x, img_rectangle.y)
                         bee_list.append(bee)
                     tile = (img, img_rectangle, bee_list)
                     self.bee_hive_list.append(tile)
                 if tile == 29:
-                    # chest
-                    img = pygame.transform.scale(self.chest0_raw, (tile_size, tile_size))
-                    img.set_colorkey((0, 0, 0))
+                    # shockwave mushroom
+                    img = self.shockwave_mushroom
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
-                    img_rectangle.y = row_count * tile_size
-                    chest_open = False
-                    animation = CardAnimation()
-                    chest_clicked = False
-                    tile = [img, img_rectangle, chest_open, animation, chest_clicked]
-                    self.chest_list.append(tile)
+                    img_rectangle.y = row_count * tile_size + tile_size / 2
+                    squash_counter = 0
+                    cooldown = 0
+                    shockwave_init = Shockwave(self.screen)
+                    tile = [img, img_rectangle, squash_counter, cooldown, shockwave_init]
+                    self.shockwave_mushroom_list.append(tile)
                 if tile == 30:
                     # bush
                     img_rectangle = self.bush.get_rect()
@@ -601,6 +631,18 @@ class World:
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.decoration_list.append(tile)
+                if tile == 53:
+                    # gem
+                    rect = self.gem.get_rect()
+                    rect.x = column_count * tile_size + 8
+                    rect.y = row_count * tile_size + 8
+                    shake_counter = 7
+                    surface = pygame.surface.Surface((tile_size / 2, tile_size / 2))
+                    surface.set_colorkey((0, 0, 0))
+                    animation = CircleAnimation()
+                    gem_collected = False
+                    tile = [self.gem, rect, shake_counter, gem_collected, surface, animation]
+                    self.gem_list.append(tile)
 
                 column_count += 1
                 self.level_length += 1
@@ -610,8 +652,8 @@ class World:
         # background tiles ---------------------------------------------------------------------------------------------
         self.bg_surface = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
         bg_row_count = 0
-        self.background_y = start_y * tile_size
-        self.background_x = start_x * tile_size
+        self.background_y = start_y * 32
+        self.background_x = start_x * 32
         for row in self.bg_data:
             bg_col_count = 0
             for bg_tile in row:
@@ -646,11 +688,12 @@ class World:
         self.bg_surface.set_colorkey((0, 0, 0))
 
         self.list_of_lists = [self.tile_list, self.decoration_list, self.toxic_flower_list, self.slope_list,
-                              self.grass1_list, self.portal1_list, self.mushroom_list,
-                              self.bee_hive_list, self.chest_list, self.bush_list,
+                              self.portal1_list, self.bee_hive_list, self.chest_list, self.bush_list,
                               self.spitting_plant_list_up, self.spitting_plant_list_left,
                               self.spitting_plant_list_right, self.tree_list,
-                              self.log_list, self.anchor_eye_list]
+                              self.log_list, self.gem_list, self.shockwave_mushroom_list]
+
+        return self.level_length, self.level_height
 
     def return_tile_list(self):
         return self.tile_list, self.level_length
@@ -701,6 +744,7 @@ class World:
     # ------------------------------------------------------------------------------------------------------------------
     def draw_tile_list(self, screen):
         for tile in self.tile_list:
+            screen.blit(tile[0], tile[1])
             if - tile_size < tile[1][0] < swidth:
                 if - tile_size * 2 < tile[1][1] < sheight:
                     screen.blit(tile[0], tile[1])
@@ -713,67 +757,64 @@ class World:
             if self.portal_counter > 60:
                 self.portal_counter = 0
                 img = tile[0]
+                light_img = self.portal1_white
             elif self.portal_counter > 45:
                 img = self.portal4
+                light_img = self.portal4_white
             elif self.portal_counter > 30:
                 img = self.portal3
+                light_img = self.portal3_white
             elif self.portal_counter > 15:
                 img = self.portal2
+                light_img = self.portal2_white
             else:
                 img = tile[0]
+                light_img = self.portal1_white
 
             screen.blit(img, tile[1])
             if level_count == 1:
                 screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size / 2))
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------------------------------
 
-    def draw_mushroom(self, screen, sack_rect, health, camera_move_x, camera_move_y, fps_adjust, tutorial):
-        key = pygame.key.get_pressed()
-        trigger = False
-        for tile in self.mushroom_list:
-            output = tile[0]
-            if tile[1].colliderect(sack_rect.x, sack_rect.y, self.sack_height, self.sack_width):
-                if tile[0] == self.mushroom_dirt:
-                    output = self.mushroom_dirt
-                if tile[0] != self.mushroom_dirt and health == 1:
-                    output = self.mushroom_pick
-                if key[self.controls['interact']] and tile[0] != self.mushroom_dirt and health == 1:
-                    for i in range(8):
-                        self.mush_particles.append([[tile[1][0] + tile_size/2,
-                                                    tile[1][1] + tile_size/2],
-                                                    [(random.randint(0, 40) / 10) - 2,
-                                                    (random.randint(0, 20) / 10) - 1],
-                                                    random.randint(1, 2), random.randint(1, 2)])
-                    self.mushroom_picked = True
-                    trigger = True
-                    tile[0] = self.mushroom_dirt
-                    output = self.mushroom_dirt
-                    health = 2
+    def draw_gem(self, screen, sack_rect, fps_adjust, gem_equipped):
+        self.gem_bob_counter += 1 * fps_adjust
+        self.gem_flicker_counter += 1 * fps_adjust
+        if self.gem_flicker_counter >= 90:
+            self.gem_flicker_counter = 0
 
-            screen.blit(output, tile[1])
-            if tutorial and tile[0] != self.mushroom_dirt and health == 1:
-                if tile[1].colliderect(sack_rect):
-                    self.key_press_counter, img = key_animation(self.interaction_key, self.interaction_key_press,
-                                                                self.key_press_counter,
-                                                                fps_adjust)
-                    screen.blit(img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 4))
-                screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size / 2))
+        for tile in self.gem_list:
+            tile[4].fill((0, 0, 0))
 
-        if self.mush_particles:
-            for part in self.mush_particles:
-                part[0][0] += part[1][0]*fps_adjust + camera_move_x
-                part[0][1] += part[1][1]*fps_adjust + camera_move_y
-                part[2] -= 0.3
-                if part[3] == 1:
-                    colour = (255, 255, 255)
-                else:
-                    colour = (255, 0, 0)
-                pygame.draw.rect(screen, colour, [int(part[0][0]), int(part[0][1]), 1, 1])
-                if part[2] <= 0:
-                    self.mush_particles.remove(part)
+            tile[4].blit(tile[0], (0, 0))
+            pygame.draw.line(tile[4], (255, 255, 255),
+                             (16, -10 + self.gem_flicker_counter), (0, self.gem_flicker_counter), 3)
+            tile[4].blit(self.gem_mask_surf, (0, 0))
+            img = tile[4]
 
-        return trigger, health
+            if tile[1].colliderect(sack_rect) and not tile[3]:
+                tile[3] = True
+
+            scale = 1
+            circle_animation_finished = False
+            if tile[3]:
+                scale = (15 - abs(tile[2])) / 8
+                tile[2] -= 1.5 * fps_adjust
+                if scale > 0:
+                    img = pygame.transform.scale(tile[0], (16 * scale, 16 * scale))
+                circle_animation_finished = tile[5].draw_circle_animation((tile[1][0] + 8, tile[1][1] + 8),
+                                                                          screen, fps_adjust)
+
+            if circle_animation_finished:
+                self.gem_list.remove(tile)
+                gem_equipped = True
+
+            y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
+            if scale > 0:
+                screen.blit(img,
+                            (tile[1][0] + (8 - img.get_width() / 2), tile[1][1] + y_offset + (8 - img.get_height() / 2)))
+
+        return gem_equipped
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -795,7 +836,7 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_and_manage_beehive(self, screen, sack_rect, fps_adjust, camera_move_x, camera_move_y, health, radius,
+    def draw_and_manage_beehive(self, screen, sack_rect, fps_adjust, camera_move_x, camera_move_y, health,
                                 player_moved):
         self.bee_harm = False
         if player_moved:
@@ -811,9 +852,10 @@ class World:
                 for i in range(self.bee_counter - 1):
                     if i <= 4:
                         self.bee_harm = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
-                                                              self.tile_list, camera_move_x,
+                                                              camera_move_x,
                                                               camera_move_y, tile[1][0], tile[1][1],
-                                                              self.toxic_flower_list, health, radius,
+                                                              self.toxic_flower_list, health,
+                                                              self.shockwave_center_list,
                                                               player_moved)
                     if self.bee_harm:
                         return self.bee_harm
@@ -821,65 +863,43 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_chest(self, screen, sack_rect, fps_adjust, power_list, tutorial, eq_list, level_count):
-        reinit_eq = False
-        play_lock_sound = False
-        key = pygame.key.get_pressed()
-        chosen_power = "none"
-        max_card_num = 3
-        eq_len = len(eq_list)
-        self.blit_eq_full = False
-        for tile in self.chest_list:
-            if tile[1].colliderect(sack_rect.x, sack_rect.y, self.sack_height, self.sack_width):
-                if eq_len < max_card_num and not tile[4]:
-                    output = self.chest_open
-                else:
-                    output = tile[0]
-                if key[self.controls['interact']] and tile[0] != self.chest2 and not tile[4] and\
-                        power_list and eq_len < max_card_num:
-                    self.chest_press = True
-                    tile[4] = True
-                    play_lock_sound = True
-                if key[self.controls['interact']] and eq_len >= max_card_num:
-                    self.eq_full = True
-                if eq_len >= max_card_num and not tile[4]:
-                    self.blit_eq_full = True
-                if self.chest_press:
-                    self.chest_counter += 1*fps_adjust
-                    if self.chest_counter > 10:
-                        tile[2] = True
-                        tile[4] = True
-                        tile[0] = self.chest2
-                        self.chest_counter = 0
-                        self.chest_press = False
-                        output = self.chest2
-                        if power_list:
-                            chosen_power = random.choice(power_list)
-                            if tutorial and level_count == 1:
-                                chosen_power = 'jump boost'
-                            if tutorial and level_count == 2:
-                                chosen_power = 'no harm'
-                            eq_list.append(chosen_power)
-                            reinit_eq = True
+    def draw_shockwave_mushrooms(self, screen, fps_adjust):
+        self.shockwave_center_list = []
+        for mushroom in self.shockwave_mushroom_list:
+            squash = 0
+            trigger = False
+            mushroom[3] -= 1 * fps_adjust
+            mushroom[2] -= 1 * fps_adjust
+            if mushroom[3] < 0:
+                mushroom[3] = 0
 
-                    elif self.chest_counter > 5:
-                        output = self.chest1
+            if mushroom[2] > 12:
+                squash = 2
+            elif mushroom[2] > 9:
+                squash = 4
+            elif mushroom[2] > 6:
+                squash = 6
+            elif mushroom[2] > 3:
+                squash = 4
+            elif mushroom[2] > 0:
+                squash = 2
+                trigger = True
 
+            if squash > 0:
+                img = pygame.transform.scale(self.shockwave_mushroom, (tile_size + squash, tile_size / 2 - squash))
             else:
-                output = tile[0]
-                self.eq_full = False
+                img = self.shockwave_mushroom
 
-            if tile[2]:
-                tile[3].animate_card(screen, tile[1][0], tile[1][1], fps_adjust)
-            screen.blit(output, tile[1])
-            if tutorial and tile[0] != self.chest2 and not tile[4]:
-                if tile[1].colliderect(sack_rect):
-                    self.key_press_counter, img = key_animation(self.interaction_key, self.interaction_key_press,
-                                                                self.key_press_counter, fps_adjust)
-                    screen.blit(img, (swidth/2 - tile_size/4, sheight/3 - tile_size/4))
-                screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size / 2))
+            if mushroom[3] != 0 and mushroom[2] < 0:
+                img = self.shockwave_mushroom_dark
 
-        return chosen_power, reinit_eq, play_lock_sound, power_list, self.chest_press
+            shockwave_center = (mushroom[1][0]  + tile_size / 2, mushroom[1][1] + 10)
+            radius = mushroom[4].update_shockwave((shockwave_center[0], shockwave_center[1]),
+                                                  fps_adjust, trigger)
+
+            self.shockwave_center_list.append((shockwave_center[0], shockwave_center[1], radius))
+
+            screen.blit(img, (mushroom[1][0] - squash / 2, mushroom[1][1] + squash))
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -1039,7 +1059,7 @@ class World:
         # this just draws the dot showing the direction to the portal, the background is blitted separately
         if self.portal1_list:
             center_x = tile_size
-            center_y = tile_size + 10
+            center_y = tile_size - 10
             radius = 12
             dot_radius = 2
             portal_loc = self.portal1_list[0][1]

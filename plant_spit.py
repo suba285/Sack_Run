@@ -72,7 +72,7 @@ class PlantSpit:
             self.one_time_adjustment = True
 
         # spit flying particles ----------------------------------------------------------------------------------------
-        self.spit_particles.append([[self.rect.x + 6 -(4*self.direction_niller*self.direction_adjust_x*-1 - 2*self.direction_adjust_y),
+        self.spit_particles.append([[self.rect.x + 6 - (4*self.direction_niller*self.direction_adjust_x*-1 - 2*self.direction_adjust_y),
                                     self.rect.y + 4], [(random.randint(0, 10) / 10)*self.direction_adjust_x,
                                     (random.randint(0, 10) / 10)*self.direction_adjust_y],
                                     random.randint(1, 4)])
@@ -118,8 +118,8 @@ class PlantSpit:
                 screen.blit(self.image, (self.rect.x, self.rect.y))
             # updating flying spit particles
             for part in self.spit_particles:
-                part[0][0] += part[1][0]*fps_adjust + camera_move_x
-                part[0][1] += part[1][1]*fps_adjust + camera_move_y
+                part[0][0] += part[1][0] * fps_adjust + camera_move_x
+                part[0][1] += part[1][1] * fps_adjust + camera_move_y
                 part[2] -= 0.4
                 pygame.draw.circle(screen, (255, 0, 0), [int(part[0][0]), int(part[0][1])], int(part[2]))
                 if part[2] <= 0:
@@ -137,8 +137,8 @@ class PlantSpit:
         # spit explosion if player or tile hit -------------------------------------------------------------------------
         if self.explode:
             for part in self.spit_particles_hit:
-                part[0][0] += part[1][0]*fps_adjust + camera_move_x
-                part[0][1] += part[1][1]*fps_adjust + camera_move_y
+                part[0][0] += part[1][0] * fps_adjust + camera_move_x
+                part[0][1] += part[1][1] * fps_adjust + camera_move_y
                 part[2] -= 0.15
                 pygame.draw.circle(screen, (255, 0, 0), [int(part[0][0]), int(part[0][1])], int(part[2]))
                 if part[2] <= 0:

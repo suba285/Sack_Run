@@ -20,7 +20,7 @@ class CircleTransition:
         self.colour = (0, 0, 0)
 
     def draw_circle_transition(self, sack_rect, fps_adjust):
-        self.x = sack_rect.x + tile_size/2
+        self.x = sack_rect.x + tile_size / 2
         self.y = sack_rect.y + 15
         if self.trans:
             if self.radius >= self.final_radius:
