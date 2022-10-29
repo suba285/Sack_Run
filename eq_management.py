@@ -1,4 +1,5 @@
 import pygame
+import math
 from button import Button
 from image_loader import img_loader
 from font_manager import Text
@@ -188,11 +189,14 @@ class eqManager:
 
         self.press_counter = 0
 
-        self.white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
-        self.white_arrow_down = pygame.transform.flip(self.white_arrow_up, False, True)
+        white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
+        self.white_arrow_down = pygame.transform.flip(white_arrow_up, False, True)
+
+        self.arrow_bob_counter = 0
 
         self.no_gem_text = Text().make_text(['Collect gems to use cards'])
         self.no_gem_counter = 0
+        self.default_no_gem_counter = 100
 
         # creating buttons of elements in the equipped cards list ------------------------------------------------------
         for power in eq_list:
@@ -290,7 +294,8 @@ class eqManager:
 
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
     def draw_eq(self, screen, eq_list, mouse_adjustment, events, tutorial, fps_adjust, level_count,
-                health, move, player_moved, gem_equipped, eq_controls, joystick_connected, controller_type):
+                health, move, player_moved, gem_equipped, eq_controls, joystick_connected, controller_type,
+                joystick_calibration):
 
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
@@ -340,42 +345,41 @@ class eqManager:
             self.card_info_type = 'blank'
             self.level_count = level_count
 
-        key = pygame.key.get_pressed()
-
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                keydown = True
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mousebuttondown = True
-                if event.button == 3:
-                    mousebuttondown_right = True
-            if event.type == pygame.MOUSEBUTTONUP:
-                mousebuttonup = True
-            if event.type == pygame.JOYBUTTONDOWN:
-                if event.button == self.eq_controls[0]:
-                    joy_bumper_pressed = True
-                    self.joystick_counter -= 1
-                    if self.joystick_counter < 0:
-                        if card_num >= 0:
-                            self.joystick_counter = card_num
-                if event.button == self.eq_controls[1]:
-                    joy_bumper_pressed = True
-                    self.joystick_counter += 1
-                    if self.joystick_counter > card_num >= 0:
-                        self.joystick_counter = 0
-                if event.button == 1:
-                    joystick_info_press = True
-                if event.button == 0:
-                    joystick_use_press = True
-                if (not joystick_info_press or self.card_info) and not joy_bumper_pressed:
+        if not joystick_calibration:
+            for event in events:
+                if event.type == pygame.KEYDOWN:
+                    keydown = True
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mousebuttondown = True
+                    if event.button == 3:
+                        mousebuttondown_right = True
+                if event.type == pygame.MOUSEBUTTONUP:
+                    mousebuttonup = True
+                if event.type == pygame.JOYBUTTONDOWN:
+                    if event.button == self.eq_controls[0]:
+                        joy_bumper_pressed = True
+                        self.joystick_counter -= 1
+                        if self.joystick_counter < 0:
+                            if card_num >= 0:
+                                self.joystick_counter = card_num
+                    if event.button == self.eq_controls[1]:
+                        joy_bumper_pressed = True
+                        self.joystick_counter += 1
+                        if self.joystick_counter > card_num >= 0:
+                            self.joystick_counter = 0
+                    if event.button == 1:
+                        joystick_info_press = True
+                    if event.button == 0:
+                        joystick_use_press = True
+                    if (not joystick_info_press or self.card_info) and not joy_bumper_pressed:
+                        joystick_action = True
+                if event.type == pygame.JOYAXISMOTION:
                     joystick_action = True
-            if event.type == pygame.JOYAXISMOTION:
-                joystick_action = True
 
         if joy_bumper_pressed:
             self.joystick_over_counter = self.joystick_card_over_time
 
-        if self.joystick_over_counter >= 0 and not self.card_info:
+        if self.joystick_over_counter >= 0 and not self.card_info and move:
             if self.joystick_counter == 0:
                 joystick_over0 = True
             if self.joystick_counter == 1:
@@ -399,6 +403,8 @@ class eqManager:
                 if press and not self.card_info_press and gem_equipped:
                     self.mid_air_jump_trigger = True
                     self.joystick_over_counter = 0
+                if press and not gem_equipped:
+                    self.no_gem_counter = self.default_no_gem_counter
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
@@ -417,6 +423,8 @@ class eqManager:
                 if press and not self.card_info_press and gem_equipped:
                     self.speed_dash_trigger = True
                     self.joystick_over_counter = 0
+                if press and not gem_equipped:
+                    self.no_gem_counter = self.default_no_gem_counter
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
@@ -448,9 +456,9 @@ class eqManager:
             self.card_vel_y = -7
 
         if over and joystick_use_press and not gem_equipped:
-            self.no_gem_counter = 100
+            self.no_gem_counter = self.default_no_gem_counter
 
-        if not over and self.no_gem_counter > 0:
+        if self.no_gem_counter > 0:
             screen.blit(self.no_gem_text, (swidth / 2 - self.no_gem_text.get_width() / 2,
                                            sheight / 2 - self.no_gem_text.get_height() / 2 - 10))
 
@@ -501,7 +509,7 @@ class eqManager:
                 tutorial_x += (img2.get_width() + gap)
                 screen.blit(self.info_text, (tutorial_x, center_height + 5))
 
-            elif not self.card_checked and player_moved:
+            elif (not self.card_checked or gem_equipped) and player_moved:
                 if self.press_counter >= 60:
                     keybrd_img = self.mouse0
                     self.press_counter = 0
@@ -517,6 +525,13 @@ class eqManager:
                     keybrd_img = self.mouse0
                 if health > 0:
                     screen.blit(keybrd_img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
+
+                self.arrow_bob_counter += 1 * fps_adjust
+                y_arrow_offset = math.sin((1 / 13) * self.arrow_bob_counter) * 3
+                for card in self.eq_button_list:
+                    arrow_x = card[2] + (tile_size - tile_size / 4)
+                    arrow_y = sheight - 42
+                    screen.blit(self.white_arrow_down, (arrow_x, arrow_y + y_arrow_offset))
 
         # CARD INFO ----------------------------------------------------------------------------------------------------
         if self.card_info:

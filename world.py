@@ -85,12 +85,10 @@ class World:
         self.bear_trap_rect_list = []
         self.grn_mushroom_list = []
         self.bee_hive_list = []
-        self.chest_list = []
         self.shut_trap_list = []
         self.bush_list = []
         self.slope_list = []
         self.decoration_list = []
-        self.toxic_flower_list = []
         self.spitting_plant_list_left = []
         self.spitting_plant_list_right = []
         self.spitting_plant_list_up = []
@@ -137,24 +135,30 @@ class World:
         self.level_height = 0
 
         self.bg_surface = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
+        self.tile_surface = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
 
         self.angles = [0, 90, 180, 270]
 
         # dirt with rocks tile images ----------------------------------------------------------------------------------
-        self.stone1 = img_loader('data/images/stone_dirt.PNG', tile_size, tile_size)
-        self.stone2 = img_loader('data/images/stone2_dirt.PNG', tile_size, tile_size)
+        self.stone1 = img_loader('data/images/tile_dirt_rocks.PNG', tile_size, tile_size)
 
         # dirt tile images ---------------------------------------------------------------------------------------------
-        self.dirt = img_loader('data/images/plain_dirt.PNG', tile_size, tile_size)
-        self.dirt_grass = img_loader('data/images/dirt_grass.PNG', tile_size, tile_size)
-        self.dirt_grass_left = img_loader('data/images/dirt_grass_left.PNG', tile_size, tile_size)
-        self.dirt_grass_right = img_loader('data/images/dirt_grass_right.PNG', tile_size, tile_size)
-        self.dirt_grass_both_sides = img_loader('data/images/dirt_grass_2sides.PNG', tile_size, tile_size)
-        self.dirt_left = img_loader('data/images/dirt_bottom_left.PNG', tile_size, tile_size)
-        self.dirt_right = img_loader('data/images/dirt_bottom_right.PNG', tile_size, tile_size)
-        self.dirt_patch = img_loader('data/images/dirt_patch.PNG', tile_size, tile_size)
-        self.dirt_patch_right = img_loader('data/images/dirt_patch_grass_left.PNG', tile_size, tile_size)
-        self.dirt_patch_left = img_loader('data/images/dirt_patch_grass_right.PNG', tile_size, tile_size)
+        self.dirt = img_loader('data/images/tile_dirt.PNG', tile_size, tile_size)
+        tile_dirt_edge = img_loader('data/images/tile_dirt_edge.PNG', tile_size, tile_size)
+        tile_dirt_corner = img_loader('data/images/tile_dirt_corner.PNG', tile_size, tile_size)
+        self.dirt_tile_two_edges = img_loader('data/images/tile_dirt_two_edges.PNG', tile_size, tile_size)
+        self.dirt_tile_top_edge = tile_dirt_edge
+        self.dirt_tile_btm_edge = pygame.transform.flip(tile_dirt_edge, False, True)
+        self.dirt_tile_right_edge = pygame.transform.rotate(tile_dirt_edge, 270)
+        self.dirt_tile_left_edge = pygame.transform.rotate(tile_dirt_edge, 90)
+        self.dirt_tile_left = tile_dirt_corner
+        self.dirt_tile_right = pygame.transform.flip(tile_dirt_corner, True, False)
+        self.dirt_tile_two_corners = img_loader('data/images/tile_dirt_two_corners.PNG', tile_size, tile_size)
+        self.dirt_tile_btm_left = pygame.transform.flip(tile_dirt_corner, False, True)
+        self.dirt_tile_btm_right = pygame.transform.flip(tile_dirt_corner, True, True)
+        self.dirt_patch = self.dirt_tile_top_edge
+        self.dirt_patch_right = self.dirt_tile_top_edge
+        self.dirt_patch_left = self.dirt_tile_top_edge
 
         # bear trap tile images ----------------------------------------------------------------------------------------
         self.bear_trap_shut_img = img_loader('data/images/bear_trap_shut.PNG', tile_size, tile_size / 2)
@@ -164,6 +168,7 @@ class World:
         self.portal2 = img_loader('data/images/portal2.PNG', tile_size, tile_size)
         self.portal3 = img_loader('data/images/portal3.PNG', tile_size, tile_size)
         self.portal4 = img_loader('data/images/portal4.PNG', tile_size, tile_size)
+        self.portal = img_loader('data/images/portal.PNG', tile_size, tile_size)
 
         self.portal1_mask = pygame.mask.from_surface(self.portal1)
         self.portal2_mask = pygame.mask.from_surface(self.portal2)
@@ -180,11 +185,6 @@ class World:
 
         # platform img -------------------------------------------------------------------------------------------------
         self.platform = img_loader('data/images/platform.PNG', tile_size, tile_size)
-
-        # healing mushroom tile images ---------------------------------------------------------------------------------
-        self.mushroom = img_loader('data/images/mushroom.PNG', tile_size, tile_size)
-        self.mushroom_pick = img_loader('data/images/mushroom_pick.PNG', tile_size, tile_size)
-        self.mushroom_dirt = img_loader('data/images/mushroom_dirt_pile.PNG', tile_size, tile_size)
 
         # shockwave mushroom tile images -------------------------------------------------------------------------------
         self.shockwave_mushroom = img_loader('data/images/shockwave_mushroom.PNG', tile_size, tile_size / 2)
@@ -213,18 +213,6 @@ class World:
         self.bee_hive = img_loader('data/images/bee_hive.PNG', tile_size, 2 * tile_size)
         self.bee_hive.set_colorkey((0, 0, 0))
 
-        # chest tile images and card animation class init --------------------------------------------------------------
-        self.chest0_raw = pygame.image.load('data/images/chest0.PNG').convert()
-        self.chest1_raw = pygame.image.load('data/images/chest1.PNG').convert()
-        self.chest2_raw = pygame.image.load('data/images/chest2.PNG').convert()
-        self.chest_open_raw = pygame.image.load('data/images/chest_open.PNG').convert()
-        self.chest1 = pygame.transform.scale(self.chest1_raw, (tile_size, tile_size))
-        self.chest2 = pygame.transform.scale(self.chest2_raw, (tile_size, tile_size))
-        self.chest_open = pygame.transform.scale(self.chest_open_raw, (tile_size, tile_size))
-        self.chest1.set_colorkey((0, 0, 0))
-        self.chest2.set_colorkey((0, 0, 0))
-        self.chest_open.set_colorkey((0, 0, 0))
-
         # bush tiles ---------------------------------------------------------------------------------------------------
         self.bush = img_loader('data/images/bush1.PNG', 2 * tile_size, 2 * tile_size)
         self.bush_img = self.bush
@@ -237,9 +225,6 @@ class World:
         self.short_grass_left = img_loader('data/images/short_grass_left.PNG', tile_size, tile_size)
         self.short_grass_right = img_loader('data/images/short_grass_right.PNG', tile_size, tile_size)
         self.short_flowers_together = img_loader('data/images/short_flowers_together.PNG', tile_size, tile_size)
-
-        # toxic flower tile images -------------------------------------------------------------------------------------
-        self.toxic_flower = img_loader('data/images/toxic_flowers.PNG', tile_size, tile_size)
 
         # spitting plant tile images -----------------------------------------------------------------------------------
         self.spitting_plant0_raw = pygame.image.load('data/images/spitting_plant0.PNG').convert()
@@ -273,6 +258,9 @@ class World:
         self.white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
         self.white_arrow_down = pygame.transform.flip(self.white_arrow_up, False, True)
 
+        # compass card -------------------------------------------------------------------------------------------------
+        self.compass_card = img_loader('data/images/health_bar_card.PNG', tile_size * 2, tile_size * 2)
+
         # text ---------------------------------------------------------------------------------------------------------
         eq_full_text = Text()
         self.eq_full_txt = eq_full_text.make_text(['eq is full, bin cards to free up space'])
@@ -292,7 +280,6 @@ class World:
         self.bush_list = []
         self.slope_list = []
         self.decoration_list = []
-        self.toxic_flower_list = []
         self.spitting_plant_list_left = []
         self.spitting_plant_list_right = []
         self.spitting_plant_list_up = []
@@ -326,42 +313,89 @@ class World:
         self.data = data
         self.bg_data = bg_data
 
+        # TILE DATA ENCODING SYSTEM ====================================================================================
+        # 10 - gem
+        # 11 - dirt
+        # 12 - dirt tile
+        # 13 - dirt tile top right
+        # 14 - dirt tile top left
+        # 15 - dirt tile on both sides
+        # 16 - dirt tile bottom right
+        # 17 - dirt tile bottom left
+        # 18 - wheat
+        # 19 - fake bee hive
+        # 20 - portal
+        # 21 - dirt tile rocks
+        # 22 - dirt tile two side edge
+        # 23 - bear trap
+        # 24 - platform
+        # 25 - wobbly mushrooms
+        # 26 - free tile
+        # 27 - free tile
+        # 28 - real bee hive
+        # 29 - shockwave mushroom
+        # 30 - dirt tile bottom
+        # 31 - dirt tile right
+        # 32 - dirt tile left
+        # 33 - short grass
+        # 34 - short grass left
+        # 35 - short grass right
+        # 36 - bush
+        # 37 - spitting plant left
+        # 38 - spitting plant right
+        # 39 - spitting plant up
+        # 40 - log
+        # 41 - free tile
+        # 42 - tree
+        # 43 - flowers
+        # 44 - leek patch
+        # 45 - carrot patch
+        # 46 - lettuce patch
+
         for row in self.data:
             column_count = start_x
             self.level_length = 0
             for tile in row:
                 if tile == 10:
-                    # dirt patch
-                    tile = img_rect_pos(self.dirt_patch, column_count, row_count)
-                    self.tile_list.append(tile)
+                    # gem
+                    rect = self.gem.get_rect()
+                    rect.x = column_count * tile_size + 8
+                    rect.y = row_count * tile_size + 8
+                    shake_counter = 7
+                    surface = pygame.surface.Surface((tile_size / 2, tile_size / 2))
+                    surface.set_colorkey((0, 0, 0))
+                    animation = CircleAnimation()
+                    gem_collected = False
+                    tile = [self.gem, rect, shake_counter, gem_collected, surface, animation]
+                    self.gem_list.append(tile)
                 if tile == 11:
                     # dirt
                     tile = img_rect_pos(pygame.transform.rotate(self.dirt, random.choice(self.angles)),
                                         column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 12:
-                    # dirt_grass
-                    tile = img_rect_pos(self.dirt_grass, column_count, row_count)
+                    # dirt top
+                    tile = img_rect_pos(self.dirt_tile_top_edge, column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 13:
-                    # dirt_grass_right
-                    tile = img_rect_pos(self.dirt_grass_right, column_count, row_count)
+                    # dirt top right
+                    tile = img_rect_pos(self.dirt_tile_right, column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 14:
-                    # dirt_grass_left
-                    tile = img_rect_pos(self.dirt_grass_left, column_count, row_count)
+                    # dirt top left
+                    tile = img_rect_pos(self.dirt_tile_left, column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 15:
-                    # dirt_grass_both_sides
-                    tile = img_rect_pos(self.dirt_grass_both_sides, column_count, row_count)
+                    # dirt top both sides
+                    tile = img_rect_pos(self.dirt_tile_two_corners, column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 16:
-                    # dirt_right
-                    tile = img_rect_pos(self.dirt_right, column_count, row_count)
+                    # dirt bottom right
+                    tile = img_rect_pos(self.dirt_tile_btm_right, column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 17:
-                    # dirt_left
-                    tile = img_rect_pos(self.dirt_left, column_count, row_count)
+                    # dirt bottom left
+                    tile = img_rect_pos(self.dirt_tile_btm_left, column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 18:
                     # wheat
@@ -392,7 +426,7 @@ class World:
                     self.next_level_list.append(tile)
                     self.portal1_list.append(tile)
                 if tile == 21:
-                    # stone dirt1
+                    # stone dirt
                     img = self.stone1
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
@@ -400,20 +434,16 @@ class World:
                     tile = (img, img_rectangle)
                     self.tile_list.append(tile)
                 if tile == 22:
-                    # stone dirt2
-                    img = self.stone2
-                    img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
-                    img_rectangle.y = row_count * tile_size
-                    tile = (img, img_rectangle)
+                    # dirt tile two side edge
+                    tile = img_rect_pos(self.dirt_tile_two_edges, column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 23:
                     # bear trap
                     img = self.bear_trap_shut_img
-                    img2 = pygame.transform.scale(img, (8, tile_size / 2))
+                    img2 = pygame.transform.scale(img, (8, tile_size / 4))
                     img_rectangle = img2.get_rect()
                     img_rectangle.x = (column_count * tile_size) + 12
-                    img_rectangle.y = (row_count * tile_size) + 16
+                    img_rectangle.y = (row_count * tile_size) + 24
                     tile = (img, img_rectangle)
                     shut = False
                     self.shut_trap_list.append(shut)
@@ -447,7 +477,7 @@ class World:
                     # free tile
                     pass
                 if tile == 27:
-                    # weed
+                    # free tile
                     pass
                 if tile == 28:
                     # bee hive
@@ -474,27 +504,16 @@ class World:
                     tile = [img, img_rectangle, squash_counter, cooldown, shockwave_init]
                     self.shockwave_mushroom_list.append(tile)
                 if tile == 30:
-                    # bush
-                    img_rectangle = self.bush.get_rect()
-                    img_rectangle.x = column_count * tile_size
-                    img_rectangle.y = row_count * tile_size
-                    tile = (self.bush, img_rectangle)
-                    self.bush_list.append(tile)
+                    # dirt tile bottom
+                    tile = img_rect_pos(self.dirt_tile_btm_edge, column_count, row_count)
+                    self.tile_list.append(tile)
                 if tile == 31:
-                    # dirt patch transition left
-                    img = self.dirt_patch_left
-                    rect = img.get_rect()
-                    rect.x = column_count * tile_size
-                    rect.y = row_count * tile_size
-                    tile = (img, rect)
+                    # dirt tile right
+                    tile = img_rect_pos(self.dirt_tile_right_edge, column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 32:
-                    # dirt patch transition right
-                    img = self.dirt_patch_right
-                    rect = img.get_rect()
-                    rect.x = column_count * tile_size
-                    rect.y = row_count * tile_size
-                    tile = (img, rect)
+                    # dirt tile left
+                    tile = img_rect_pos(self.dirt_tile_left_edge, column_count, row_count)
                     self.tile_list.append(tile)
                 if tile == 33:
                     # short grass
@@ -524,14 +543,12 @@ class World:
                     tile = (img, img_rectangle)
                     self.decoration_list.append(tile)
                 if tile == 36:
-                    # toxic flower
-                    img = self.toxic_flower
-                    img.set_colorkey((0, 0, 0))
-                    img_rectangle = img.get_rect()
+                    # bush
+                    img_rectangle = self.bush.get_rect()
                     img_rectangle.x = column_count * tile_size
                     img_rectangle.y = row_count * tile_size
-                    tile = (img, img_rectangle)
-                    self.toxic_flower_list.append(tile)
+                    tile = (self.bush, img_rectangle)
+                    self.bush_list.append(tile)
                 if tile == 37:
                     # spitting plant left
                     img = pygame.transform.scale(self.spitting_plant0_raw, (tile_size, tile_size))
@@ -631,18 +648,6 @@ class World:
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.decoration_list.append(tile)
-                if tile == 53:
-                    # gem
-                    rect = self.gem.get_rect()
-                    rect.x = column_count * tile_size + 8
-                    rect.y = row_count * tile_size + 8
-                    shake_counter = 7
-                    surface = pygame.surface.Surface((tile_size / 2, tile_size / 2))
-                    surface.set_colorkey((0, 0, 0))
-                    animation = CircleAnimation()
-                    gem_collected = False
-                    tile = [self.gem, rect, shake_counter, gem_collected, surface, animation]
-                    self.gem_list.append(tile)
 
                 column_count += 1
                 self.level_length += 1
@@ -687,7 +692,7 @@ class World:
 
         self.bg_surface.set_colorkey((0, 0, 0))
 
-        self.list_of_lists = [self.tile_list, self.decoration_list, self.toxic_flower_list, self.slope_list,
+        self.list_of_lists = [self.tile_list, self.decoration_list, self.slope_list,
                               self.portal1_list, self.bee_hive_list, self.chest_list, self.bush_list,
                               self.spitting_plant_list_up, self.spitting_plant_list_left,
                               self.spitting_plant_list_right, self.tree_list,
@@ -710,12 +715,6 @@ class World:
 
     def draw_foliage(self, screen):
         for tile in self.decoration_list:
-            if - tile_size * 2 < tile[1][0] < swidth:
-                if - tile_size * 2 < tile[1][1] < sheight:
-                    screen.blit(tile[0], tile[1])
-
-    def draw_toxic_flowers(self, screen):
-        for tile in self.toxic_flower_list:
             if - tile_size * 2 < tile[1][0] < swidth:
                 if - tile_size * 2 < tile[1][1] < sheight:
                     screen.blit(tile[0], tile[1])
@@ -754,26 +753,12 @@ class World:
     def draw_portal_list(self, screen, fps_adjust, level_count):
         self.portal_counter += 1*fps_adjust
         for tile in self.portal1_list:
-            if self.portal_counter > 60:
-                self.portal_counter = 0
-                img = tile[0]
-                light_img = self.portal1_white
-            elif self.portal_counter > 45:
-                img = self.portal4
-                light_img = self.portal4_white
-            elif self.portal_counter > 30:
-                img = self.portal3
-                light_img = self.portal3_white
-            elif self.portal_counter > 15:
-                img = self.portal2
-                light_img = self.portal2_white
-            else:
-                img = tile[0]
-                light_img = self.portal1_white
+            portal_y_offset = math.sin((1 / 15) * self.portal_counter) * 2
 
-            screen.blit(img, tile[1])
-            if level_count == 1:
-                screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size / 2))
+            screen.blit(self.portal, (tile[1][0], tile[1][1] - 6 + portal_y_offset))
+
+            if level_count == 1 and not False:
+                screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
 
     # -----------------------------------------------------------------------------------------------------------------
 
@@ -809,10 +794,10 @@ class World:
                 self.gem_list.remove(tile)
                 gem_equipped = True
 
-            y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
+            gem_y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
             if scale > 0:
                 screen.blit(img,
-                            (tile[1][0] + (8 - img.get_width() / 2), tile[1][1] + y_offset + (8 - img.get_height() / 2)))
+                            (tile[1][0] + (8 - img.get_width() / 2), tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
 
         return gem_equipped
 
@@ -841,7 +826,7 @@ class World:
         self.bee_harm = False
         if player_moved:
             self.bee_release_counter += 1*fps_adjust
-        if self.bee_release_counter >= 180 and health > 0 and player_moved:
+        if self.bee_release_counter >= 120 and health > 0 and player_moved:
             self.bee_counter += 1
             if self.bee_counter >= 4:
                 self.bee_counter = 4
@@ -854,7 +839,7 @@ class World:
                         self.bee_harm = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
                                                               camera_move_x,
                                                               camera_move_y, tile[1][0], tile[1][1],
-                                                              self.toxic_flower_list, health,
+                                                              health,
                                                               self.shockwave_center_list,
                                                               player_moved)
                     if self.bee_harm:
@@ -1056,7 +1041,7 @@ class World:
     # ------------------------------------------------------------------------------------------------------------------
 
     def draw_portal_compass(self, sack_rect, screen):
-        # this just draws the dot showing the direction to the portal, the background is blitted separately
+        screen.blit(self.compass_card, (0, -20))
         if self.portal1_list:
             center_x = tile_size
             center_y = tile_size - 10

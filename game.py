@@ -9,6 +9,7 @@ from font_manager import Text
 from popup_bg_generator import popup_bg_generator
 from scroll_bar import ScrollBar
 import json
+import random
 
 
 particle_num = 12
@@ -53,7 +54,7 @@ level_pos_dictionary = {
     "level1_2": (0, -4),
     "level2_2": (4, -5),
     "level3_2": (0, -4),
-    "level4_2": (1, 1),
+    "level4_2": (0, -5),
     "level5_2": (4, -7),
     "level6_2": (2, 2),
     "level7_2": (4, -5),
@@ -108,7 +109,12 @@ class Game:
         self.bg_data = bg_data
 
         self.game_screen = pygame.Surface((swidth, sheight))
-        self.game_screen.set_colorkey((0, 0, 0))
+        self.game_screen.set_colorkey((0, 0, 255))
+
+        self.portal_surface = pygame.Surface((swidth, sheight))
+        for i in range(int(swidth * sheight / 80)):
+            self.portal_surface.set_at(((random.randrange(0, swidth - 1)), (random.randrange(0, sheight - 1))),
+                                       (255, 0, 255))
 
         # loading in images --------------------------------------------------------------------------------------------
         background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
@@ -225,7 +231,7 @@ class Game:
         self.bees_popup.blit(bees_intro_txt, (bee_bg_center - bees_intro_txt.get_width() / 2, 25))
         self.bees_popup.blit(bees_things_to_know_txt, (bee_bg_center - bees_things_to_know_txt.get_width() / 2, 40))
         self.bees_popup.blit(bees_tip1_txt, (bee_bg_center - bees_tip1_txt.get_width() / 2, 55))
-        self.bees_popup.blit(ok_button_down, (bee_bg_center - ok_button_img.get_width() / 2,
+        self.bees_popup.blit(ok_button_down, (bee_bg_center - ok_button_img.get_width() / 2 + 1,
                                               self.bees_popup.get_height() - tile_size * 0.75 - 3))
 
         # new card popup window
@@ -294,9 +300,8 @@ class Game:
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
 
-        self.play_music = False
-        self.fadeout = False
         self.menu_fadeout = False
+        self.music_playing = False
 
         self.camera_move_x = 0
         self.camera_move_y = 0
@@ -309,8 +314,6 @@ class Game:
 
         self.start_x = level_pos_dictionary[f'level1_{world_count}'][0]
         self.start_y = level_pos_dictionary[f'level1_{world_count}'][1]
-
-        self.restart_level = False
 
         self.lvl_completed_popup = False
         self.bee_info_popup = False
@@ -410,38 +413,47 @@ class Game:
 
 # THE GAME =============================================================================================================
     def game(self, screen, level_count, slow_computer, fps_adjust, draw_hitbox, mouse_adjustment, events,
-             game_counter, world_count, controls, joystick_connected):
+             game_counter, world_count, controls, joystick_connected, joystick_calibration):
 
         power_list_not_saved_error = False
 
         self.controls = controls
 
+        # sounds
         play_card_pull_sound = False
         play_healing_sound = False
         play_paper_sound = False
         play_lock_sound = False
 
+        play_music = False
+
         popup_lvl_completed_press = False
 
+        # new card animation
         if world_count == 1 and level_count == 2 and self.level_duration_counter == 0:
             self.new_card_animation = True
-
-        self.level_duration_counter += 0.04 * fps_adjust
-
         if self.new_card_animation:
             self.move = False
 
-        self.restart_level = False
+        self.level_duration_counter += 0.04 * fps_adjust
 
+        restart_level = False
+
+        # setting tutorial on or off
         if world_count == 1:
             tutorial = True
         else:
             tutorial = False
 
+        # dealing with harm
         if self.spit_harm_up or self.spit_harm_left or self.spit_harm_right or self.trap_harm or self.bee_harm:
             self.harm = True
         else:
             self.harm = False
+
+        # preventing movement when calibrating joystick
+        if joystick_calibration:
+            self.move = False
 
         # updating player variables ------------------------------------------------------------------------------------
         level_count,\
@@ -450,9 +462,8 @@ class Game:
             self.health,\
             self.camera_move_x,\
             self.camera_move_y,\
-            self.play_music,\
-            self.fadeout,\
-            self.restart_level,\
+            fadeout,\
+            restart_level,\
             self.player_moved,\
             new_level_cooldown,\
             self.world.shockwave_mushroom_list = self.player.update_pos_animation(screen,
@@ -476,7 +487,6 @@ class Game:
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
 
         # blitting tiles and images in the background ------------------------------------------------------------------
-        screen.blit(self.background, (0, 0))
         self.game_screen.blit(self.background, (0, 0))
         self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, sack_direction)
         self.world.draw_background(self.game_screen, self.camera_move_x, self.camera_move_y)
@@ -504,7 +514,7 @@ class Game:
                                                               self.camera_move_y, sack_rect, self.health)
 
         # updating the world data if new level -------------------------------------------------------------------------
-        if self.level_check < level_count or self.restart_level:
+        if self.level_check < level_count or restart_level:
             self.world_data, self.bg_data = Game.level_checker(self, level_count, world_count)
             self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data)
             self.tile_list, self.level_length = self.world.return_tile_list()
@@ -513,7 +523,7 @@ class Game:
             self.blit_card_instructions = False
             self.level_display = LevelDisplay(level_count)
             self.gem_equipped = False
-            if not self.restart_level:
+            if not restart_level:
                 self.level_check = level_count
                 self.player_moved = False
                 self.level_duration_counter = 0
@@ -530,13 +540,13 @@ class Game:
         self.trap_harm, play_bear_trap_cling_sound = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 
         self.world.draw_foliage(self.game_screen)
-        self.world.draw_toxic_flowers(self.game_screen)
         self.bee_harm = self.world.draw_and_manage_beehive(self.game_screen, sack_rect, fps_adjust, self.camera_move_x,
                                                            self.camera_move_y, self.health,
                                                            self.player_moved)
         self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y)
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------
+        screen.blit(self.portal_surface, (0, 0))
         screen.blit(self.game_screen, (0, 0))
 
         # respawn instructions -----------------------------------------------------------------------------------------
@@ -546,11 +556,11 @@ class Game:
         self.world.draw_eq_full(screen)
 
         # updating player health and blitting health bar ---------------------------------------------------------------
-        self.player.update_health(screen, fps_adjust)
+        self.player.update_health()
         self.world.draw_portal_compass(sack_rect, screen)
         self.player.player_power_indicator(screen)
 
-        if self.restart_level:
+        if restart_level:
             self.level_duration_counter = 0
         if self.reinit_eq:
             self.eq_manager.create_card_buttons(self.eq_power_list)
@@ -565,7 +575,8 @@ class Game:
                                                                tutorial, fps_adjust, level_count,
                                                                self.health, self.move, self.player_moved,
                                                                self.gem_equipped, self.controls['configuration'],
-                                                               joystick_connected, self.controller_type)
+                                                               joystick_connected, self.controller_type,
+                                                               joystick_calibration)
 
         if self.mid_air_jump_trigger or self.speed_dash_trigger:
             self.gem_equipped = False
@@ -577,7 +588,8 @@ class Game:
 
         if menu and not self.menu_fadeout:
             self.menu_fadeout = True
-            self.fadeout = True
+            self.music_playing = False
+            fadeout = True
 
         # level count display ------------------------------------------------------------------------------------------
         if not (tutorial and level_count == 3) and not (world_count == 2 and level_count == 9):
@@ -683,18 +695,18 @@ class Game:
         self.player.draw_transition(fps_adjust)
 
         # sounds -------------------------------------------------------------------------------------------------------
-        if world_count == 2 and level_count == 1:
-            if self.change_music and self.player_moved:
-                if self.change_music_counter == 0:
-                    self.fadeout = True
-                self.change_music_counter += 1
-                if self.change_music_counter > 20:
-                    self.change_music = False
-                    pygame.mixer.music.load('data/sounds/game_song2.wav')
-                    pygame.mixer.music.play(-1, 0.0, 300)
+        if world_count == 2 and self.player_moved and not self.music_playing:
+            self.music_playing = True
+            play_music = True
 
-        # pygame.mouse.set_visible(False)
+        if world_count == 1 and not self.music_playing:
+            self.music_playing = True
+            play_music = True
 
+        if restart_level:
+            play_music = True
+
+        # returns
         return level_count, menu, play_card_pull_sound, play_lock_sound, play_bear_trap_cling_sound,\
-            play_healing_sound, game_button_over, play_paper_sound, self.play_music,\
-            self.fadeout, popup_lvl_completed_press
+            play_healing_sound, game_button_over, play_paper_sound, play_music,\
+            fadeout, popup_lvl_completed_press

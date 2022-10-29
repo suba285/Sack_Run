@@ -6,12 +6,8 @@ tile_size = 32
 
 class PlantSpit:
     def __init__(self, direction, start_x, start_y):
-
-        # images -------------------------------------------------------------------------------------------------------
-        img = pygame.image.load('data/images/spitting_plant_spit.PNG')
-        self.image = pygame.transform.scale(img, (tile_size/4, tile_size/4))
-        self.image.set_colorkey((0, 0, 0))
-        self.rect = self.image.get_rect()
+        # rect ---------------------------------------------------------------------------------------------------------
+        self.rect = pygame.Rect(0, 0, 6, 6)
 
         # variables ----------------------------------------------------------------------------------------------------
         self.speed = 3
@@ -115,7 +111,7 @@ class PlantSpit:
         # updating and drawing spit particles --------------------------------------------------------------------------
         if not self.hit:
             if not self.rect.colliderect(start_x, start_y, tile_size, tile_size):
-                screen.blit(self.image, (self.rect.x, self.rect.y))
+                pygame.draw.circle(screen, (255, 0, 0), (self.rect.x + 4, self.rect.y + 4), 3, 0)
             # updating flying spit particles
             for part in self.spit_particles:
                 part[0][0] += part[1][0] * fps_adjust + camera_move_x

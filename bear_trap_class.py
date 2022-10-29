@@ -33,7 +33,7 @@ class BearTrap:
         for num in range(len(bear_trap_rect_list)):
             rect = bear_trap_rect_list[num]
             shut = shut_trap_list[num]
-            if rect[1].colliderect(sack_rect.x, sack_rect.y, sack_width, sack_height) and not shut:
+            if rect[1].colliderect(sack_rect.x, sack_rect.y, sack_rect.width, sack_rect.height) and not shut:
                 self.bear_trap_shut = True
                 shut = True
                 self.harm = True
@@ -45,7 +45,7 @@ class BearTrap:
 
             shut_trap_list[num] = shut
 
-            screen.blit(self.img, (rect[1][0] - 12, rect[1][1]))
+            screen.blit(self.img, (rect[1][0] - 12, rect[1][1] - 8))
 
         if self.harm:
             play_bear_trap_cling = True

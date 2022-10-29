@@ -45,7 +45,7 @@ class Bee():
         self.bee_radius = 0
 
     def update_bee(self, screen, sack_rect, fps_adjust, camera_move_x, camera_move_y, x, y,
-                   toxic_flower_list, health, shockwave_data_list, player_moved):
+                   health, shockwave_data_list, player_moved):
         dx = 0
         dy = 0
 
@@ -103,9 +103,6 @@ class Bee():
             if sack_rect.colliderect(self.x, self.y, self.bee_height, self.bee_width):
                 harm = True
                 self.dead = True
-            for tile in toxic_flower_list:
-                if tile[1].colliderect(self.x, self.y, self.bee_height, self.bee_width):
-                    self.dead = True
 
         # bee death handling -------------------------------------------------------------------------------------------
         elif self.dead:

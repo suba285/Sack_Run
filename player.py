@@ -232,9 +232,6 @@ class Player:
         self.particles3 = img_loader('data/images/particles3.PNG', tile_size, tile_size)
         self.particles4 = img_loader('data/images/particles4.PNG', tile_size, tile_size)
 
-        # compass card -------------------------------------------------------------------------------------------------
-        self.compass_card = img_loader('data/images/health_bar_card.PNG', tile_size * 2, tile_size * 2)
-
         # card powers indicator images ---------------------------------------------------------------------------------
         self.jump_boost_indicator = img_loader('data/images/icon_jump_boost.PNG', tile_size, tile_size)
         self.no_gravity_indicator = img_loader('data/images/icon_no_gravity.PNG', tile_size, tile_size)
@@ -339,7 +336,7 @@ class Player:
         # --------------------------------------------------------------------------------------------------------------
         self.joystick_left = False
         self.joystick_right = False
-        self.joystick_jump = False
+        self.player_jump = False
 
         # --------------------------------------------------------------------------------------------------------------
         self.power_indicator_list = []
@@ -447,12 +444,16 @@ class Player:
 
         # joystick input management
         for event in events:
+            if event.type == pygame.KEYDOWN and event.key == self.controls['jump']:
+                self.player_jump = True
+            if event.type == pygame.KEYUP and event.key == self.controls['jump']:
+                self.player_jump = False
             if event.type == pygame.JOYBUTTONDOWN and not over_card:
                 if event.button == 0:
-                    self.joystick_jump = True
+                    self.player_jump = True
             if event.type == pygame.JOYBUTTONUP:
                 if event.button == 0:
-                    self.joystick_jump = False
+                    self.player_jump = False
             if event.type == pygame.JOYAXISMOTION:
                 if event.axis == 0:
                     if event.value > 0.2:
@@ -463,6 +464,10 @@ class Player:
                         self.joystick_left = True
                     else:
                         self.joystick_left = False
+            if event.type == pygame.JOYDEVICEREMOVED:
+                self.joystick_left = False
+                self.joystick_right = False
+                self.player_jump = False
 
         # special power cards effects ----------------------------------------------------------------------------------
         if mid_air_jump_trigger and not self.mid_air_jump:
@@ -503,6 +508,8 @@ class Player:
             self.health = 0
             self.dead = True
             self.harmed = True
+            self.speed_dash = False
+            self.speed_dash_activated = False
 
         if not self.player_moved:
             self.health = 2
@@ -553,7 +560,7 @@ class Player:
                 and not (self.col_types['right'] or self.col_types['left']) and game_counter >= 0 and move:
             # player control
             self.transition = False
-            if (key[self.controls['jump']] or self.joystick_jump) and not self.jumped:
+            if self.player_jump and not self.jumped:
                 self.teleport_count = 0
                 if self.speed_dash_activated:
                     self.speed_dash_activated = False
@@ -564,6 +571,7 @@ class Player:
                         ((self.on_ground_counter > 0 and not self.airborn) or self.dy > 5 and self.mid_air_jump):
                     self.vel_y = -11
                     self.jumped = True
+                    self.player_jump = False
                     self.animate_walk = False
                     self.airborn = True
 
@@ -616,29 +624,25 @@ class Player:
                     self.sack_offset = jump_offset_amount - 3
                     if self.vel_y < -5:
                         self.sack_img = self.sack_jump1f
-                        self.sack_damage_img = self.sack_jump1f_damage
                     elif -5 < self.vel_y < 3:
                         self.sack_img = self.sack_jump2f
-                        self.sack_damage_img = self.sack_jump2f_damage
                     else:
                         self.sack_img = self.sack_jump3f
-                        self.sack_damage_img = self.sack_jump3f_damage
                 else:
                     self.sack_offset = jump_offset_amount + 4
                     if self.vel_y < -5:
                         self.sack_img = self.sack_jump1b
-                        self.sack_damage_img = pygame.transform.flip(self.sack_jump1f_damage, True, False)
                     elif -5 < self.vel_y < 3:
                         self.sack_img = self.sack_jump2b
-                        self.sack_damage_img = pygame.transform.flip(self.sack_jump2f_damage, True, False)
                     else:
                         self.sack_img = self.sack_jump3b
-                        self.sack_damage_img = pygame.transform.flip(self.sack_jump3f_damage, True, False)
 
             walking_left = False
             walking_right = False
 
             if not self.speed_dash_activated:
+                if self.sack_rect.height != 32:
+                    self.sack_rect.height = 32
                 # walking left
                 if key[self.controls['left']] or self.joystick_left:
                     self.player_moved = True
@@ -663,16 +667,12 @@ class Player:
                             self.walk_counter = 0
                         elif self.walk_counter > 15:
                             self.sack_img = self.sack2b
-                            self.sack_damage_img = pygame.transform.flip(self.sack2f_damage, True, False)
                         elif self.walk_counter > 10:
                             self.sack_img = self.sack0b
-                            self.sack_damage_img = pygame.transform.flip(self.sack0f_damage, True, False)
                         elif self.walk_counter > 5:
                             self.sack_img = self.sack1b
-                            self.sack_damage_img = pygame.transform.flip(self.sack1f_damage, True, False)
                         else:
                             self.sack_img = self.sack0b
-                            self.sack_damage_img = pygame.transform.flip(self.sack0f_damage, True, False)
 
                 # walking right
                 if key[self.controls['right']] or self.joystick_right:
@@ -698,16 +698,12 @@ class Player:
                             self.walk_counter = 0
                         elif self.walk_counter > 15:
                             self.sack_img = self.sack2f
-                            self.sack_damage_img = self.sack2f_damage
                         elif self.walk_counter > 10:
                             self.sack_img = self.sack0f
-                            self.sack_damage_img = self.sack0f_damage
                         elif self.walk_counter > 5:
                             self.sack_img = self.sack1f
-                            self.sack_damage_img = self.sack1f_damage
                         else:
                             self.sack_img = self.sack0f
-                            self.sack_damage_img = self.sack0f_damage
 
                 if not walking_right and not walking_left:
                     self.speed = 0
@@ -719,6 +715,7 @@ class Player:
                     self.walk_counter = 0
 
             elif self.speed_dash_activated:
+                self.sack_rect.height = 20
                 self.sack_offset = 0
                 if self.speed_dash_direction == -1:
                     if self.vel_x_l > -self.speed_dash_speed:
@@ -732,7 +729,7 @@ class Player:
                         self.vel_x_r = self.speed_dash_speed * fps_adjust * self.speed_dash_direction
 
         # respawn at the beginning of the level and transition
-        if (pygame.mouse.get_pressed()[0] or self.joystick_jump)\
+        if (pygame.mouse.get_pressed()[0] or self.player_jump)\
                 and self.dead and self.dead_counter >= 36 and not self.restart_trigger:
             self.restart_trigger = True
             self.single_fadeout = True
@@ -908,19 +905,15 @@ class Player:
 
         # returns ------------------------------------------------------------------------------------------------------
         return level_count, self.sack_rect, self.direction, self.health,\
-               self.camera_movement_x, self.camera_movement_y, self.play_music,\
+               self.camera_movement_x, self.camera_movement_y,\
                self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list
 
 # UPDATING PLAYER SPRITE HEALTH ========================================================================================
-    def update_health(self, screen, fps_adjust):
-        sound_trigger = False
-
+    def update_health(self):
         if self.dead:
             self.health = 0
             if self.mid_air_jump:
                 self.mid_air_jump_counter = 1000
-
-        screen.blit(self.compass_card, (0, -20))
 
 # displaying the currently used power icon -----------------------------------------------------------------------------
     def player_power_indicator(self, screen):
