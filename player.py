@@ -168,7 +168,7 @@ class Player:
         self.dead_rect = img_loader('data/images/sack0.PNG', 4, player_size_y).get_rect()
         self.sack_rect.x = swidth / 2 - self.sack_rect.width / 2
         self.sack_rect.y = sheight / 2 - self.sack_rect.height / 2
-        self.speed = 4
+        self.player_speed = 2.43
         self.slide = 0.4
         self.default_on_ground_counter = 6
         self.on_ground_counter = self.default_on_ground_counter
@@ -654,15 +654,15 @@ class Player:
                     walking_left = True
                     self.speed_adder += 0.1 * fps_adjust
                     self.speed += self.speed_adder
-                    if self.speed > 2.5:
-                        self.speed = 2.5 * fps_adjust
+                    if self.speed > self.player_speed:
+                        self.speed = self.player_speed * fps_adjust
                     dx -= self.speed
                     self.vel_x_l = dx
                     self.vel_x_r = 0
                     self.direction = 0
                     self.teleport_count = 0
                     if self.animate_walk:
-                        self.walk_counter += 0.9 * fps_adjust
+                        self.walk_counter += 0.8 * fps_adjust
                         if self.walk_counter > 20:
                             self.walk_counter = 0
                         elif self.walk_counter > 15:
@@ -685,15 +685,15 @@ class Player:
                     walking_right = True
                     self.speed_adder += 0.1 * fps_adjust
                     self.speed += self.speed_adder
-                    if self.speed > 2.5:
-                        self.speed = 2.5 * fps_adjust
+                    if self.speed > self.player_speed:
+                        self.speed = self.player_speed * fps_adjust
                     dx += self.speed
                     self.vel_x_r = dx
                     self.vel_x_l = 0
                     self.teleport_count = 0
                     self.direction = 1
                     if self.animate_walk:
-                        self.walk_counter += 0.9 * fps_adjust
+                        self.walk_counter += 0.8 * fps_adjust
                         if self.walk_counter > 20:
                             self.walk_counter = 0
                         elif self.walk_counter > 15:
@@ -845,8 +845,12 @@ class Player:
 
         # mushroom collisions
         for mushroom in shockwave_mush_list:
+            if fps_adjust >= 2:
+                y_movement = dy
+            else:
+                y_movement = 0
             if mushroom[1].colliderect(self.sack_rect.x + 7,
-                                       self.sack_rect.y, 6, self.sack_height)\
+                                       self.sack_rect.y + y_movement, 6, self.sack_height)\
                     and not self.dead and dy > 1 and self.sack_rect.y < mushroom[1][1] and mushroom[3] == 0:
                 mushroom[2] = 12
                 mushroom[3] = 60

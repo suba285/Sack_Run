@@ -565,7 +565,6 @@ while run:
             performance_counter,\
             current_resolution,\
             adjust_resolution,\
-            control_counters,\
             settings_counters,\
             calibrated_press = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events,
                                                                  fps_adjust, joystick_connected)
@@ -594,6 +593,11 @@ while run:
             else:
                 paused = False
                 run_menu = True
+
+            if settings_counters['music_volume'] > 1:
+                pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
+                play_background_music = True
+                play_music = False
 
             try:
                 with open('data/settings_configuration.json', 'w') as json_file:
@@ -765,16 +769,10 @@ while run:
     # music
     if play_background_music:
         if not world_completed_sound_played:
-            if world_count == 1 and level_count == 3:
+            if (world_count == 1 and level_count == 3) or (world_count == 2 and level_count == 9):
                 sounds['world_completed'].play()
                 world_completed_sound_played = True
         if play_music:
-            if world_count == 1 and level_count == 3:
-                play_x_times = 1
-                print('correct level')
-            else:
-                play_x_times = -1
-            print('music_playing')
             pygame.mixer.music.play(-1, 0.0, 300)
             play_music = False
 
@@ -859,7 +857,6 @@ while run:
         configuration, done, calibrated = settings_menu.controller_calibration_func(main_screen, events, fps_adjust,
                                                                                     False)
         if done:
-            print(done)
             controllers[joystick_name] = configuration
             controls['configuration'] = configuration
             joystick_configured = True
@@ -869,7 +866,6 @@ while run:
                     json.dump(controllers, json_file)
             except Exception:
                 settings_not_saved_error = True
-                print('error')
 
     # DISPLAYING EVERYTHING ON THE MAIN WINDOW
     window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)), (0, 0))

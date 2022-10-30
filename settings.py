@@ -1169,8 +1169,6 @@ class SettingsMenu:
 
         resolution = self.resolutions[str(self.resolution_counter)]
 
-        counters = [self.walk_counter, self.jump_counter, self.configuration_counter, self.rumble_counter]
-
         if menu_press:
             self.settings_counters['walking'] = self.walk_counter
             self.settings_counters['jumping'] = self.jump_counter
@@ -1183,4 +1181,4 @@ class SettingsMenu:
             self.settings_counters['hitbox'] = self.hitbox_counter
 
         return menu_press, self.controls, final_over1, final_over2, self.performance_counter, resolution,\
-               adjust_resolution, counters, self.settings_counters, calibrated
+               adjust_resolution, self.settings_counters, calibrated

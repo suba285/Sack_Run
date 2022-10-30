@@ -103,6 +103,7 @@ class World:
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
+        self.portal_part_counter = 0
         self.bee_release_counter = 400
         self.bee_counter = 0
         self.bee_harm = False
@@ -133,6 +134,8 @@ class World:
 
         self.level_length = 0
         self.level_height = 0
+
+        self.portal_position = (0, 0)
 
         self.bg_surface = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
         self.tile_surface = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
@@ -169,6 +172,8 @@ class World:
         self.portal3 = img_loader('data/images/portal3.PNG', tile_size, tile_size)
         self.portal4 = img_loader('data/images/portal4.PNG', tile_size, tile_size)
         self.portal = img_loader('data/images/portal.PNG', tile_size, tile_size)
+        self.portal_part_list = []
+        self.portal.set_colorkey((0, 0, 0))
 
         self.portal1_mask = pygame.mask.from_surface(self.portal1)
         self.portal2_mask = pygame.mask.from_surface(self.portal2)
@@ -275,7 +280,6 @@ class World:
         self.bear_trap_rect_list = []
         self.grn_mushroom_list = []
         self.bee_hive_list = []
-        self.chest_list = []
         self.shut_trap_list = []
         self.bush_list = []
         self.slope_list = []
@@ -291,6 +295,7 @@ class World:
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
+        self.portal_part_counter = 0
         self.bee_release_counter = 400
         self.bee_counter = 0
         self.bee_harm = False
@@ -422,9 +427,12 @@ class World:
                     img1_rectangle = img1.get_rect()
                     img1_rectangle.x = column_count * tile_size
                     img1_rectangle.y = row_count * tile_size
-                    tile = (img1, img1_rectangle)
+                    portal_surface = pygame.Surface((tile_size, tile_size * 1.5))
+                    portal_surface.set_colorkey((0, 0, 0))
+                    tile = (img1, img1_rectangle, portal_surface)
                     self.next_level_list.append(tile)
                     self.portal1_list.append(tile)
+                    self.portal_position = (img1_rectangle[0], img1_rectangle[1])
                 if tile == 21:
                     # stone dirt
                     img = self.stone1
@@ -604,7 +612,6 @@ class World:
                     img_rectangle.y = row_count * tile_size + tile_size
                     tile = (img, img_rectangle)
                     self.log_list.append(tile)
-                    print(self.log_list)
                 if tile == 41:
                     # other tree
                     pass
@@ -693,7 +700,7 @@ class World:
         self.bg_surface.set_colorkey((0, 0, 0))
 
         self.list_of_lists = [self.tile_list, self.decoration_list, self.slope_list,
-                              self.portal1_list, self.bee_hive_list, self.chest_list, self.bush_list,
+                              self.portal1_list, self.bee_hive_list, self.bush_list,
                               self.spitting_plant_list_up, self.spitting_plant_list_left,
                               self.spitting_plant_list_right, self.tree_list,
                               self.log_list, self.gem_list, self.shockwave_mushroom_list]
@@ -752,13 +759,45 @@ class World:
 
     def draw_portal_list(self, screen, fps_adjust, level_count):
         self.portal_counter += 1*fps_adjust
+        self.portal_part_counter += 1*fps_adjust
+        portal_percentage = (0, 0)
         for tile in self.portal1_list:
             portal_y_offset = math.sin((1 / 15) * self.portal_counter) * 2
 
-            screen.blit(self.portal, (tile[1][0], tile[1][1] - 6 + portal_y_offset))
+            portal_percentage_x = (tile[1][0] + tile_size / 2) / swidth
+            portal_percentage_y = (tile[1][1] + tile_size / 2) / sheight
+            portal_percentage = (portal_percentage_x, portal_percentage_y)
+
+            tile[2].fill((0, 0, 0))
+            tile[2].blit(self.portal, (0, 8 + portal_y_offset))
+            if self.portal_part_counter > 5:
+                self.portal_part_counter = 0
+                # max radius, radius, radius achieved, pos
+                part_vars = [6, 0, False, (int(random.randrange(8, tile_size - 8)),
+                                           int(random.randrange(10, tile_size + 7)))]
+                self.portal_part_list.append(part_vars)
+            for part in self.portal_part_list:
+                if part[2]:
+                    part[1] -= 0.15 * fps_adjust
+                else:
+                    part[1] += 0.15 * fps_adjust
+                if part[1] >= part[0]:
+                    part[2] = True
+                if part[1] < 0:
+                    self.portal_part_list.remove(part)
+                pygame.draw.circle(tile[2], (0, 0, 255), part[3], part[1], 0)
+
+            portal_mask = pygame.mask.from_surface(tile[2])
+            portal_outline = pygame.mask.Mask.outline(portal_mask)
+            for pixel in portal_outline:
+                tile[2].set_at(pixel, (255, 255, 255))
+
+            screen.blit(tile[2], (tile[1][0], tile[1][1] - 16))
 
             if level_count == 1 and not False:
                 screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
+
+        return portal_percentage
 
     # -----------------------------------------------------------------------------------------------------------------
 
@@ -878,7 +917,7 @@ class World:
             if mushroom[3] != 0 and mushroom[2] < 0:
                 img = self.shockwave_mushroom_dark
 
-            shockwave_center = (mushroom[1][0]  + tile_size / 2, mushroom[1][1] + 10)
+            shockwave_center = (mushroom[1][0] + tile_size / 2, mushroom[1][1] + 10)
             radius = mushroom[4].update_shockwave((shockwave_center[0], shockwave_center[1]),
                                                   fps_adjust, trigger)
 

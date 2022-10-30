@@ -111,8 +111,8 @@ class Game:
         self.game_screen = pygame.Surface((swidth, sheight))
         self.game_screen.set_colorkey((0, 0, 255))
 
-        self.portal_surface = pygame.Surface((swidth, sheight))
-        for i in range(int(swidth * sheight / 80)):
+        self.portal_surface = pygame.Surface((swidth / 2, sheight / 2))
+        for i in range(int(swidth / 2 * sheight / 80)):
             self.portal_surface.set_at(((random.randrange(0, swidth - 1)), (random.randrange(0, sheight - 1))),
                                        (255, 0, 255))
 
@@ -350,12 +350,16 @@ class Game:
                                                   self.controls_popup_text_surface.get_height(),
                                                   (swidth / 2 + cont_width + 3, sheight / 2 - cont_height + 2))
 
-        # nesting lists ------------------------------------------------------------------------------------------------
-        self.tile_list, self.level_length = self.world.return_tile_list()
-        self.slope_list = self.world.return_slope_list()
+        # class variables ----------------------------------------------------------------------------------------------
+        self.tile_list = self.world.tile_list
+        self.level_length = self.world.level_length
 
         self.left_border = self.start_x * 32
         self.right_border = self.left_border + self.level_length * 32
+
+        portal_position = self.world.portal_position
+        self.portal_surface_x = portal_position[0] + tile_size / 2 - swidth / 2
+        self.portal_surface_y = portal_position[1] + tile_size / 2 - sheight / 2
 
     def popup_window(self, popup_window, screen, button, mouse_adjustment, events):
         self.move = False
@@ -491,7 +495,7 @@ class Game:
         self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, sack_direction)
         self.world.draw_background(self.game_screen, self.camera_move_x, self.camera_move_y)
         self.world.draw_log(self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
-        self.world.draw_portal_list(self.game_screen, fps_adjust, level_count)
+        portal_percentage = self.world.draw_portal_list(self.game_screen, fps_adjust, level_count)
         self.world.draw_bush(self.game_screen)
         self.world.draw_tree(self.game_screen)
 
@@ -523,6 +527,8 @@ class Game:
             self.blit_card_instructions = False
             self.level_display = LevelDisplay(level_count)
             self.gem_equipped = False
+            self.portal_surface_x = self.world.portal_position[0] + tile_size / 2 - swidth / 2
+            self.portal_surface_y = self.world.portal_position[1] + tile_size / 2 - sheight / 2
             if not restart_level:
                 self.level_check = level_count
                 self.player_moved = False
@@ -546,7 +552,9 @@ class Game:
         self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y)
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------
-        screen.blit(self.portal_surface, (0, 0))
+        self.portal_surface_x = portal_percentage[0] * swidth / 1.5 - tile_size / 2
+        self.portal_surface_y = portal_percentage[1] * sheight / 1.5 - tile_size / 2
+        screen.blit(self.portal_surface, (self.portal_surface_x, self.portal_surface_y))
         screen.blit(self.game_screen, (0, 0))
 
         # respawn instructions -----------------------------------------------------------------------------------------
