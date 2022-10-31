@@ -113,8 +113,13 @@ class Game:
 
         self.portal_surface = pygame.Surface((swidth / 2, sheight / 2))
         for i in range(int(swidth / 2 * sheight / 80)):
-            self.portal_surface.set_at(((random.randrange(0, swidth - 1)), (random.randrange(0, sheight - 1))),
+            self.portal_surface.set_at(((random.randrange(0, int(swidth / 2 - 1))),
+                                        (random.randrange(0, int(sheight / 2 - 1)))),
                                        (255, 0, 255))
+        self.portal_surface2 = pygame.Surface((swidth / 4, sheight / 4))
+        for i in range(int(swidth / 4 * sheight / 160)):
+            self.portal_surface.set_at(((random.randrange(0, swidth - 1)), (random.randrange(0, sheight - 1))),
+                                       (255, 0, 200))
 
         # loading in images --------------------------------------------------------------------------------------------
         background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
@@ -495,7 +500,8 @@ class Game:
         self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, sack_direction)
         self.world.draw_background(self.game_screen, self.camera_move_x, self.camera_move_y)
         self.world.draw_log(self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
-        portal_percentage = self.world.draw_portal_list(self.game_screen, fps_adjust, level_count)
+        portal_percentage = self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
+                                                        self.camera_move_x, self.camera_move_y)
         self.world.draw_bush(self.game_screen)
         self.world.draw_tree(self.game_screen)
 
@@ -554,7 +560,7 @@ class Game:
         # blitting the game screen onto the main screen ----------------------------------------------------------------
         self.portal_surface_x = portal_percentage[0] * swidth / 1.5 - tile_size / 2
         self.portal_surface_y = portal_percentage[1] * sheight / 1.5 - tile_size / 2
-        screen.blit(self.portal_surface, (self.portal_surface_x, self.portal_surface_y))
+        # screen.blit(self.portal_surface, (self.portal_surface_x, self.portal_surface_y))
         screen.blit(self.game_screen, (0, 0))
 
         # respawn instructions -----------------------------------------------------------------------------------------

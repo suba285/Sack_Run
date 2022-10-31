@@ -427,9 +427,18 @@ class World:
                     img1_rectangle = img1.get_rect()
                     img1_rectangle.x = column_count * tile_size
                     img1_rectangle.y = row_count * tile_size
+                    star_surface = pygame.Surface((tile_size, tile_size * 1.5))
+                    star_surface.fill((1, 1, 1))
+                    star_surface.set_colorkey((0, 0, 0))
+                    stars = []  # position, speed, colour
+                    for star in range(30):
+                        stars.append([[random.randrange(0, tile_size - 1),
+                                       random.randrange(0, int(tile_size * 1.5 - 1))],
+                                      random.choice([1/8, 2/8]),
+                                      random.choice([(255, 0, 255), (143, 0, 255)])])
                     portal_surface = pygame.Surface((tile_size, tile_size * 1.5))
-                    portal_surface.set_colorkey((0, 0, 0))
-                    tile = (img1, img1_rectangle, portal_surface)
+                    portal_surface.set_colorkey((0, 0, 255))
+                    tile = (img1, img1_rectangle, portal_surface, star_surface, stars)
                     self.next_level_list.append(tile)
                     self.portal1_list.append(tile)
                     self.portal_position = (img1_rectangle[0], img1_rectangle[1])
@@ -757,7 +766,7 @@ class World:
 
     # functions for drawing animated or interactive tiles and enemies ==================================================
 
-    def draw_portal_list(self, screen, fps_adjust, level_count):
+    def draw_portal_list(self, screen, fps_adjust, level_count, camera_move_x, camera_move_y):
         self.portal_counter += 1*fps_adjust
         self.portal_part_counter += 1*fps_adjust
         portal_percentage = (0, 0)
@@ -767,6 +776,24 @@ class World:
             portal_percentage_x = (tile[1][0] + tile_size / 2) / swidth
             portal_percentage_y = (tile[1][1] + tile_size / 2) / sheight
             portal_percentage = (portal_percentage_x, portal_percentage_y)
+
+            tile[3].fill((1, 1, 1))
+            for star in tile[4]:
+                star[0][0] -= (camera_move_x * star[1])
+                star[0][1] -= (camera_move_y * star[1])
+                if star[0][0] > tile_size:
+                    star[0][0] = 0
+                    star[0][1] = random.randrange(0, int(tile_size * 1.5 - 1))
+                if star[0][0] < 0:
+                    star[0][0] = tile_size
+                    star[0][1] = random.randrange(0, int(tile_size * 1.5 - 1))
+                if star[0][1] > tile_size * 1.5:
+                    star[0][1] = 0
+                    star[0][0] = random.randrange(0, tile_size - 1)
+                if star[0][1] < 0:
+                    star[0][1] = tile_size
+                    star[0][0] = random.randrange(0, tile_size - 1)
+                tile[3].set_at((int(star[0][0]), int(star[0][1])), star[2])
 
             tile[2].fill((0, 0, 0))
             tile[2].blit(self.portal, (0, 8 + portal_y_offset))
@@ -787,14 +814,16 @@ class World:
                     self.portal_part_list.remove(part)
                 pygame.draw.circle(tile[2], (0, 0, 255), part[3], part[1], 0)
 
-            portal_mask = pygame.mask.from_surface(tile[2])
+            tile[3].blit(tile[2], (0, 0))
+
+            portal_mask = pygame.mask.from_surface(tile[3])
             portal_outline = pygame.mask.Mask.outline(portal_mask)
             for pixel in portal_outline:
-                tile[2].set_at(pixel, (255, 255, 255))
+                tile[3].set_at(pixel, (255, 255, 255))
 
-            screen.blit(tile[2], (tile[1][0], tile[1][1] - 16))
+            screen.blit(tile[3], (tile[1][0], tile[1][1] - 16))
 
-            if level_count == 1 and not False:
+            if level_count == 1:
                 screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
 
         return portal_percentage

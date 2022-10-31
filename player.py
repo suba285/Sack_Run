@@ -168,7 +168,7 @@ class Player:
         self.dead_rect = img_loader('data/images/sack0.PNG', 4, player_size_y).get_rect()
         self.sack_rect.x = swidth / 2 - self.sack_rect.width / 2
         self.sack_rect.y = sheight / 2 - self.sack_rect.height / 2
-        self.player_speed = 2.43
+        self.player_speed = 2.42
         self.slide = 0.4
         self.default_on_ground_counter = 6
         self.on_ground_counter = self.default_on_ground_counter

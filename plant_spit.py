@@ -116,7 +116,7 @@ class PlantSpit:
             for part in self.spit_particles:
                 part[0][0] += part[1][0] * fps_adjust + camera_move_x
                 part[0][1] += part[1][1] * fps_adjust + camera_move_y
-                part[2] -= 0.4
+                part[2] -= 0.4 * fps_adjust
                 pygame.draw.circle(screen, (255, 0, 0), [int(part[0][0]), int(part[0][1])], int(part[2]))
                 if part[2] <= 0:
                     self.spit_particles.remove(part)
