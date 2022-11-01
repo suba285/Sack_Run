@@ -9,7 +9,6 @@ from font_manager import Text
 from popup_bg_generator import popup_bg_generator
 from scroll_bar import ScrollBar
 import json
-import random
 
 
 particle_num = 12
@@ -29,7 +28,8 @@ level_dictionary = {
     "level6_2": level6_2,
     "level7_2": level7_2,
     "level8_2": level8_2,
-    "level9_2": level9_2
+    "level9_2": level9_2,
+    "level1_3": level1_3
 }
 
 level_bg_dictionary = {
@@ -44,7 +44,8 @@ level_bg_dictionary = {
     "level6_2_bg": level6_2_bg,
     "level7_2_bg": level7_2_bg,
     "level8_2_bg": level8_2_bg,
-    "level9_2_bg": level9_2_bg
+    "level9_2_bg": level9_2_bg,
+    "level1_3_bg": level1_3_bg
 }
 
 level_pos_dictionary = {
@@ -59,11 +60,13 @@ level_pos_dictionary = {
     "level6_2": (2, 2),
     "level7_2": (4, -5),
     "level8_2": (4, -5),
-    "level9_2": (3, -2)
+    "level9_2": (3, -2),
+    "level1_3": (2, -3)
 }
 
 level_card_dictionary = {
     "level2_1": "mid-air_jump",
+    "level1_3": "speed_dash"
 }
 
 
@@ -111,20 +114,11 @@ class Game:
         self.game_screen = pygame.Surface((swidth, sheight))
         self.game_screen.set_colorkey((0, 0, 255))
 
-        self.portal_surface = pygame.Surface((swidth / 2, sheight / 2))
-        for i in range(int(swidth / 2 * sheight / 80)):
-            self.portal_surface.set_at(((random.randrange(0, int(swidth / 2 - 1))),
-                                        (random.randrange(0, int(sheight / 2 - 1)))),
-                                       (255, 0, 255))
-        self.portal_surface2 = pygame.Surface((swidth / 4, sheight / 4))
-        for i in range(int(swidth / 4 * sheight / 160)):
-            self.portal_surface.set_at(((random.randrange(0, swidth - 1)), (random.randrange(0, sheight - 1))),
-                                       (255, 0, 200))
-
         # loading in images --------------------------------------------------------------------------------------------
         background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
         self.background = pygame.transform.scale(background_raw, (self.game_screen.get_width(),
                                                                   self.game_screen.get_height()))
+        self.cave_background_colour = (35, 29, 39)
 
         home_button_img = img_loader('data/images/button_pause.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_press = img_loader('data/images/button_pause_press.PNG', tile_size * 0.75, tile_size * 0.75)
@@ -298,6 +292,8 @@ class Game:
         self.spit_harm_left = False
         self.spit_harm_right = False
         self.spit_harm_up = False
+        self.set_lava_harm = False
+        self.hot_lava_harm = True
 
         self.health = 2
         self.harm = False
@@ -342,7 +338,7 @@ class Game:
 
         # initiating classes -------------------------------------------------------------------------------------------
         self.world = World(world_data, self.game_screen, slow_computer, bg_data, controls,
-                           settings_counters)
+                           settings_counters, world_count)
         self.world.create_world(self.start_x, self.start_y, world_data, bg_data)
         self.player = Player(self.game_screen, self.controls, self.settings_counters, world_count)
         self.particles = Particles(particle_num, slow_computer)
@@ -397,7 +393,7 @@ class Game:
         # calculated by tiles from the center of the mould (tiles fitting in the window)
 
         max_level = 9
-        max_world = 2
+        max_world = 3
         if level_count >= max_level:
             level_count = max_level
         if world_count >= max_world:
@@ -439,12 +435,14 @@ class Game:
         popup_lvl_completed_press = False
 
         # new card animation
-        if world_count == 1 and level_count == 2 and self.level_duration_counter == 0:
-            self.new_card_animation = True
+        if self.level_duration_counter == 0:
+            if (world_count == 1 and level_count == 2) or (world_count == 3 and level_count == 1):
+                self.new_card_animation = True
         if self.new_card_animation:
             self.move = False
 
-        self.level_duration_counter += 0.04 * fps_adjust
+        if game_counter > 0:
+            self.level_duration_counter += 0.04 * fps_adjust
 
         restart_level = False
 
@@ -455,7 +453,8 @@ class Game:
             tutorial = False
 
         # dealing with harm
-        if self.spit_harm_up or self.spit_harm_left or self.spit_harm_right or self.trap_harm or self.bee_harm:
+        if self.spit_harm_up or self.spit_harm_left or self.spit_harm_right or self.trap_harm or self.bee_harm or\
+                self.set_lava_harm or self.hot_lava_harm:
             self.harm = True
         else:
             self.harm = False
@@ -496,12 +495,15 @@ class Game:
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
 
         # blitting tiles and images in the background ------------------------------------------------------------------
-        self.game_screen.blit(self.background, (0, 0))
+        if world_count in [1, 2]:
+            self.game_screen.blit(self.background, (0, 0))
+        else:
+            self.game_screen.fill(self.cave_background_colour)
         self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, sack_direction)
         self.world.draw_background(self.game_screen, self.camera_move_x, self.camera_move_y)
         self.world.draw_log(self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
-        portal_percentage = self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
-                                                        self.camera_move_x, self.camera_move_y)
+        self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
+                                    self.camera_move_x, self.camera_move_y)
         self.world.draw_bush(self.game_screen)
         self.world.draw_tree(self.game_screen)
 
@@ -544,6 +546,9 @@ class Game:
 
         self.world.draw_wheat(self.game_screen, sack_rect)
 
+        self.set_lava_harm = self.world.draw_set_lava(self.game_screen, sack_rect)
+        self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
+
         self.world.draw_shockwave_mushrooms(self.game_screen, fps_adjust)
 
         self.world.draw_green_mushrooms(self.game_screen, sack_rect)
@@ -558,9 +563,6 @@ class Game:
         self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y)
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------
-        self.portal_surface_x = portal_percentage[0] * swidth / 1.5 - tile_size / 2
-        self.portal_surface_y = portal_percentage[1] * sheight / 1.5 - tile_size / 2
-        # screen.blit(self.portal_surface, (self.portal_surface_x, self.portal_surface_y))
         screen.blit(self.game_screen, (0, 0))
 
         # respawn instructions -----------------------------------------------------------------------------------------

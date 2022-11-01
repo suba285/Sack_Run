@@ -422,8 +422,9 @@ while run:
             run_menu = False
             run_settings = True
             run_level_selection = False
-            settings_menu.section_counter = 0
-            settings_menu.joystick_counter = 1
+            if joystick_connected and not joystick_configured:
+                settings_menu.section_counter = 0
+                settings_menu.joystick_counter = 1
 
     # running the game -------------------------------------------------------------------------------------------------
     if run_game:
@@ -506,8 +507,9 @@ while run:
             paused = False
             run_level_selection = False
             run_settings = True
-            settings_menu.section_counter = 0
-            settings_menu.joystick_counter = 1
+            if joystick_connected and not joystick_configured:
+                settings_menu.section_counter = 0
+                settings_menu.joystick_counter = 1
 
     # world selection --------------------------------------------------------------------------------------------------
     if run_level_selection:

@@ -205,7 +205,7 @@ class LevelSelection:
             level_screen.blit(bumper2, (self.right_x + 4, self.button_y + 2))
 
         menu_press, over3 = self.menu_btn.draw_button(level_screen, False, mouse_adjustment, events, joystick_over1)
-        if self.world_count <= 2:
+        if self.world_count <= 3:
             play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, events,
                                                           joystick_over_1)
 

@@ -67,7 +67,7 @@ class CircleAnimation:
 
 
 class World:
-    def __init__(self, data, screen, slow_computer, bg_data, controls, settings_counters):
+    def __init__(self, data, screen, slow_computer, bg_data, controls, settings_counters, world_count):
         self.controls = controls
         self.settings_counters = settings_counters
 
@@ -77,6 +77,8 @@ class World:
         self.screen = screen
 
         self.slow_computer = slow_computer
+
+        self.world_count = world_count
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.tile_list = []
@@ -98,6 +100,8 @@ class World:
         self.gem_list = []
         self.shockwave_mushroom_list = []
         self.shockwave_center_list = []
+        self.set_lava_list = []
+        self.hot_lava_list = []
 
         self.list_of_lists = []
 
@@ -142,21 +146,23 @@ class World:
 
         self.angles = [0, 90, 180, 270]
 
-        # dirt with rocks tile images ----------------------------------------------------------------------------------
-        self.stone1 = img_loader('data/images/tile_dirt_rocks.PNG', tile_size, tile_size)
-
         # dirt tile images ---------------------------------------------------------------------------------------------
-        self.dirt = img_loader('data/images/tile_dirt.PNG', tile_size, tile_size)
-        tile_dirt_edge = img_loader('data/images/tile_dirt_edge.PNG', tile_size, tile_size)
-        tile_dirt_corner = img_loader('data/images/tile_dirt_corner.PNG', tile_size, tile_size)
-        self.dirt_tile_two_edges = img_loader('data/images/tile_dirt_two_edges.PNG', tile_size, tile_size)
+        if world_count in [1, 2]:
+            tile_type = 'dirt'
+        else:
+            tile_type = 'stone'
+        self.dirt = img_loader(f'data/images/tile_{tile_type}.PNG', tile_size, tile_size)
+        tile_dirt_edge = img_loader(f'data/images/tile_{tile_type}_edge.PNG', tile_size, tile_size)
+        tile_dirt_corner = img_loader(f'data/images/tile_{tile_type}_corner.PNG', tile_size, tile_size)
+        self.dirt_rocks = img_loader(f'data/images/tile_{tile_type}_rocks.PNG', tile_size, tile_size)
+        self.dirt_tile_two_edges = img_loader(f'data/images/tile_{tile_type}_two_edges.PNG', tile_size, tile_size)
         self.dirt_tile_top_edge = tile_dirt_edge
         self.dirt_tile_btm_edge = pygame.transform.flip(tile_dirt_edge, False, True)
         self.dirt_tile_right_edge = pygame.transform.rotate(tile_dirt_edge, 270)
         self.dirt_tile_left_edge = pygame.transform.rotate(tile_dirt_edge, 90)
         self.dirt_tile_left = tile_dirt_corner
         self.dirt_tile_right = pygame.transform.flip(tile_dirt_corner, True, False)
-        self.dirt_tile_two_corners = img_loader('data/images/tile_dirt_two_corners.PNG', tile_size, tile_size)
+        self.dirt_tile_two_corners = img_loader(f'data/images/tile_{tile_type}_two_corners.PNG', tile_size, tile_size)
         self.dirt_tile_btm_left = pygame.transform.flip(tile_dirt_corner, False, True)
         self.dirt_tile_btm_right = pygame.transform.flip(tile_dirt_corner, True, True)
         self.dirt_patch = self.dirt_tile_top_edge
@@ -174,19 +180,6 @@ class World:
         self.portal = img_loader('data/images/portal.PNG', tile_size, tile_size)
         self.portal_part_list = []
         self.portal.set_colorkey((0, 0, 0))
-
-        self.portal1_mask = pygame.mask.from_surface(self.portal1)
-        self.portal2_mask = pygame.mask.from_surface(self.portal2)
-        self.portal3_mask = pygame.mask.from_surface(self.portal3)
-        self.portal4_mask = pygame.mask.from_surface(self.portal4)
-        self.portal1_white = pygame.mask.Mask.to_surface(self.portal1_mask, setcolor=(255, 255, 254))
-        self.portal2_white = pygame.mask.Mask.to_surface(self.portal2_mask, setcolor=(255, 255, 254))
-        self.portal3_white = pygame.mask.Mask.to_surface(self.portal3_mask, setcolor=(255, 255, 254))
-        self.portal4_white = pygame.mask.Mask.to_surface(self.portal4_mask, setcolor=(255, 255, 254))
-        self.portal1_white.set_colorkey((0, 0, 0))
-        self.portal2_white.set_colorkey((0, 0, 0))
-        self.portal3_white.set_colorkey((0, 0, 0))
-        self.portal4_white.set_colorkey((0, 0, 0))
 
         # platform img -------------------------------------------------------------------------------------------------
         self.platform = img_loader('data/images/platform.PNG', tile_size, tile_size)
@@ -224,6 +217,7 @@ class World:
 
         # tree tiles ---------------------------------------------------------------------------------------------------
         self.tree = img_loader('data/images/tree.PNG', 2 * tile_size, 2 * tile_size)
+        self.birch_tree = img_loader('data/images/tree_birch.PNG', tile_size, tile_size * 3)
 
         # foliage tile images ------------------------------------------------------------------------------------------
         self.short_grass = img_loader('data/images/short_grass.PNG', tile_size, tile_size)
@@ -259,6 +253,14 @@ class World:
         self.leek_patch = img_loader('data/images/leek_patch.PNG', tile_size, tile_size)
         self.wheat = img_loader('data/images/light_wheat_plant.PNG', 3, tile_size)
 
+        # lava ---------------------------------------------------------------------------------------------------------
+        self.set_lava = img_loader('data/images/lava.PNG', tile_size, 5)
+        self.set_lava2 = img_loader('data/images/lava2.PNG', tile_size, 5)
+        self.set_lava_left = img_loader('data/images/lava_edge.PNG', tile_size, 5)
+        self.set_lava_right = pygame.transform.flip(self.set_lava_left, True, False)
+        self.molten_lava = pygame.Surface((tile_size, tile_size - 7))
+        self.molten_lava.fill((66, 3, 3))
+
         # guidance arrows and keys -------------------------------------------------------------------------------------
         self.white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
         self.white_arrow_down = pygame.transform.flip(self.white_arrow_up, False, True)
@@ -292,6 +294,8 @@ class World:
         self.wheat_list = []
         self.gem_list = []
         self.shockwave_mushroom_list = []
+        self.set_lava_list = []
+        self.hot_lava_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -335,7 +339,7 @@ class World:
         # 23 - bear trap
         # 24 - platform
         # 25 - wobbly mushrooms
-        # 26 - free tile
+        # 26 - hot lava
         # 27 - free tile
         # 28 - real bee hive
         # 29 - shockwave mushroom
@@ -346,11 +350,11 @@ class World:
         # 34 - short grass left
         # 35 - short grass right
         # 36 - bush
-        # 37 - spitting plant left
-        # 38 - spitting plant right
-        # 39 - spitting plant up
+        # 37 - spitting plant left / set lava left
+        # 38 - spitting plant right / set lava right
+        # 39 - spitting plant up / set lava
         # 40 - log
-        # 41 - free tile
+        # 41 - birch tree
         # 42 - tree
         # 43 - flowers
         # 44 - leek patch
@@ -444,7 +448,7 @@ class World:
                     self.portal_position = (img1_rectangle[0], img1_rectangle[1])
                 if tile == 21:
                     # stone dirt
-                    img = self.stone1
+                    img = self.dirt_rocks
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
                     img_rectangle.y = row_count * tile_size
@@ -491,8 +495,16 @@ class World:
                     tile = [base_rect, tall_rect, short_rect, medium_rect]
                     self.grn_mushroom_list.append(tile)
                 if tile == 26:
-                    # free tile
-                    pass
+                    # hot lava
+                    img = self.molten_lava.copy()
+                    img = self.set_lava
+                    img_rect = img.get_rect()
+                    img_rect.x = column_count * tile_size
+                    img_rect.y = row_count * tile_size + 7
+                    lava_counter = 0
+                    y_lava_offset = 0
+                    tile = [img, img_rect, lava_counter, y_lava_offset]
+                    self.hot_lava_list.append(tile)
                 if tile == 27:
                     # free tile
                     pass
@@ -567,51 +579,79 @@ class World:
                     tile = (self.bush, img_rectangle)
                     self.bush_list.append(tile)
                 if tile == 37:
-                    # spitting plant left
-                    img = pygame.transform.scale(self.spitting_plant0_raw, (tile_size, tile_size))
-                    img.set_colorkey((0, 0, 0))
-                    img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
-                    img_rectangle.y = row_count * tile_size
-                    direction = 'left'
-                    spit_list = []
-                    for i in range(6):
-                        plant_spit = PlantSpit(direction, img_rectangle.x, img_rectangle.y)
-                        spit_list.append(plant_spit)
-                    tile = (img, img_rectangle, direction, spit_list)
-                    self.spitting_plant_img_left = img
-                    self.spitting_plant_list_left.append(tile)
+                    if self.world_count in [1, 2]:
+                        # spitting plant left
+                        img = pygame.transform.scale(self.spitting_plant0_raw, (tile_size, tile_size))
+                        img.set_colorkey((0, 0, 0))
+                        img_rectangle = img.get_rect()
+                        img_rectangle.x = column_count * tile_size
+                        img_rectangle.y = row_count * tile_size
+                        direction = 'left'
+                        spit_list = []
+                        for i in range(6):
+                            plant_spit = PlantSpit(direction, img_rectangle.x, img_rectangle.y)
+                            spit_list.append(plant_spit)
+                        tile = (img, img_rectangle, direction, spit_list)
+                        self.spitting_plant_img_left = img
+                        self.spitting_plant_list_left.append(tile)
+                    else:
+                        # set lava left
+                        img = self.set_lava_left
+                        img_rect = img.get_rect()
+                        img_rect.x = column_count * tile_size
+                        img_rect.y = row_count * tile_size + tile_size - 5
+                        tile = (img, img_rect)
+                        self.set_lava_list.append(tile)
                 if tile == 38:
-                    # spitting plant right
-                    img_raw = pygame.transform.scale(self.spitting_plant0_raw, (tile_size, tile_size))
-                    img = pygame.transform.flip(img_raw, True, False)
-                    img.set_colorkey((0, 0, 0))
-                    img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
-                    img_rectangle.y = row_count * tile_size
-                    direction = 'right'
-                    spit_list = []
-                    for i in range(6):
-                        plant_spit = PlantSpit(direction, img_rectangle.x, img_rectangle.y)
-                        spit_list.append(plant_spit)
-                    tile = (img, img_rectangle, direction, spit_list)
-                    self.spitting_plant_img_right = img
-                    self.spitting_plant_list_right.append(tile)
+                    if self.world_count in [1, 2]:
+                        # spitting plant right
+                        img_raw = pygame.transform.scale(self.spitting_plant0_raw, (tile_size, tile_size))
+                        img = pygame.transform.flip(img_raw, True, False)
+                        img.set_colorkey((0, 0, 0))
+                        img_rectangle = img.get_rect()
+                        img_rectangle.x = column_count * tile_size
+                        img_rectangle.y = row_count * tile_size
+                        direction = 'right'
+                        spit_list = []
+                        for i in range(6):
+                            plant_spit = PlantSpit(direction, img_rectangle.x, img_rectangle.y)
+                            spit_list.append(plant_spit)
+                        tile = (img, img_rectangle, direction, spit_list)
+                        self.spitting_plant_img_right = img
+                        self.spitting_plant_list_right.append(tile)
+                    else:
+                        # set lava right
+                        img = self.set_lava_right
+                        img_rect = img.get_rect()
+                        img_rect.x = column_count * tile_size
+                        img_rect.y = row_count * tile_size + tile_size - 5
+                        tile = (img, img_rect)
+                        self.set_lava_list.append(tile)
                 if tile == 39:
-                    # spitting plant up
-                    img = pygame.transform.scale(self.spitting_plant_up0_raw, (tile_size, tile_size))
-                    img.set_colorkey((0, 0, 0))
-                    img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
-                    img_rectangle.y = row_count * tile_size
-                    direction = 'up'
-                    spit_list = []
-                    for i in range(6):
-                        plant_spit = PlantSpit(direction, img_rectangle.x, img_rectangle.y)
-                        spit_list.append(plant_spit)
-                    tile = (img, img_rectangle, direction, spit_list)
-                    self.spitting_plant_img_up = img
-                    self.spitting_plant_list_up.append(tile)
+                    if self.world_count in [1, 2]:
+                        # spitting plant up
+                        img = pygame.transform.scale(self.spitting_plant_up0_raw, (tile_size, tile_size))
+                        img.set_colorkey((0, 0, 0))
+                        img_rectangle = img.get_rect()
+                        img_rectangle.x = column_count * tile_size
+                        img_rectangle.y = row_count * tile_size
+                        direction = 'up'
+                        spit_list = []
+                        for i in range(6):
+                            plant_spit = PlantSpit(direction, img_rectangle.x, img_rectangle.y)
+                            spit_list.append(plant_spit)
+                        tile = (img, img_rectangle, direction, spit_list)
+                        self.spitting_plant_img_up = img
+                        self.spitting_plant_list_up.append(tile)
+                    else:
+                        # set lava
+                        lava_img = random.choice([self.set_lava, self.set_lava2])
+                        img = random.choice([lava_img, pygame.transform.flip(lava_img, True, False)])
+                        img_rect = img.get_rect()
+                        img_rect.x = column_count * tile_size
+                        img_rect.y = row_count * tile_size + tile_size - 5
+                        tile = (img, img_rect)
+                        self.set_lava_list.append(tile)
                 if tile == 40:
                     # log
                     img = pygame.transform.scale(self.log0, (tile_size*2, tile_size))
@@ -622,12 +662,17 @@ class World:
                     tile = (img, img_rectangle)
                     self.log_list.append(tile)
                 if tile == 41:
-                    # other tree
-                    pass
-                if tile == 42 or tile == 41:
+                    # birch tree
+                    img = self.birch_tree
+                    img_rect = img.get_rect()
+                    img_rect.x = column_count * tile_size
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect)
+                    self.tree_list.append(tile)
+                if tile == 42:
                     # tree
                     img = self.tree
-                    img_rect = self.tree.get_rect()
+                    img_rect = img.get_rect()
                     img_rect.x = column_count * tile_size
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
@@ -708,8 +753,8 @@ class World:
 
         self.bg_surface.set_colorkey((0, 0, 0))
 
-        self.list_of_lists = [self.tile_list, self.decoration_list, self.slope_list,
-                              self.portal1_list, self.bee_hive_list, self.bush_list,
+        self.list_of_lists = [self.tile_list, self.decoration_list, self.slope_list, self.set_lava_list,
+                              self.portal1_list, self.bee_hive_list, self.bush_list, self.hot_lava_list,
                               self.spitting_plant_list_up, self.spitting_plant_list_left,
                               self.spitting_plant_list_right, self.tree_list,
                               self.log_list, self.gem_list, self.shockwave_mushroom_list]
@@ -724,16 +769,16 @@ class World:
 
     # functions drawing tiles ==========================================================================================
 
-    def draw_background(self, screen, camera_move_x, camera_move_y):
-        self.background_x += camera_move_x
-        self.background_y += camera_move_y
-        screen.blit(self.bg_surface, (self.background_x, self.background_y))
-
     def draw_foliage(self, screen):
         for tile in self.decoration_list:
             if - tile_size * 2 < tile[1][0] < swidth:
                 if - tile_size * 2 < tile[1][1] < sheight:
                     screen.blit(tile[0], tile[1])
+
+    def draw_background(self, screen, camera_move_x, camera_move_y):
+        self.background_x += camera_move_x
+        self.background_y += camera_move_y
+        screen.blit(self.bg_surface, (self.background_x, self.background_y))
 
     # updating the position of all tiles -------------------------------------------------------------------------------
     def update_tile_list(self, camera_move_x, camera_move_y):
@@ -759,7 +804,6 @@ class World:
     # ------------------------------------------------------------------------------------------------------------------
     def draw_tile_list(self, screen):
         for tile in self.tile_list:
-            screen.blit(tile[0], tile[1])
             if - tile_size < tile[1][0] < swidth:
                 if - tile_size * 2 < tile[1][1] < sheight:
                     screen.blit(tile[0], tile[1])
@@ -769,13 +813,8 @@ class World:
     def draw_portal_list(self, screen, fps_adjust, level_count, camera_move_x, camera_move_y):
         self.portal_counter += 1*fps_adjust
         self.portal_part_counter += 1*fps_adjust
-        portal_percentage = (0, 0)
         for tile in self.portal1_list:
             portal_y_offset = math.sin((1 / 15) * self.portal_counter) * 2
-
-            portal_percentage_x = (tile[1][0] + tile_size / 2) / swidth
-            portal_percentage_y = (tile[1][1] + tile_size / 2) / sheight
-            portal_percentage = (portal_percentage_x, portal_percentage_y)
 
             tile[3].fill((1, 1, 1))
             for star in tile[4]:
@@ -826,9 +865,36 @@ class World:
             if level_count == 1:
                 screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
 
-        return portal_percentage
+    # ------------------------------------------------------------------------------------------------------------------
 
-    # -----------------------------------------------------------------------------------------------------------------
+    def draw_set_lava(self, screen, sack_rect):
+        set_lava_harm = False
+        for tile in self.set_lava_list:
+            if tile[1].colliderect(sack_rect):
+                set_lava_harm = True
+            if - tile_size < tile[1][0] < swidth:
+                if - tile_size * 2 < tile[1][1] < sheight:
+                    screen.blit(tile[0], tile[1])
+        return set_lava_harm
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def draw_hot_lava(self, screen, sack_rect, fps_adjust):
+        hot_lava_harm = False
+        for tile in self.hot_lava_list:
+            tile[2] += 1 * fps_adjust
+            if tile[2] > 40:
+                tile[2] = 0
+                tile[3] = random.choice([0, 1])
+            if tile[1].colliderect(sack_rect):
+                hot_lava_harm = True
+            screen.blit(self.molten_lava, (tile[1][0], tile[1][1]))
+            pygame.draw.line(screen, (255, 0, 0), (tile[1][0], tile[1][1] - tile[3]),
+                             (tile[1][0] + tile_size - 1, tile[1][1] - tile[3]))
+
+        return hot_lava_harm
+
+    # ------------------------------------------------------------------------------------------------------------------
 
     def draw_gem(self, screen, sack_rect, fps_adjust, gem_equipped):
         self.gem_bob_counter += 1 * fps_adjust
