@@ -339,8 +339,8 @@ class World:
         # 23 - bear trap
         # 24 - platform
         # 25 - wobbly mushrooms
-        # 26 - hot lava
-        # 27 - free tile
+        # 26 - hot lava start
+        # 27 - hot lava stop
         # 28 - real bee hive
         # 29 - shockwave mushroom
         # 30 - dirt tile bottom
@@ -360,6 +360,9 @@ class World:
         # 44 - leek patch
         # 45 - carrot patch
         # 46 - lettuce patch
+
+        lava_start = []
+        lava_stop = []
 
         for row in self.data:
             column_count = start_x
@@ -495,19 +498,21 @@ class World:
                     tile = [base_rect, tall_rect, short_rect, medium_rect]
                     self.grn_mushroom_list.append(tile)
                 if tile == 26:
-                    # hot lava
-                    img = self.molten_lava.copy()
-                    img = self.set_lava
-                    img_rect = img.get_rect()
-                    img_rect.x = column_count * tile_size
-                    img_rect.y = row_count * tile_size + 7
-                    lava_counter = 0
-                    y_lava_offset = 0
-                    tile = [img, img_rect, lava_counter, y_lava_offset]
-                    self.hot_lava_list.append(tile)
+                    # hot lava start
+                    lava_start = [column_count * tile_size, row_count * tile_size]
                 if tile == 27:
-                    # free tile
-                    pass
+                    # hot lava stop
+                    lava_stop = [column_count * tile_size + tile_size, row_count * tile_size]
+                    len = lava_stop[0] - lava_start[0]
+                    lava_surface = pygame.Surface((len, tile_size))
+                    lava_surface.set_colorkey((0, 0, 0))
+                    img = pygame.transform.scale(self.molten_lava, (len, tile_size - 7))
+                    lava_surface.blit(img, (0, 7))
+                    wave_counter = 0
+                    wave_center = 0
+                    collided = False
+                    lava_package = [lava_surface, lava_start, lava_stop, len, wave_counter, wave_center, collided, img]
+                    self.hot_lava_list.append(lava_package)
                 if tile == 28:
                     # bee hive
                     img = pygame.transform.scale(self.bee_hive, (tile_size, 2 * tile_size))
@@ -754,7 +759,7 @@ class World:
         self.bg_surface.set_colorkey((0, 0, 0))
 
         self.list_of_lists = [self.tile_list, self.decoration_list, self.slope_list, self.set_lava_list,
-                              self.portal1_list, self.bee_hive_list, self.bush_list, self.hot_lava_list,
+                              self.portal1_list, self.bee_hive_list, self.bush_list,
                               self.spitting_plant_list_up, self.spitting_plant_list_left,
                               self.spitting_plant_list_right, self.tree_list,
                               self.log_list, self.gem_list, self.shockwave_mushroom_list]
@@ -793,6 +798,12 @@ class World:
             for num in range(4):
                 mush[num][0] += camera_move_x
                 mush[num][1] += camera_move_y
+
+        for lava in self.hot_lava_list:
+            lava[1][0] += camera_move_x
+            lava[1][1] += camera_move_y
+            lava[2][0] += camera_move_x
+            lava[2][1] += camera_move_y
 
         for wheat_list in self.wheat_list:
             for wheat in wheat_list:
@@ -881,16 +892,42 @@ class World:
 
     def draw_hot_lava(self, screen, sack_rect, fps_adjust):
         hot_lava_harm = False
-        for tile in self.hot_lava_list:
-            tile[2] += 1 * fps_adjust
-            if tile[2] > 40:
-                tile[2] = 0
-                tile[3] = random.choice([0, 1])
-            if tile[1].colliderect(sack_rect):
+        for package in self.hot_lava_list:
+            package[4] -= 1 * fps_adjust
+            package[0].fill((0, 0, 0))
+            package[0].blit(package[7], (0, 7))
+            if sack_rect.colliderect(package[1][0], package[1][1], package[3], tile_size - 7):
                 hot_lava_harm = True
-            screen.blit(self.molten_lava, (tile[1][0], tile[1][1]))
-            pygame.draw.line(screen, (255, 0, 0), (tile[1][0], tile[1][1] - tile[3]),
-                             (tile[1][0] + tile_size - 1, tile[1][1] - tile[3]))
+                if not package[6]:
+                    package[4] = 120
+                    package[5] = sack_rect.x + 10 - package[1][0]
+                package[6] = True
+            else:
+                package[6] = False
+
+            if package[4] > 0:
+                for pixel in range(47 * 2):
+                    if 30 < pixel < 60:
+                        y_mult = 5
+                    else:
+                        y_mult = 3
+
+                    y_wave = math.sin(60 - package[4] * 1/10) * package[4] / 120
+                    y_lava_offset = int(math.cos((pixel - 47) / 10) * y_mult * y_wave)
+
+                    x = (package[5] - (pixel - 47))
+                    if y_lava_offset > 0:
+                        pygame.draw.line(package[0], (66, 3, 3), (x, 7 - y_lava_offset), (x, 7))
+                    elif y_lava_offset < 0:
+                        pygame.draw.line(package[0], (0, 0, 0), (x, 7 - y_lava_offset), (x, 7))
+
+                    package[0].set_at(((package[5] - (pixel - 47)), 7 - y_lava_offset), (255, 0, 0))
+                pygame.draw.line(package[0], (255, 0, 0), (0, 7), (package[5] - 47, 7))
+                pygame.draw.line(package[0], (255, 0, 0), (package[5] + 47, 7), (package[3], 7))
+            else:
+                pygame.draw.line(package[0], (255, 0, 0), (0, 7),
+                                 (package[3], 7))
+            screen.blit(package[0], package[1])
 
         return hot_lava_harm
 
