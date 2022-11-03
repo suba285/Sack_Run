@@ -950,6 +950,7 @@ class World:
 
             if tile[1].colliderect(sack_rect) and not tile[3]:
                 tile[3] = True
+                gem_equipped = True
 
             scale = 1
             circle_animation_finished = False
@@ -963,7 +964,6 @@ class World:
 
             if circle_animation_finished:
                 self.gem_list.remove(tile)
-                gem_equipped = True
 
             gem_y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
             if scale > 0:

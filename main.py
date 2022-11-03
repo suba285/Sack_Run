@@ -207,7 +207,7 @@ music_volumes = {
     '3': 1
 }
 
-pygame.mixer.music.load('data/sounds/gameplay_song1.wav')
+pygame.mixer.music.load('data/sounds/game_song1.wav')
 pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
 

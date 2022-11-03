@@ -259,7 +259,7 @@ class Player:
         # extra card powers and their counters -------------------------------------------------------------------------
         self.mid_air_jump = False
         self.mid_air_jump_counter = 0
-        self.mid_air_jump_duration = 450
+        self.mid_air_jumps_num = 3
         self.speed_dash = False
         self.speed_dash_activated = False
         self.speed_dash_direction = 1
@@ -383,7 +383,7 @@ class Player:
     def update_pos_animation(self, screen, tile_list, next_level_list, level_count, harm_in, fps_adjust,
                              mid_air_jump_trigger, speed_dash_trigger,
                              left_border, right_border, game_counter,
-                             move, shockwave_mush_list, events, over_card):
+                             move, shockwave_mush_list, events, over_card, gem_equipped):
 
         dx = 0
         dy = 0
@@ -473,6 +473,7 @@ class Player:
         if mid_air_jump_trigger and not self.mid_air_jump:
             self.mid_air_jump = True
             self.power_indicator_list.append('jump_boost')
+            self.mid_air_jump_counter = 0
         if speed_dash_trigger and not self.speed_dash:
             self.speed_dash = True
             self.speed_dash_sine_counter = 0
@@ -480,7 +481,6 @@ class Player:
 
         # updating special power cards counters ------------------------------------------------------------------------
         if self.mid_air_jump:
-            self.mid_air_jump_counter += 1 * fps_adjust
             self.particle_colour = (67, 124, 94)
             x_value = int(self.sack_rect.x)
             y_value = int(self.sack_rect.y)
@@ -488,6 +488,9 @@ class Player:
                                              random.randrange(y_value, y_value + self.sack_height),
                                              random.randrange(6, 14),
                                              self.particle_colour])
+            if gem_equipped:
+                self.mid_air_jump_counter = 0
+                gem_equipped = False
         if self.speed_dash:
             self.particle_colour = (70, 161, 193)
             x_value = int(self.sack_rect.x)
@@ -498,7 +501,7 @@ class Player:
                                              self.particle_colour])
 
         # special power cards duration counters ------------------------------------------------------------------------
-        if self.mid_air_jump_counter >= self.mid_air_jump_duration:
+        if self.mid_air_jump_counter >= self.mid_air_jumps_num:
             self.mid_air_jump_counter = 0
             self.power_indicator_list.remove('jump_boost')
             self.mid_air_jump = False
@@ -522,7 +525,6 @@ class Player:
 
         # next level portal collisions ---------------------------------------------------------------------------------
         for tile in next_level_list:
-            song_loops = -1
             if tile[1].colliderect(self.sack_rect.x, self.sack_rect.y,
                                    self.sack_width, self.sack_height) and not self.dead:
                 self.teleport_count += 1*fps_adjust
@@ -539,11 +541,7 @@ class Player:
 
                 if self.teleport_count >= 130:
                     if self.mid_air_jump:
-                        self.mid_air_jump_counter = 1000
-                    if self.no_gravity:
-                        self.no_gravity_counter = 1000
-                    if self.no_harm:
-                        self.no_harm_counter = 1000
+                        self.mid_air_jump_counter = 4
                     level_count += 1
                     self.new_level = True
                     self.new_level_cooldown = 0
@@ -568,7 +566,9 @@ class Player:
                     self.vel_y = -8
                 self.player_moved = True
                 if not self.jumped and \
-                        ((self.on_ground_counter > 0 and not self.airborn) or self.dy > 5 and self.mid_air_jump):
+                        ((self.on_ground_counter > 0 and not self.airborn) or (self.dy > 5 and self.mid_air_jump)):
+                    if self.mid_air_jump and not (self.on_ground_counter > 0 and not self.airborn):
+                        self.mid_air_jump_counter += 1
                     self.vel_y = -11
                     self.jumped = True
                     self.player_jump = False
@@ -910,7 +910,8 @@ class Player:
         # returns ------------------------------------------------------------------------------------------------------
         return level_count, self.sack_rect, self.direction, self.health,\
                self.camera_movement_x, self.camera_movement_y,\
-               self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list
+               self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list,\
+               gem_equipped
 
 # UPDATING PLAYER SPRITE HEALTH ========================================================================================
     def update_health(self):
@@ -924,7 +925,7 @@ class Player:
         spacer = 0
         for icon in self.power_indicator_list:
             if icon == 'jump_boost':
-                percentage = self.mid_air_jump_duration / self.mid_air_jump_counter
+                percentage = self.mid_air_jumps_num / self.mid_air_jump_counter
                 bar_y = int(18 / percentage)
                 self.jump_boost_surf.blit(self.jump_boost_indicator, (0, 0))
                 self.jump_boost_surf.blit(self.progress_bar, (0, bar_y + 8))

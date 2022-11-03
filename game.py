@@ -474,22 +474,24 @@ class Game:
             restart_level,\
             self.player_moved,\
             new_level_cooldown,\
-            self.world.shockwave_mushroom_list = self.player.update_pos_animation(screen,
-                                                                                  self.tile_list,
-                                                                                  self.world.next_level_list,
-                                                                                  level_count,
-                                                                                  self.harm,
-                                                                                  fps_adjust,
-                                                                                  self.mid_air_jump_trigger,
-                                                                                  self.speed_dash_trigger,
-                                                                                  self.left_border,
-                                                                                  self.right_border,
-                                                                                  game_counter,
-                                                                                  self.move,
-                                                                                  self.world.shockwave_mushroom_list,
-                                                                                  events,
-                                                                                  self.over_card
-                                                                                  )
+            self.world.shockwave_mushroom_list,\
+            self.gem_equipped = self.player.update_pos_animation(screen,
+                                                                 self.tile_list,
+                                                                 self.world.next_level_list,
+                                                                 level_count,
+                                                                 self.harm,
+                                                                 fps_adjust,
+                                                                 self.mid_air_jump_trigger,
+                                                                 self.speed_dash_trigger,
+                                                                 self.left_border,
+                                                                 self.right_border,
+                                                                 game_counter,
+                                                                 self.move,
+                                                                 self.world.shockwave_mushroom_list,
+                                                                 events,
+                                                                 self.over_card,
+                                                                 self.gem_equipped
+                                                                 )
 
         # updating solid tile positions --------------------------------------------------------------------------------
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
@@ -574,7 +576,6 @@ class Game:
         # updating player health and blitting health bar ---------------------------------------------------------------
         self.player.update_health()
         self.world.draw_portal_compass(sack_rect, screen)
-        self.player.player_power_indicator(screen)
 
         if restart_level:
             self.level_duration_counter = 0
@@ -678,6 +679,7 @@ class Game:
             if popup_bees_press:
                 self.bee_info_popup = False
                 self.bee_info_popup_done = True
+                play_music = True
 
         # new card popup and card animation
         elif self.new_card_animation:
@@ -711,13 +713,15 @@ class Game:
         self.player.draw_transition(fps_adjust)
 
         # sounds -------------------------------------------------------------------------------------------------------
-        if world_count == 2 and self.player_moved and not self.music_playing:
+        if world_count == 2 and not self.music_playing:
             self.music_playing = True
             play_music = True
+            pygame.mixer.music.load('data/sounds/game_song2.wav')
 
         if world_count == 1 and not self.music_playing:
             self.music_playing = True
             play_music = True
+            pygame.mixer.music.load('data/sounds/game_song1.wav')
 
         if restart_level:
             play_music = True
