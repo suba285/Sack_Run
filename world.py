@@ -378,7 +378,8 @@ class World:
                     surface.set_colorkey((0, 0, 0))
                     animation = CircleAnimation()
                     gem_collected = False
-                    tile = [self.gem, rect, shake_counter, gem_collected, surface, animation]
+                    gem_counter = 0
+                    tile = [self.gem, rect, shake_counter, gem_collected, surface, animation, gem_counter]
                     self.gem_list.append(tile)
                 if tile == 11:
                     # dirt
@@ -942,13 +943,15 @@ class World:
         for tile in self.gem_list:
             tile[4].fill((0, 0, 0))
 
+            tile[6] -= 1 * fps_adjust
+
             tile[4].blit(tile[0], (0, 0))
             pygame.draw.line(tile[4], (255, 255, 255),
                              (16, -10 + self.gem_flicker_counter), (0, self.gem_flicker_counter), 3)
             tile[4].blit(self.gem_mask_surf, (0, 0))
             img = tile[4]
 
-            if tile[1].colliderect(sack_rect) and not tile[3]:
+            if tile[1].colliderect(sack_rect) and not tile[3] and tile[6] < 0:
                 tile[3] = True
                 gem_equipped = True
 
@@ -963,12 +966,23 @@ class World:
                                                                           screen, fps_adjust)
 
             if circle_animation_finished:
-                self.gem_list.remove(tile)
+                tile[6] = 60 * 3
+                tile[2] = 7
+                tile[3] = False
+                tile[5] = CircleAnimation()
 
             gem_y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
-            if scale > 0:
+            if scale > 0 > tile[6]:
+                if tile[6] > -10:
+                    shake_offset_x = random.choice([-2, 0, 2])
+                    shake_offset_y = random.choice([-2, 0, 2])
+                else:
+                    shake_offset_x = 0
+                    shake_offset_y = 0
+
                 screen.blit(img,
-                            (tile[1][0] + (8 - img.get_width() / 2), tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
+                            (tile[1][0] + (8 - img.get_width() / 2) + shake_offset_x,
+                             tile[1][1] + gem_y_offset + (8 - img.get_height() / 2) + shake_offset_y))
 
         return gem_equipped
 
