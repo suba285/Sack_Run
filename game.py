@@ -9,6 +9,7 @@ from font_manager import Text
 from popup_bg_generator import popup_bg_generator
 from scroll_bar import ScrollBar
 import json
+import random
 
 
 particle_num = 12
@@ -58,7 +59,7 @@ level_pos_dictionary = {
     "level4_2": (0, -5),
     "level5_2": (4, -7),
     "level6_2": (2, 2),
-    "level7_2": (4, -5),
+    "level7_2": (4, -18),
     "level8_2": (4, -5),
     "level9_2": (3, -2),
     "level1_3": (2, -3)
@@ -420,8 +421,6 @@ class Game:
     def game(self, screen, level_count, slow_computer, fps_adjust, draw_hitbox, mouse_adjustment, events,
              game_counter, world_count, controls, joystick_connected, joystick_calibration):
 
-        power_list_not_saved_error = False
-
         self.controls = controls
 
         # sounds
@@ -431,6 +430,8 @@ class Game:
         play_lock_sound = False
 
         play_music = False
+
+        screen_shake = False
 
         popup_lvl_completed_press = False
 
@@ -443,8 +444,6 @@ class Game:
 
         if game_counter > 0:
             self.level_duration_counter += 0.04 * fps_adjust
-
-        restart_level = False
 
         # setting tutorial on or off
         if world_count == 1:
@@ -475,23 +474,24 @@ class Game:
             self.player_moved,\
             new_level_cooldown,\
             self.world.shockwave_mushroom_list,\
-            self.gem_equipped = self.player.update_pos_animation(screen,
-                                                                 self.tile_list,
-                                                                 self.world.next_level_list,
-                                                                 level_count,
-                                                                 self.harm,
-                                                                 fps_adjust,
-                                                                 self.mid_air_jump_trigger,
-                                                                 self.speed_dash_trigger,
-                                                                 self.left_border,
-                                                                 self.right_border,
-                                                                 game_counter,
-                                                                 self.move,
-                                                                 self.world.shockwave_mushroom_list,
-                                                                 events,
-                                                                 self.over_card,
-                                                                 self.gem_equipped
-                                                                 )
+            self.gem_equipped,\
+            screen_shake = self.player.update_pos_animation(screen,
+                                                            self.tile_list,
+                                                            self.world.next_level_list,
+                                                            level_count,
+                                                            self.harm,
+                                                            fps_adjust,
+                                                            self.mid_air_jump_trigger,
+                                                            self.speed_dash_trigger,
+                                                            self.left_border,
+                                                            self.right_border,
+                                                            game_counter,
+                                                            self.move,
+                                                            self.world.shockwave_mushroom_list,
+                                                            events,
+                                                            self.over_card,
+                                                            self.gem_equipped
+                                                            )
 
         # updating solid tile positions --------------------------------------------------------------------------------
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
@@ -565,7 +565,10 @@ class Game:
         self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y)
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------
-        screen.blit(self.game_screen, (0, 0))
+        if screen_shake:
+            screen.blit(self.game_screen, (random.choice([-2, 0, 2]), random.choice([-2, 0, 2])))
+        else:
+            screen.blit(self.game_screen, (0, 0))
 
         # respawn instructions -----------------------------------------------------------------------------------------
         self.player.blit_respawn_instructions(screen, fps_adjust)
@@ -679,7 +682,6 @@ class Game:
             if popup_bees_press:
                 self.bee_info_popup = False
                 self.bee_info_popup_done = True
-                play_music = True
 
         # new card popup and card animation
         elif self.new_card_animation:
@@ -691,7 +693,7 @@ class Game:
                     popup_new_card_press = Game.popup_window(self, self.new_card_popup, screen, self.ok_new_card_button,
                                                              mouse_adjustment, events)
 
-                    self.eq_manager.new_card(card_type, screen, fps_adjust)
+                    self.eq_manager.new_card(card_type, screen, fps_adjust, self.level_duration_counter)
 
                     if popup_new_card_press:
                         self.new_card_animation = False
@@ -716,12 +718,10 @@ class Game:
         if world_count == 2 and not self.music_playing:
             self.music_playing = True
             play_music = True
-            pygame.mixer.music.load('data/sounds/game_song2.wav')
 
         if world_count == 1 and not self.music_playing:
             self.music_playing = True
             play_music = True
-            pygame.mixer.music.load('data/sounds/game_song1.wav')
 
         if restart_level:
             play_music = True

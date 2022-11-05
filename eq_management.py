@@ -88,12 +88,12 @@ class eqManager:
         mid_air_jump_title = Text().make_text(['MID-AIR JUMP'])
         mid_air_jump_info1 = Text().make_text(['Jump without touching the ground.'])
         mid_air_jump_info2 = Text().make_text(['You can only jump while falling.'])
-        mid_air_jump_info3 = Text().make_text(['Duration: 7.5s'])
+        mid_air_jump_info3 = Text().make_text(['Lasts for 3 jumps.'])
 
         speed_dash_title = Text().make_text(['SPEED DASH'])
         speed_dash_info1 = Text().make_text(['When activated, move to dash.'])
         speed_dash_info2 = Text().make_text(['You can dash left or right.'])
-        speed_dash_info3 = Text().make_text(['Press space to stop.'])
+        speed_dash_info3 = Text().make_text(['Jump to stop.'])
 
         self.full_mid_air_jump_card = pygame.Surface((2 * tile_size, 3 * tile_size))
         self.full_mid_air_jump_card.set_colorkey((0, 0, 0))
@@ -283,14 +283,15 @@ class eqManager:
             screen.blit(self.card_back_img, (card_back_x, self.card_back_y))
             card_back_x += tile_size * 2.5
 
-    def new_card(self, card_type, screen, fps_adjust):
+    def new_card(self, card_type, screen, fps_adjust, counter):
         self.new_card_y_counter -= 15 * fps_adjust
         if self.new_card_y_counter < 0:
             self.new_card_y_counter = 0
 
         self.new_card_y = (self.new_card_final_y + self.new_card_y_counter)
+        y_card_offset = math.cos(counter * 2) * 2
 
-        screen.blit(self.card_info_dict[card_type], (self.new_card_x, self.new_card_y))
+        screen.blit(self.card_info_dict[card_type], (self.new_card_x, self.new_card_y + y_card_offset))
 
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
     def draw_eq(self, screen, eq_list, mouse_adjustment, events, tutorial, fps_adjust, level_count,
@@ -561,8 +562,9 @@ class eqManager:
                 self.card_y -= self.card_frame_movement_y
                 screen.blit(self.card_info_dict[self.card_info_type], (self.card_x, self.card_y))
             else:
+                y_card_offset = math.cos(self.card_info_counter * 2) * 2
                 screen.blit(self.card_info_dict[self.card_info_type],
-                            (self.target_x, self.target_y))
+                            (self.target_x, self.target_y + y_card_offset))
 
             if (mousebuttonup and self.close_card_info_press) or keydown or joystick_action:
                 self.card_info = False

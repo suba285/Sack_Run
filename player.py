@@ -302,6 +302,8 @@ class Player:
         self.init_flash = False
         self.first_power_jump = False
 
+        self.screen_shake_counter = 0
+
         self.speed_dash_sine_counter = 0
         self.speed_dash_animation_counter = 0
         self.speed_dash_sine_offset_counter = 9
@@ -390,6 +392,8 @@ class Player:
 
         self.damage_counter -= 1
 
+        self.screen_shake_counter -= 1 * fps_adjust
+
         self.squash_counter_y += 0.5
 
         if self.airborn:
@@ -420,6 +424,11 @@ class Player:
             top_border = 50
 
         harm = False
+
+        if self.screen_shake_counter > 0:
+            screen_shake = True
+        else:
+            screen_shake = False
 
         # music
         self.play_music = False
@@ -456,11 +465,11 @@ class Player:
                     self.player_jump = False
             if event.type == pygame.JOYAXISMOTION:
                 if event.axis == 0:
-                    if event.value > 0.2:
+                    if event.value > 0.4:
                         self.joystick_right = True
                     else:
                         self.joystick_right = False
-                    if event.value < -0.2:
+                    if event.value < -0.4:
                         self.joystick_left = True
                     else:
                         self.joystick_left = False
@@ -481,7 +490,12 @@ class Player:
 
         # updating special power cards counters ------------------------------------------------------------------------
         if self.mid_air_jump:
-            self.particle_colour = (67, 124, 94)
+            if self.mid_air_jump_counter == 0:
+                self.particle_colour = (57, 182, 86)
+            elif self.mid_air_jump_counter == 1:
+                self.particle_colour = (100, 215, 96)
+            else:
+                self.particle_colour = (200, 226, 151)
             x_value = int(self.sack_rect.x)
             y_value = int(self.sack_rect.y)
             self.power_particle_list.append([random.randrange(x_value, x_value + self.sack_width),
@@ -569,6 +583,7 @@ class Player:
                         ((self.on_ground_counter > 0 and not self.airborn) or (self.dy > 5 and self.mid_air_jump)):
                     if self.mid_air_jump and not (self.on_ground_counter > 0 and not self.airborn):
                         self.mid_air_jump_counter += 1
+                        self.screen_shake_counter = 10
                     self.vel_y = -11
                     self.jumped = True
                     self.player_jump = False
@@ -648,6 +663,7 @@ class Player:
                     self.player_moved = True
                     if self.speed_dash:
                         self.speed_dash_activated = True
+                        self.screen_shake_counter = 10
                         self.vel_y = 0
                         self.sack_offset = 0
                         self.speed_dash_direction = -1
@@ -679,6 +695,7 @@ class Player:
                     self.player_moved = True
                     if self.speed_dash:
                         self.speed_dash_activated = True
+                        self.screen_shake_counter = 10
                         self.vel_y = 0
                         self.sack_offset = 0
                         self.speed_dash_direction = 1
@@ -911,7 +928,7 @@ class Player:
         return level_count, self.sack_rect, self.direction, self.health,\
                self.camera_movement_x, self.camera_movement_y,\
                self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list,\
-               gem_equipped
+               gem_equipped, screen_shake
 
 # UPDATING PLAYER SPRITE HEALTH ========================================================================================
     def update_health(self):

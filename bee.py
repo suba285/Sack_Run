@@ -64,7 +64,6 @@ class Bee():
             radius = shockwave[2]
             shockwave_x = shockwave[0]
             shockwave_y = shockwave[1]
-            print(shockwave)
             self.bee_radius = math.sqrt((shockwave_x - self.x) ** 2 + (shockwave_y - self.y) ** 2)
             if radius > self.bee_radius > radius - 10:
                 self.dead = True
@@ -79,10 +78,6 @@ class Bee():
                     self.direction = 0
                 else:
                     self.direction = 1
-            if self.captured:
-                dx = 0
-                dy = 0
-                self.animation_counter = 0
 
             if self.animation_counter > 5:
                 if self.direction == 1:

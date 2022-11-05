@@ -3,17 +3,6 @@ import pygame
 import json
 import threading
 
-from levels import *
-from game import Game
-from menu import mainMenu
-from display_fps import display_frames_per_second
-from font_manager import Text
-from popup_bg_generator import popup_bg_generator
-from pause_screen import PauseScreen
-from world_selection import LevelSelection
-from game import level_dictionary, level_bg_dictionary
-from settings import SettingsMenu
-
 pygame.init()
 pygame.joystick.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
@@ -66,6 +55,8 @@ except Exception:
         'sounds': 2
     }
 
+# creating the window and setting the resolution -----------------------------------------------------------------------
+
 resolutions = {
         '1': (swidth * 2, sheight * 2),
         '2': (swidth * 3, sheight * 3),
@@ -83,7 +74,7 @@ recommended_resolution = resolution_1
 resolution_counter = 3
 
 for res in list_of_resolutions:
-    if res[1] < (monitor_height * 0.85):
+    if res[1] < (monitor_height * 0.9):
         recommended_resolution = res
         break
     resolution_counter -= 1
@@ -114,6 +105,20 @@ pygame.display.set_caption('sack run')
 background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
 background = pygame.transform.scale(background_raw, (360, 296))
 window.fill((100, 63, 102))
+
+# external file imports ------------------------------------------------------------------------------------------------
+from levels import *
+from game import Game
+from menu import mainMenu
+from display_fps import display_frames_per_second
+from font_manager import Text
+from popup_bg_generator import popup_bg_generator
+from pause_screen import PauseScreen
+from world_selection import LevelSelection
+from game import level_dictionary, level_bg_dictionary
+from settings import SettingsMenu
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 world_data = level1_1
 bg_data = level1_1_bg
@@ -201,6 +206,11 @@ sounds['button_click'].set_volume(0.9)
 sounds['paper_crumbling'].set_volume(0.8)
 sounds['world_completed'].set_volume(0.6)
 
+music = {
+    '1_1': 'game_song1',
+    '1_2': 'game_song2',
+}
+
 music_volumes = {
     '1': 0,
     '2': 0.3,
@@ -213,6 +223,7 @@ pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'
 
 def play_sound(sound_name):
     sounds[sound_name].play()
+
 
 # sound locks
 one_time_play_card_pull = True
@@ -273,7 +284,7 @@ game_loaded = False
 loading = False
 
 
-def loadGame(local_world_data, local_bg_data, local_world_count, local_joystick_connected):
+def load_game(local_world_data, local_bg_data, local_world_count, local_joystick_connected):
     global main_game, game_loaded
     main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
                      settings_counters, local_joystick_connected)
@@ -356,6 +367,8 @@ while run:
     button_sound_trigger2 = False
     button_sound_trigger3 = False
 
+    load_music = False
+
     mouse_adjustment = wiwidth / swidth
 
     # fps adjustment ---------------------------------------------------------------------------------------------------
@@ -433,10 +446,6 @@ while run:
             world_completed_sound_played = False
             if real_fps < 30:
                 slow_computer = True
-            if world_count == 1:
-                pygame.mixer.music.load('data/sounds/game_song1.wav')
-            elif world_count == 2:
-                pygame.mixer.music.load('data/sounds/game_song2.wav')
             play = False
 
         run_menu = False
@@ -451,9 +460,9 @@ while run:
             play_music_trigger,\
             fadeout_music,\
             lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
-                                                 draw_hitbox, mouse_adjustment, events,
-                                                 game_counter, world_count, controls, joystick_configured,
-                                                 controller_calibration)
+                                          draw_hitbox, mouse_adjustment, events,
+                                          game_counter, world_count, controls, joystick_configured,
+                                          controller_calibration)
 
         if play_music_trigger:
             play_music = True
@@ -489,9 +498,9 @@ while run:
 
         if menu:
             run_game = False
-            run_level_selection = False
+            run_level_selection = True
             run_settings = False
-            run_menu = True
+            run_menu = False
             paused = False
 
         if resume:
@@ -522,7 +531,7 @@ while run:
         if play_press:
             world_data = level_dictionary[f'level1_{world_count}']
             bg_data = level_bg_dictionary[f'level1_{world_count}_bg']
-            threading.Thread(target=loadGame, args=[world_data, bg_data, world_count, joystick_connected]).start()
+            threading.Thread(target=load_game, args=[world_data, bg_data, world_count, joystick_connected]).start()
             loading = True
             proceed_with_transition = False
 
@@ -530,6 +539,7 @@ while run:
             loading = False
             if proceed_with_transition:
                 play = True
+                load_music = True
                 game_loaded = False
             proceed_with_transition = True
 
@@ -544,6 +554,7 @@ while run:
                 fps = 60
             else:
                 fps = 30
+            game_counter = default_game_counter
             run_menu = False
             run_game = True
             paused = False
@@ -569,7 +580,7 @@ while run:
             adjust_resolution,\
             settings_counters,\
             calibrated_press = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events,
-                                                                 fps_adjust, joystick_connected)
+                                                                fps_adjust, joystick_connected)
 
         if performance_counter == 1:
             slow_computer = False
@@ -774,6 +785,11 @@ while run:
             if (world_count == 1 and level_count == 3) or (world_count == 2 and level_count == 9):
                 sounds['world_completed'].play()
                 world_completed_sound_played = True
+
+        if load_music:
+            song = music[f'{level_count}_{world_count}']
+            pygame.mixer.music.load(f'data/sounds/{song}.wav')
+
         if play_music:
             pygame.mixer.music.play(-1, 0.0, 300)
             play_music = False
