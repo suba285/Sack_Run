@@ -330,10 +330,12 @@ class SettingsMenu:
         self.controller_conf_popup1 = popup_bg_generator((200, 100))
         self.controller_conf_popup2 = popup_bg_generator((200, 100))
         self.controller_conf_popup3 = popup_bg_generator((200, 100))
+        self.controller_conf_popup4 = popup_bg_generator((200, 100))
         self.controller_conf_title = Text().make_text(['CONTROLLER CALIBRATION'])
         self.controller_conf_cal1 = Text().make_text(['press the LB button (left bumper)'])
         self.controller_conf_cal2 = Text().make_text(['press the RB button (right bumper)'])
         self.controller_conf_cal3 = Text().make_text(['press the options button (pause)'])
+        self.controller_conf_cal4 = Text().make_text(['choose your button naming'])
         button_rb = img_loader('data/images/buttons/button_rb.PNG', tile_size / 2, tile_size / 2)
         button_lb = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
         self.button_rb = button_rb
@@ -341,7 +343,42 @@ class SettingsMenu:
         button_rb_press = img_loader('data/images/buttons/button_rb_press.PNG', tile_size / 2, tile_size / 2)
         button_lb_press = img_loader('data/images/buttons/button_lb_press.PNG', tile_size / 2, tile_size / 2)
         button_a = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
+        button_b = img_loader('data/images/buttons/button_b.PNG', tile_size / 2, tile_size / 2)
+        button_x = img_loader('data/images/buttons/button_x.PNG', tile_size / 2, tile_size / 2)
+        button_square = img_loader('data/images/buttons/button_square.PNG', tile_size / 2, tile_size / 2)
         button_cross = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
+        button_circle = img_loader('data/images/buttons/button_circle.PNG', tile_size / 2, tile_size / 2)
+
+        btn_gap = 2
+        btn_names_surf_width = int(tile_size * 1.5 + btn_gap * 4)
+        self.btn_names1 = pygame.Surface((btn_names_surf_width, 20))
+        self.btn_names2 = pygame.Surface((btn_names_surf_width, 20))
+        self.btn_names1.set_colorkey((0, 0, 0))
+        self.btn_names2.set_colorkey((0, 0, 0))
+        popup_bg_colour = (60, 55, 60)
+        self.btn_names1.fill(popup_bg_colour)
+        self.btn_names2.fill(popup_bg_colour)
+        self.btn_names1.set_at((0, 0), (0, 0, 0))
+        self.btn_names2.set_at((0, 0), (0, 0, 0))
+        self.btn_names1.set_at((btn_names_surf_width - 1, 0), (0, 0, 0))
+        self.btn_names2.set_at((btn_names_surf_width - 1, 0), (0, 0, 0))
+        self.btn_names1.set_at((btn_names_surf_width - 1, 19), (0, 0, 0))
+        self.btn_names2.set_at((btn_names_surf_width - 1, 19), (0, 0, 0))
+        self.btn_names1.set_at((0, 19), (0, 0, 0))
+        self.btn_names2.set_at((0, 19), (0, 0, 0))
+
+        x = btn_gap
+        self.btn_names1.blit(button_x, (x, 2))
+        self.btn_names2.blit(button_square, (x, 2))
+        x += tile_size / 2 + btn_gap
+        self.btn_names1.blit(button_a, (x, 2))
+        self.btn_names2.blit(button_cross, (x, 2))
+        x += tile_size / 2 + btn_gap
+        self.btn_names1.blit(button_b, (x, 2))
+        self.btn_names2.blit(button_circle, (x, 2))
+        btn_width = self.btn_names2.get_width()
+        self.btn_names_button1 = Button(100 - btn_width / 2 - 40, 60, self.btn_names1, self.btn_names1, self.btn_names1)
+        self.btn_names_button2 = Button(100 - btn_width / 2 + 40, 60, self.btn_names2, self.btn_names2, self.btn_names2)
 
         self.bumpers = {
             '1_1': button_lb,
@@ -378,6 +415,10 @@ class SettingsMenu:
                                          (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
         self.controller_conf_popup3.blit(self.controller_conf_cal3,
                                          (popup_width / 2 - self.controller_conf_cal3.get_width() / 2, 30))
+        self.controller_conf_popup4.blit(self.controller_conf_title,
+                                         (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
+        self.controller_conf_popup4.blit(self.controller_conf_cal4,
+                                         (popup_width / 2 - self.controller_conf_cal4.get_width() / 2, 30))
 
         self.controller_calibration = False
         self.controller_calibration_counter = 0
@@ -386,6 +427,7 @@ class SettingsMenu:
         self.controller_configuration = []
         self.controller_taken_btns = [1]
         self.choose_different_btn_counter = 0
+        self.btn_names_counter = 1
 
         self.choose_different_btn_txt = Text().make_text(['this button is already assigned'])
         self.choose_different_btn_surf = pygame.Surface((self.choose_different_btn_txt.get_width(), 30))
@@ -435,41 +477,61 @@ class SettingsMenu:
                             self.controller_calibration_step_counter += 1
                         else:
                             self.choose_different_btn_counter = 60
-                    if self.controller_calibration_step_counter == 4:
-                        self.controller_configuration.append(3)
-                        self.controller_calibration = False
-                        self.controller_calibration_step_counter = 1
-                        self.controller_calibration_counter = 0
-                        self.nums_to_btns['configuration'] = self.controller_configuration
-                        configuration = self.controller_configuration
-                        self.controller_configuration = []
-                        self.controller_taken_btns = [1]
-                        calibration_done = True
-                        calibrated = True
 
-                if event.button == 0 and in_settings:
+                if event.button == 0:
+                    if len(self.controller_configuration) == 3:
+                        self.controller_configuration.append(self.btn_names_counter)
+                        self.controller_calibration_step_counter += 1
+
+                if event.button == 0 and in_settings and self.controller_calibration_step_counter < 4:
                     self.controller_calibration = False
-                    self.configuration_counter = 1
+                    self.configuration_counter = 3
                     self.controller_calibration_step_counter = 1
                     self.controller_calibration_counter = 0
                     self.controller_configuration = []
                     self.controller_taken_btns = [1]
                     calibrated = False
+
             if event.type == pygame.JOYDEVICEREMOVED:
                 self.controller_calibration = False
-                self.configuration_counter = 1
+                self.configuration_counter = 3
                 self.controller_calibration_step_counter = 1
                 self.controller_calibration_counter = 0
                 self.controller_configuration = []
                 self.controller_taken_btns = [1]
                 calibrated = False
 
+            if event.type == pygame.JOYAXISMOTION and event.axis == 0 \
+                    and self.controller_calibration_step_counter == 4:
+                if not self.joystick_moved and abs(event.value) > 0.3:
+                    if self.btn_names_counter == 1:
+                        self.btn_names_counter = 2
+                    else:
+                        self.btn_names_counter = 1
+                    self.joystick_moved = True
+                if event.value == 0:
+                    self.joystick_moved = False
+
+        if self.controller_calibration_step_counter == 5:
+            self.controller_calibration = False
+            self.controller_calibration_step_counter = 1
+            self.controller_calibration_counter = 0
+            self.configuration_counter = self.btn_names_counter
+            self.nums_to_btns['configuration'] = self.controller_configuration
+            configuration = self.controller_configuration
+            self.controller_configuration = []
+            self.controller_taken_btns = [1]
+            calibration_done = True
+            calibrated = True
+
         if self.controller_calibration_step_counter == 1:
             raw_popup = self.controller_conf_popup1
         elif self.controller_calibration_step_counter == 2:
             raw_popup = self.controller_conf_popup2
-        else:
+        elif self.controller_calibration_step_counter == 3:
             raw_popup = self.controller_conf_popup3
+        else:
+            raw_popup = self.controller_conf_popup4
 
         if self.controller_calibration_step_counter <= 2:
             if self.controller_calibration_button_counter > 40:
@@ -483,6 +545,16 @@ class SettingsMenu:
             raw_popup.blit(self.controller_calibration_btn_surf, (raw_popup.get_width() / 2 - btn_img.get_width() / 2,
                                                         raw_popup.get_height() / 2 - btn_img.get_height() / 2 + 10))
 
+        if self.controller_calibration_step_counter == 4:
+            joystick_over_btn1 = False
+            joystick_over_btn2 = False
+            if self.btn_names_counter == 1:
+                joystick_over_btn1 = True
+            if self.btn_names_counter == 2:
+                joystick_over_btn2 = True
+            self.btn_names_button1.draw_button(raw_popup, False, 1, events, joystick_over_btn1)
+            self.btn_names_button2.draw_button(raw_popup, False, 1, events, joystick_over_btn2)
+
         if 0.25 > self.controller_calibration_counter > 0:
             scaling = self.controller_calibration_counter
             popup = pygame.transform.scale(raw_popup,
@@ -491,7 +563,7 @@ class SettingsMenu:
         else:
             popup = raw_popup
 
-        if in_settings:
+        if in_settings and self.controller_calibration_step_counter < 4:
             popup.blit(self.cancel_surface, (popup.get_width() / 2 - self.cancel_surface.get_width() / 2,
                                              popup.get_height() - 25))
 
@@ -523,45 +595,46 @@ class SettingsMenu:
         joystick_tab_left = False
         joystick_tab_right = False
 
-        for event in events:
-            if event.type == pygame.JOYAXISMOTION:
-                if event.axis == 0:
-                    if abs(event.value) > 0.3 and not self.joystick_moved:
-                        self.joystick_counter = self.joystick_counter * -1
-                        self.joystick_moved = True
-                    if event.value == 0:
-                        self.joystick_moved = False
-                if event.axis == 1:
-                    if event.value > 0.3 and not self.joystick_moved:
-                        if self.joystick_counter >= 0:
-                            self.joystick_counter -= 1
+        if not self.controller_calibration:
+            for event in events:
+                if event.type == pygame.JOYAXISMOTION:
+                    if event.axis == 0:
+                        if abs(event.value) > 0.3 and not self.joystick_moved:
+                            self.joystick_counter = self.joystick_counter * -1
+                            self.joystick_moved = True
+                        if event.value == 0:
+                            self.joystick_moved = False
+                    if event.axis == 1:
+                        if event.value > 0.3 and not self.joystick_moved:
+                            if self.joystick_counter >= 0:
+                                self.joystick_counter -= 1
+                                if self.joystick_counter < 0:
+                                    self.joystick_counter = 0
+                                self.joystick_moved = True
                             if self.joystick_counter < 0:
-                                self.joystick_counter = 0
-                            self.joystick_moved = True
-                        if self.joystick_counter < 0:
-                            self.joystick_counter += 1
-                            if self.joystick_counter > 0:
-                                self.joystick_counter = 0
-                            self.joystick_moved = True
-                    if event.value < -0.3 and not self.joystick_moved:
-                        if self.joystick_counter >= 0:
-                            self.joystick_counter += 1
-                            if self.joystick_counter > joystick_counter_cap:
-                                self.joystick_counter = 0
-                            self.joystick_moved = True
-                        if self.joystick_counter < 0:
-                            self.joystick_counter -= 1
-                            if self.joystick_counter < -joystick_counter_cap:
-                                self.joystick_counter = 0
-                            self.joystick_moved = True
-                    if event.value == 0:
-                        self.joystick_moved = False
+                                self.joystick_counter += 1
+                                if self.joystick_counter > 0:
+                                    self.joystick_counter = 0
+                                self.joystick_moved = True
+                        if event.value < -0.3 and not self.joystick_moved:
+                            if self.joystick_counter >= 0:
+                                self.joystick_counter += 1
+                                if self.joystick_counter > joystick_counter_cap:
+                                    self.joystick_counter = 0
+                                self.joystick_moved = True
+                            if self.joystick_counter < 0:
+                                self.joystick_counter -= 1
+                                if self.joystick_counter < -joystick_counter_cap:
+                                    self.joystick_counter = 0
+                                self.joystick_moved = True
+                        if event.value == 0:
+                            self.joystick_moved = False
 
-            if event.type == pygame.JOYBUTTONDOWN:
-                if (event.button == 4 or event.button == 9) and not self.controller_calibration:
-                    joystick_tab_left = True
-                if (event.button == 5 or event.button == 10) and not self.controller_calibration:
-                    joystick_tab_right = True
+                if event.type == pygame.JOYBUTTONDOWN:
+                    if event.button == 4 or event.button == 9:
+                        joystick_tab_left = True
+                    if event.button == 5 or event.button == 10:
+                        joystick_tab_right = True
                     
         if self.joystick_counter > joystick_counter_cap:
             self.joystick_counter = joystick_counter_cap
@@ -677,13 +750,6 @@ class SettingsMenu:
             else:
                 rumble_text = self.rumble_conf2
 
-            if self.configuration_counter == 1:
-                config_text = self.config_conf1
-            elif self.configuration_counter == 2:
-                config_text = self.config_conf2
-            else:
-                config_text = self.config_conf3
-
             # updating the text showing the player's current controls --------------------------------------------------
             self.control_screen.blit(self.walking_txt, (self.center - 10 - self.walking_txt.get_width(),
                                                         self.button_start_y + 7 + self.gap))
@@ -780,8 +846,8 @@ class SettingsMenu:
                 config_over = False
 
             if not self.controller_calibration:
-                calib_press, over5 = self.calibration_btn.draw_button(self.control_screen, False, mouse_adjustment, events,
-                                                                      config_over)
+                calib_press, over5 = self.calibration_btn.draw_button(self.control_screen, False, mouse_adjustment,
+                                                                      events, config_over)
             else:
                 calib_press = False
 
@@ -800,36 +866,26 @@ class SettingsMenu:
             if control_box1_over:
                 self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(255)
                 self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays[f'shockwave{self.rumble_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays[f'interact{self.configuration_counter}'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_highlight_off = False
 
             elif control_box2_over:
                 self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(255)
-                self.keyboard_overlays[f'shockwave{self.rumble_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays[f'interact{self.configuration_counter}'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_highlight_off = False
 
             elif control_box3_over:
                 self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays[f'shockwave{self.rumble_counter}'].set_alpha(255)
-                self.keyboard_overlays[f'interact{self.configuration_counter}'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_highlight_off = False
 
             elif control_box4_over:
                 self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays[f'shockwave{self.rumble_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays[f'interact{self.configuration_counter}'].set_alpha(255)
                 self.keyboard_highlight_off = False
 
             elif not self.keyboard_highlight_off:
                 self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(255)
                 self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(255)
-                self.keyboard_overlays[f'shockwave{self.rumble_counter}'].set_alpha(255)
-                self.keyboard_overlays[f'interact{self.configuration_counter}'].set_alpha(255)
                 self.keyboard_highlight_off = True
 
         # adjusting control counters if buttons are pressed ------------------------------------------------------------

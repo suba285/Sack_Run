@@ -115,11 +115,10 @@ class Game:
         self.game_screen = pygame.Surface((swidth, sheight))
         self.game_screen.set_colorkey((0, 0, 255))
 
-        # loading in images --------------------------------------------------------------------------------------------
-        background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
-        self.background = pygame.transform.scale(background_raw, (self.game_screen.get_width(),
-                                                                  self.game_screen.get_height()))
         self.cave_background_colour = (35, 29, 39)
+        self.sky_background_colour = (100, 63, 102)
+
+        # loading in images --------------------------------------------------------------------------------------------
 
         home_button_img = img_loader('data/images/button_pause.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_press = img_loader('data/images/button_pause_press.PNG', tile_size * 0.75, tile_size * 0.75)
@@ -312,8 +311,6 @@ class Game:
 
         self.player_moved = False
 
-        self.over_card = False
-
         self.start_x = level_pos_dictionary[f'level1_{world_count}'][0]
         self.start_y = level_pos_dictionary[f'level1_{world_count}'][1]
 
@@ -387,6 +384,19 @@ class Game:
             press = False
 
         return press
+
+    def update_controller_type(self, settings_counters):
+        configuration_counter = settings_counters['configuration']
+        self.player.settings_counters = settings_counters
+        if configuration_counter == 1:
+            self.controller_type = 'xbox'
+            jump_btn = 'A'
+        elif configuration_counter == 2:
+            self.controller_type = 'ps4'
+            jump_btn = 'cross'
+        else:
+            self.controller_type = 'other'
+            jump_btn = 'A or cross'
 
 # LEVEL CHECKING =======================================================================================================
     def level_checker(self, level_count, world_count):
@@ -489,7 +499,6 @@ class Game:
                                                             self.move,
                                                             self.world.shockwave_mushroom_list,
                                                             events,
-                                                            self.over_card,
                                                             self.gem_equipped
                                                             )
 
@@ -498,7 +507,7 @@ class Game:
 
         # blitting tiles and images in the background ------------------------------------------------------------------
         if world_count in [1, 2]:
-            self.game_screen.blit(self.background, (0, 0))
+            self.game_screen.fill(self.sky_background_colour)
         else:
             self.game_screen.fill(self.cave_background_colour)
         self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, sack_direction)
@@ -571,7 +580,7 @@ class Game:
             screen.blit(self.game_screen, (0, 0))
 
         # respawn instructions -----------------------------------------------------------------------------------------
-        self.player.blit_respawn_instructions(screen, fps_adjust)
+        self.player.blit_respawn_instructions(screen, fps_adjust, joystick_connected)
 
         # eq full message ----------------------------------------------------------------------------------------------
         self.world.draw_eq_full(screen)
@@ -600,8 +609,6 @@ class Game:
 
         if self.mid_air_jump_trigger or self.speed_dash_trigger:
             self.gem_equipped = False
-
-        self.over_card = play_card_pull_sound
 
         # menu button --------------------------------------------------------------------------------------------------
         menu, game_button_over = self.home_button.draw_button(screen, False, mouse_adjustment, events, False)

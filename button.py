@@ -35,6 +35,10 @@ class Button:
         self.image_rect.y = self.y
         joystick_count = pygame.joystick.get_count()
         self.joystick_over_button = joystick_over
+        if card:
+            joystick_button = 2
+        else:
+            joystick_button = 0
         if joystick_count == 0:
             self.joystick_over_button = False
 
@@ -50,7 +54,7 @@ class Button:
             self.cursor_over = True
             for event in events:
                 if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1) or \
-                        (event.type == pygame.JOYBUTTONDOWN and event.button == 0):
+                        (event.type == pygame.JOYBUTTONDOWN and event.button == joystick_button):
                     self.image = self.image1
                     self.image_rect.x = self.x
                     self.image_rect.y = self.y
@@ -58,7 +62,7 @@ class Button:
 
         for event in events:
             if (event.type == pygame.MOUSEBUTTONUP and event.button == 1) or \
-                    (event.type == pygame.JOYBUTTONUP and event.button == 0):
+                    (event.type == pygame.JOYBUTTONUP and event.button == joystick_button):
                 if self.button_down:
                     action = True
                 self.button_down = False

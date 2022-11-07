@@ -137,9 +137,9 @@ class eqManager:
         self.mouse2 = img_loader('data/images/mouse2.PNG', tile_size / 2, tile_size)
         self.mouse3 = img_loader('data/images/mouse3.PNG', tile_size / 2, tile_size)
         self.mouse_press = img_loader('data/images/mouse_press.PNG', tile_size / 2, tile_size)
-        self.a_btn = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
+        self.x_btn = img_loader('data/images/buttons/button_x.PNG', tile_size / 2, tile_size / 2)
         self.b_btn = img_loader('data/images/buttons/button_b.PNG', tile_size / 2, tile_size / 2)
-        self.cross_btn = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
+        self.square_btn = img_loader('data/images/buttons/button_square.PNG', tile_size / 2, tile_size / 2)
         self.circle_btn = img_loader('data/images/buttons/button_circle.PNG', tile_size / 2, tile_size / 2)
         self.button_rb = img_loader('data/images/buttons/button_rb.PNG', tile_size / 2, tile_size / 2)
         self.button_rb_press = img_loader('data/images/buttons/button_rb_press.PNG', tile_size / 2, tile_size / 2)
@@ -148,8 +148,8 @@ class eqManager:
         self.use_text = Text().make_text(['USE'])
         self.info_text = Text().make_text(['INFO'])
 
-        controller_btn_width = self.a_btn.get_width()
-        controller_btn_height = self.a_btn.get_height()
+        controller_btn_width = self.x_btn.get_width()
+        controller_btn_height = self.x_btn.get_height()
 
         or_txt = Text().make_text(['or'])
         or_width = or_txt.get_width()
@@ -159,20 +159,20 @@ class eqManager:
         self.two_btn_surface1.set_colorkey((0, 0, 0))
         self.two_btn_surface2.set_colorkey((0, 0, 0))
 
-        self.two_btn_surface1.blit(self.a_btn, (0, 0))
-        self.two_btn_surface1.blit(self.cross_btn, (controller_btn_width + or_width, 0))
+        self.two_btn_surface1.blit(self.x_btn, (0, 0))
+        self.two_btn_surface1.blit(self.square_btn, (controller_btn_width + or_width, 0))
         self.two_btn_surface1.blit(or_txt, (controller_btn_width + 1, 4))
         self.two_btn_surface2.blit(self.b_btn, (0, 0))
         self.two_btn_surface2.blit(self.circle_btn, (controller_btn_width + or_width, 0))
         self.two_btn_surface2.blit(or_txt, (controller_btn_width + 1, 4))
 
         self.xbox_btns = {
-            '1': self.a_btn,
+            '1': self.x_btn,
             '2': self.b_btn,
         }
 
         self.ps4_btns = {
-            '1': self.cross_btn,
+            '1': self.square_btn,
             '2': self.circle_btn,
         }
 
@@ -327,6 +327,7 @@ class eqManager:
         joy_bumper_pressed = False
         joystick_info_press = False
         joystick_use_press = False
+        joystick_jump_press = False
         joystick_action = False
 
         over = False
@@ -370,9 +371,11 @@ class eqManager:
                             self.joystick_counter = 0
                     if event.button == 1:
                         joystick_info_press = True
-                    if event.button == 0:
+                    if event.button == 2:
                         joystick_use_press = True
-                    if (not joystick_info_press or self.card_info) and not joy_bumper_pressed:
+                    if event.button == 0:
+                        joystick_jump_press = True
+                    if (not joystick_info_press or self.card_info or joystick_jump_press) and not joy_bumper_pressed:
                         joystick_action = True
                 if event.type == pygame.JOYAXISMOTION:
                     joystick_action = True
@@ -472,16 +475,16 @@ class eqManager:
 
             if over:
                 if self.press_counter >= 40:
-                    keybrd_img = self.mouse_press
+                    mouse_img = self.mouse_press
                     if self.press_counter >= 50:
                         self.press_counter = 0
                 else:
-                    keybrd_img = self.mouse3
+                    mouse_img = self.mouse3
 
                 cont_img = self.controller_buttons[controller_type]['1']
                 cont_img2 = self.controller_buttons[controller_type]['2']
 
-                keybrd_img2 = pygame.transform.flip(keybrd_img, True, False)
+                keybrd_img2 = pygame.transform.flip(mouse_img, True, False)
 
                 center_width = swidth / 2
                 center_height = sheight / 3 - tile_size / 2 + tile_size / 4
@@ -491,7 +494,7 @@ class eqManager:
                     img2 = cont_img2
                     img_y = center_height
                 else:
-                    img1 = keybrd_img
+                    img1 = mouse_img
                     img2 = keybrd_img2
                     img_y = center_height - tile_size / 3
 
@@ -511,21 +514,35 @@ class eqManager:
                 screen.blit(self.info_text, (tutorial_x, center_height + 5))
 
             elif (not self.card_checked or gem_equipped) and player_moved:
-                if self.press_counter >= 60:
-                    keybrd_img = self.mouse0
-                    self.press_counter = 0
-                elif self.press_counter >= 40:
-                    keybrd_img = self.mouse0
-                elif self.press_counter >= 30:
-                    keybrd_img = self.mouse3
-                elif self.press_counter >= 20:
-                    keybrd_img = self.mouse2
-                elif self.press_counter >= 10:
-                    keybrd_img = self.mouse1
+                if not joystick_connected:
+                    if self.press_counter >= 60:
+                        mouse_img = self.mouse0
+                        self.press_counter = 0
+                    elif self.press_counter >= 40:
+                        mouse_img = self.mouse0
+                    elif self.press_counter >= 30:
+                        mouse_img = self.mouse3
+                    elif self.press_counter >= 20:
+                        mouse_img = self.mouse2
+                    elif self.press_counter >= 10:
+                        mouse_img = self.mouse1
+                    else:
+                        mouse_img = self.mouse0
+                    if health > 0:
+                        screen.blit(mouse_img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
                 else:
-                    keybrd_img = self.mouse0
-                if health > 0:
-                    screen.blit(keybrd_img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
+                    bumper_img1 = self.button_rb
+                    bumper_img2 = self.button_lb
+                    if self.press_counter > 90:
+                        bumper_img2 = self.button_lb_press
+                        if self.press_counter > 100:
+                            self.press_counter = 0
+                    elif 50 > self.press_counter > 40:
+                        bumper_img1 = self.button_rb_press
+                    if health > 0:
+                        x = swidth / 2 - (tile_size + 6) / 2
+                        screen.blit(bumper_img1, (x, sheight / 3 - tile_size / 4))
+                        screen.blit(bumper_img2, (x + tile_size / 2 + 3, sheight / 3 - tile_size / 4))
 
                 self.arrow_bob_counter += 1 * fps_adjust
                 y_arrow_offset = math.sin((1 / 13) * self.arrow_bob_counter) * 3

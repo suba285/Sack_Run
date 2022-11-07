@@ -197,6 +197,12 @@ class World:
         self.gem_surface = pygame.Surface((tile_size / 2, tile_size / 2))
         gem_mask = pygame.mask.from_surface(self.gem)
         self.gem_mask_surf = pygame.mask.Mask.to_surface(gem_mask, setcolor=(255, 0, 0))
+        self.gem_outline = gem_mask.outline()
+        self.gem_dotted_outline = gem_mask.outline(3)
+        self.gem_outline_surface = pygame.Surface((tile_size / 2, tile_size / 2))
+        self.gem_outline_surface.set_colorkey((0, 0, 0))
+        for pixel in self.gem_outline:
+            self.gem_outline_surface.set_at(pixel, (255, 255, 255))
         self.gem_mask_surf.set_colorkey((255, 0, 0))
 
         # dark background dirt tiles -----------------------------------------------------------------------------------
@@ -983,6 +989,9 @@ class World:
                 screen.blit(img,
                             (tile[1][0] + (8 - img.get_width() / 2) + shake_offset_x,
                              tile[1][1] + gem_y_offset + (8 - img.get_height() / 2) + shake_offset_y))
+            elif tile[6] >= 0:
+                screen.blit(self.gem_outline_surface, (tile[1][0] + (8 - img.get_width() / 2),
+                            tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
 
         return gem_equipped
 

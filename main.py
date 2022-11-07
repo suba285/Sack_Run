@@ -91,6 +91,8 @@ recommended_res_counter = resolution_counter
 # screens (surfaces)
 window = pygame.display.set_mode((wiwidth, wiheight), pygame.SCALED)
 screen = pygame.Surface((swidth, sheight), pygame.SCALED)
+screen.set_alpha(0)
+screen_alpha = 0
 main_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
 menu_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
 pause_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
@@ -101,9 +103,7 @@ pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUS
 
 pygame.display.set_caption('sack run')
 
-
-background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
-background = pygame.transform.scale(background_raw, (360, 296))
+background_sky_colour = (100, 63, 102)
 window.fill((100, 63, 102))
 
 # external file imports ------------------------------------------------------------------------------------------------
@@ -209,6 +209,7 @@ sounds['world_completed'].set_volume(0.6)
 music = {
     '1_1': 'game_song1',
     '1_2': 'game_song2',
+    '1_3': 'game_song2'
 }
 
 music_volumes = {
@@ -354,8 +355,6 @@ while run:
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
     key = pygame.key.get_pressed()
 
-    screen.blit(background, (0, 0))
-
     # sound triggers
     play_card_pull_sound = False
     play_lock_sound = False
@@ -493,15 +492,17 @@ while run:
         pause_screen,\
             button_sound_trigger1,\
             resume,\
-            menu,\
+            lvl_select,\
             settings = pause_menu.draw_pause_screen(mouse_adjustment, events)
 
-        if menu:
+        if lvl_select:
             run_game = False
             run_level_selection = True
             run_settings = False
             run_menu = False
             paused = False
+            screen_alpha = 0
+            main_game.update_controller_type(settings_counters)
 
         if resume:
             run_menu = False
@@ -509,6 +510,7 @@ while run:
             paused = False
             run_level_selection = False
             play_music = True
+            main_game.update_controller_type(settings_counters)
 
         if settings:
             run_menu = False
@@ -821,9 +823,13 @@ while run:
             mouse_vis = False
 
     # updating the display ---------------------------------------------------------------------------------------------
+    main_screen.fill(background_sky_colour)
     if run_game:
         menu_transition_counter -= (sheight / 23) * fps_adjust
         game_counter += 0.04 * fps_adjust
+        screen_alpha += 4 * fps_adjust
+        if screen_alpha <= 255:
+            screen.set_alpha(screen_alpha)
         scaling = game_counter * game_counter + 1
         if game_counter < -2:
             run_level_selection = False

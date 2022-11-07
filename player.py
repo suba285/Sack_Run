@@ -1,6 +1,7 @@
 import pygame
 from level_transition import CircleTransition
 from image_loader import img_loader
+from font_manager import Text
 import random
 import math
 
@@ -246,10 +247,21 @@ class Player:
         self.progress_bar.fill((0, 0, 0))
 
         # respawn instruction images and variables ---------------------------------------------------------------------
-        self.respawn_instr1 = img_loader('data/images/respawn_instructions1.PNG', tile_size * 2, tile_size)
-        self.respawn_instr2 = img_loader('data/images/respawn_instructions2.PNG', tile_size * 2, tile_size)
-        self.respawn_instructions_blit_counter = 0
-        self.respawn_instructions_blit_counter = 0
+        self.respawn_text = []
+        self.respawn_text.append([Text().make_text(['R']), 0])
+        self.respawn_text.append([Text().make_text(['E']), -2])
+        self.respawn_text.append([Text().make_text(['S']), -4])
+        self.respawn_text.append([Text().make_text(['P']), -6])
+        self.respawn_text.append([Text().make_text(['A']), -8])
+        self.respawn_text.append([Text().make_text(['W']), -10])
+        self.respawn_text.append([Text().make_text(['N']), -12])
+
+        self.a_button = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
+        self.cross_button = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
+        self.space_key = img_loader('data/images/buttons/key_space.PNG', tile_size, tile_size / 2)
+        self.space_key_press = img_loader('data/images/buttons/key_space_press.PNG', tile_size, tile_size / 2)
+
+        self.respawn_press_counter = 0
 
         self.restart_level = False
         self.restart_trigger = False
@@ -314,12 +326,8 @@ class Player:
         # music and sounds ---------------------------------------------------------------------------------------------
         self.first_level_play_music = True
         self.play_music = False
-        self.single_play = True
         self.fadeout = False
         self.single_fadeout = True
-        self.music_faded = False
-        self.play_once = False
-        self.song = 'game_song1'
 
         # collisions ---------------------------------------------------------------------------------------------------
         self.top_col = False
@@ -385,7 +393,7 @@ class Player:
     def update_pos_animation(self, screen, tile_list, next_level_list, level_count, harm_in, fps_adjust,
                              mid_air_jump_trigger, speed_dash_trigger,
                              left_border, right_border, game_counter,
-                             move, shockwave_mush_list, events, over_card, gem_equipped):
+                             move, shockwave_mush_list, events, gem_equipped):
 
         dx = 0
         dy = 0
@@ -457,7 +465,7 @@ class Player:
                 self.player_jump = True
             if event.type == pygame.KEYUP and event.key == self.controls['jump']:
                 self.player_jump = False
-            if event.type == pygame.JOYBUTTONDOWN and not over_card:
+            if event.type == pygame.JOYBUTTONDOWN:
                 if event.button == 0:
                     self.player_jump = True
             if event.type == pygame.JOYBUTTONUP:
@@ -746,13 +754,16 @@ class Player:
                         self.vel_x_r = self.speed_dash_speed * fps_adjust * self.speed_dash_direction
 
         # respawn at the beginning of the level and transition
-        if (pygame.mouse.get_pressed()[0] or self.player_jump)\
-                and self.dead and self.dead_counter >= 36 and not self.restart_trigger:
+        if self.player_jump and self.dead and self.dead_counter >= 36 and not self.restart_trigger:
             self.restart_trigger = True
             self.single_fadeout = True
             self.teleport_count = 0
             self.circle_transition = CircleTransition(screen)
             self.init_flash = False
+            counter = 0
+            for letter in self.respawn_text:
+                letter[1] = counter
+                counter -= 2
 
         if self.restart_trigger:
             self.restart_counter += 1 * fps_adjust
@@ -1095,17 +1106,42 @@ class Player:
             self.circle_transition.draw_circle_transition(self.sack_rect, fps_adjust)
 
 # respawn instructions -------------------------------------------------------------------------------------------------
-    def blit_respawn_instructions(self, screen, fps_adjust):
+    def blit_respawn_instructions(self, screen, fps_adjust, joystick_connected):
         if self.health == 0 and self.dead_counter >= 36 and self.restart_counter == 0:
-            self.respawn_instructions_blit_counter += 1 * fps_adjust
+            x = swidth / 2 - 3 * 8
+            press = False
+            self.respawn_press_counter += 1 * fps_adjust
 
-            if self.respawn_instructions_blit_counter > 54:
-                self.respawn_instructions_blit_counter = 0
-                img = self.respawn_instr1
-            elif self.respawn_instructions_blit_counter > 44:
-                img = self.respawn_instr2
+            if self.settings_counters['configuration'] == 1:
+                controller_btn = self.a_button
             else:
-                img = self.respawn_instr1
+                controller_btn = self.cross_button
 
-            screen.blit(img, (swidth / 2 - tile_size, sheight / 3 - (tile_size / 2)))
+            for letter in self.respawn_text:
+                x += 6
+                y_letter_offset = 0
+                img = letter[0]
+                if 10 > letter[1] > 0:
+                    y_letter_offset = 10 - letter[1]
+                    scale = 1 / y_letter_offset
+                    img = pygame.transform.scale(letter[0], (5 * scale, 9 * scale))
+                if 100 > letter[1] > 90:
+                    y_letter_offset = -abs(5 - abs(-5 + (letter[1] - 90)))
+                if letter[1] >= 100:
+                    letter[1] = 10
+                if letter[1] > 0:
+                    screen.blit(img, (x - img.get_width() / 2, sheight / 3 + y_letter_offset))
+                letter[1] += 1 * fps_adjust
 
+            if self.respawn_press_counter > 65:
+                press = True
+                if self.respawn_press_counter > 80:
+                    self.respawn_press_counter = 10
+            if joystick_connected:
+                screen.blit(controller_btn, (swidth / 2 - tile_size / 4, sheight / 3 + 16))
+            else:
+                key_img = self.space_key
+                if press:
+                    key_img = self.space_key_press
+                if self.respawn_press_counter > 8:
+                    screen.blit(key_img, (swidth / 2 - tile_size / 2, sheight / 3 + 16))
