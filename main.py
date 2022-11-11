@@ -147,6 +147,7 @@ level_selection = False
 menu_transition_counter = 0
 menu_transition = False
 proceed_with_transition = False
+reload_world_status = False
 menu_y = 0
 game_y = swidth
 
@@ -207,9 +208,9 @@ sounds['paper_crumbling'].set_volume(0.8)
 sounds['world_completed'].set_volume(0.6)
 
 music = {
-    '1_1': 'game_song1',
-    '1_2': 'game_song2',
-    '1_3': 'game_song2'
+    '1': 'game_song1',
+    '2': 'game_song2',
+    '3': 'game_song2'
 }
 
 music_volumes = {
@@ -368,6 +369,9 @@ while run:
 
     load_music = False
 
+    if not run_level_selection:
+        reload_world_status = True
+
     mouse_adjustment = wiwidth / swidth
 
     # fps adjustment ---------------------------------------------------------------------------------------------------
@@ -510,6 +514,7 @@ while run:
             paused = False
             run_level_selection = False
             play_music = True
+            load_music = True
             main_game.update_controller_type(settings_counters)
 
         if settings:
@@ -524,6 +529,14 @@ while run:
 
     # world selection --------------------------------------------------------------------------------------------------
     if run_level_selection:
+        if reload_world_status:
+            try:
+                with open('data/unlocked_worlds.json', 'r') as json_file:
+                    level_select.world_status = json.load(json_file)
+                    reload_world_status = False
+            except Exception:
+                world_status_loading_error = True
+                level_select.world_status = [True, False, False, False]
         play_press,\
             menu,\
             button_sound_trigger1,\
@@ -789,7 +802,7 @@ while run:
                 world_completed_sound_played = True
 
         if load_music:
-            song = music[f'{level_count}_{world_count}']
+            song = music[f'{world_count}']
             pygame.mixer.music.load(f'data/sounds/{song}.wav')
 
         if play_music:

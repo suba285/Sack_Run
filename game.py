@@ -30,7 +30,10 @@ level_dictionary = {
     "level7_2": level7_2,
     "level8_2": level8_2,
     "level9_2": level9_2,
-    "level1_3": level1_3
+    "level1_3": level1_3,
+    "level2_3": level2_3,
+    "level3_3": level3_3,
+    "level4_3": level4_3
 }
 
 level_bg_dictionary = {
@@ -46,7 +49,10 @@ level_bg_dictionary = {
     "level7_2_bg": level7_2_bg,
     "level8_2_bg": level8_2_bg,
     "level9_2_bg": level9_2_bg,
-    "level1_3_bg": level1_3_bg
+    "level1_3_bg": level1_3_bg,
+    "level2_3_bg": level2_3_bg,
+    "level3_3_bg": level3_3_bg,
+    "level4_3_bg": level4_3_bg
 }
 
 level_pos_dictionary = {
@@ -62,7 +68,10 @@ level_pos_dictionary = {
     "level7_2": (4, -18),
     "level8_2": (4, -5),
     "level9_2": (3, -2),
-    "level1_3": (2, -3)
+    "level1_3": (2, -4),
+    "level2_3": (-3, -5),
+    "level3_3": (2, -3),
+    "level4_3": (0, -3)
 }
 
 level_card_dictionary = {
@@ -144,12 +153,6 @@ class Game:
             'jump1': 'space',
             'jump2': 'W',
             'jump3': 'up key',
-            'configuration1': 'X',
-            'configuration2': 'E',
-            'configuration3': 'forward slash',
-            'rumble1': 'Z',
-            'rumble2': 'F',
-            'rumble3': 'right shift',
         }
 
         walk_counter = settings_counters['walking']
@@ -160,7 +163,7 @@ class Game:
             jump_btn = 'A'
         elif configuration_counter == 2:
             self.controller_type = 'ps4'
-            jump_btn = 'cross'
+            jump_btn = 'Cross'
         else:
             self.controller_type = 'other'
             jump_btn = 'A or cross'
@@ -170,9 +173,11 @@ class Game:
         if not joystick_connected:
             walking_controls_txt = Text().make_text([f"walking: {self.nums_to_text[f'walk{walk_counter}']}"])
             jumping_controls_txt = Text().make_text([f"jumping: {self.nums_to_text[f'jump{jump_counter}']}"])
+            card_controls_txt = Text().make_text(['cards: mouse'])
         else:
             walking_controls_txt = Text().make_text(['walking: Left stick'])
             jumping_controls_txt = Text().make_text([f'jumping: {jump_btn} button'])
+            card_controls_txt = Text().make_text(['cards: RB and LB'])
         tip1_txt = Text().make_text(['Follow the compass in the top-left corner,'])
         tip1_2_txt = Text().make_text(['it will lead you to portals.'])
         tip2_txt = Text().make_text(['Use cards to gain special abilities.'])
@@ -200,6 +205,8 @@ class Game:
                                  (cont_bg_center - walking_controls_txt.get_width() / 2, 30))
         self.controls_popup_text_surface.blit(jumping_controls_txt,
                                  (cont_bg_center - jumping_controls_txt.get_width() / 2, 45))
+        self.controls_popup_text_surface.blit(card_controls_txt,
+                                              (cont_bg_center - card_controls_txt.get_width() / 2, 60))
 
         self.controls_popup_text_surface.blit(tip1_txt, (cont_bg_center - tip1_txt.get_width() / 2, 90))
         self.controls_popup_text_surface.blit(tip1_2_txt, (cont_bg_center - tip1_2_txt.get_width() / 2, 105))
@@ -278,6 +285,13 @@ class Game:
 
         except Exception:
             self.eq_power_list = []
+
+        self.nums_to_unlocked_world_data = {
+            1: [True, True, False, False],
+            2: [True, True, True, False],
+            3: [True, True, True, True],
+            4: [True, True, True, True]
+        }
 
         # variables ----------------------------------------------------------------------------------------------------
         self.level_check = 1
@@ -717,6 +731,13 @@ class Game:
 
         if ok_over:
             game_button_over = True
+
+        if popup_lvl_completed_press:
+            try:
+                with open('data/unlocked_worlds.json', 'w') as json_file:
+                    json.dump(self.nums_to_unlocked_world_data[world_count], json_file)
+            except Exception:
+                progress_not_saved_error = True
 
         # new level transition -----------------------------------------------------------------------------------------
         self.player.draw_transition(fps_adjust)

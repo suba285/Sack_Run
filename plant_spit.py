@@ -110,8 +110,6 @@ class PlantSpit:
 
         # updating and drawing spit particles --------------------------------------------------------------------------
         if not self.hit:
-            if not self.rect.colliderect(start_x, start_y, tile_size, tile_size):
-                pygame.draw.circle(screen, (255, 0, 0), (self.rect.x + 4, self.rect.y + 4), 3, 0)
             # updating flying spit particles
             for part in self.spit_particles:
                 part[0][0] += part[1][0] * fps_adjust + camera_move_x
@@ -120,6 +118,9 @@ class PlantSpit:
                 pygame.draw.circle(screen, (255, 0, 0), [int(part[0][0]), int(part[0][1])], int(part[2]))
                 if part[2] <= 0:
                     self.spit_particles.remove(part)
+            if not self.rect.colliderect(start_x, start_y, tile_size, tile_size):
+                pygame.draw.circle(screen, (255, 255, 255), (self.rect.x + 4, self.rect.y + 4), 3, 0)
+                pygame.draw.circle(screen, (255, 0, 0), (self.rect.x + 4, self.rect.y + 4), 3, 1)
 
         # resetting spit if it lasted it's time ------------------------------------------------------------------------
         if self.duration <= 0:

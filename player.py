@@ -87,22 +87,19 @@ class HeyParticle:
 
 
 # player death animation (to be redone) --------------------------------------------------------------------------------
-def death_animation1(self, fps_adjust):
+def death_animation_counter(self, fps_adjust):
     self.dead_counter += 1 * fps_adjust
-    if self.dead_counter > 36:
-        self.sack_img = self.dead6
-    elif self.dead_counter > 30:
-        self.sack_img = self.dead5
-    elif self.dead_counter > 24:
-        self.sack_img = self.dead4
+    blit_sack = False
+    if self.dead_counter > 24:
+        blit_sack = False
     elif self.dead_counter > 18:
-        self.sack_img = self.dead3
+        blit_sack = True
     elif self.dead_counter > 12:
-        self.sack_img = self.dead2
+        blit_sack = False
     elif self.dead_counter > 6:
-        self.sack_img = self.dead1
+        blit_sack = True
 
-    return self.sack_img
+    return blit_sack
 
 
 # player animation used for teleportation and healing ------------------------------------------------------------------
@@ -134,7 +131,7 @@ def magic_animation(self, screen, counter, particle_x):
         blit = False
 
     if blit:
-        screen.blit(img, (particle_x + 2, self.sack_rect.y))
+        screen.blit(img, (particle_x, self.sack_rect.y - 4))
 
 
 # ======================================================================================================================
@@ -165,16 +162,15 @@ class Player:
         self.sack_speed_dash3 = img_loader('data/images/sack_speed_dash3.PNG', player_size_x, 22)
         self.sack_speed_dash4 = img_loader('data/images/sack_speed_dash4.PNG', player_size_x, 22)
         self.sack_img = self.sack0f
-        self.sack_rect = self.sack0f.get_rect()
-        self.dead_rect = img_loader('data/images/sack0.PNG', 4, player_size_y).get_rect()
+        self.sack_rect = pygame.Rect(0, 0, 18, 28)
         self.sack_rect.x = swidth / 2 - self.sack_rect.width / 2
         self.sack_rect.y = sheight / 2 - self.sack_rect.height / 2
         self.player_speed = 2.42
         self.slide = 0.4
         self.default_on_ground_counter = 6
         self.on_ground_counter = self.default_on_ground_counter
-        self.sack_width = self.sack0f.get_width()
-        self.sack_height = self.sack0f.get_height()
+        self.sack_width = self.sack_rect.width
+        self.sack_height = self.sack_rect.height
         self.vel_y = 0
         self.vel_x_l = 0
         self.vel_x_r = 0
@@ -184,30 +180,9 @@ class Player:
         self.squash_counter_x = 10
         self.squash_counter_y = 10
 
-        damage_animation_colour = (180, 25, 25)
-
-        self.sack0f_mask = pygame.mask.from_surface(self.sack0f)
-        self.sack0f_damage = pygame.mask.Mask.to_surface(self.sack0f_mask, setcolor=damage_animation_colour)
-        self.sack1f_mask = pygame.mask.from_surface(self.sack1f)
-        self.sack1f_damage = pygame.mask.Mask.to_surface(self.sack1f_mask, setcolor=damage_animation_colour)
-        self.sack2f_mask = pygame.mask.from_surface(self.sack2f)
-        self.sack2f_damage = pygame.mask.Mask.to_surface(self.sack2f_mask, setcolor=damage_animation_colour)
-
-        self.sack_jump1f_mask = pygame.mask.from_surface(self.sack_jump1f)
-        self.sack_jump1f_damage = pygame.mask.Mask.to_surface(self.sack_jump1f_mask, setcolor=damage_animation_colour)
-        self.sack_jump2f_mask = pygame.mask.from_surface(self.sack_jump2f)
-        self.sack_jump2f_damage = pygame.mask.Mask.to_surface(self.sack_jump2f_mask, setcolor=damage_animation_colour)
-        self.sack_jump3f_mask = pygame.mask.from_surface(self.sack_jump3f)
-        self.sack_jump3f_damage = pygame.mask.Mask.to_surface(self.sack_jump3f_mask, setcolor=damage_animation_colour)
-
-        self.sack0f_damage.set_colorkey((0, 0, 0))
-        self.sack1f_damage.set_colorkey((0, 0, 0))
-        self.sack2f_damage.set_colorkey((0, 0, 0))
-        self.sack_jump3f_damage.set_colorkey((0, 0, 0))
-        self.sack_jump1f_damage.set_colorkey((0, 0, 0))
-        self.sack_jump2f_damage.set_colorkey((0, 0, 0))
-
-        self.sack_damage_img = self.sack0f_damage
+        self.sack_silhouette = pygame.mask.Mask.to_surface(pygame.mask.from_surface(self.sack0f),
+                                                           setcolor=(255, 255, 255), unsetcolor=(0, 0, 0))
+        self.sack_silhouette.set_colorkey((0, 0, 0))
 
         self.controls = controls
         self.settings_counters = settings_counters
@@ -274,6 +249,7 @@ class Player:
         self.mid_air_jumps_num = 3
         self.speed_dash = False
         self.speed_dash_activated = False
+        self.speed_dash_landed = True
         self.speed_dash_direction = 1
         self.speed_dash_speed = 5
         self.regeneration = False
@@ -531,19 +507,22 @@ class Player:
         # subtracting health if player is being harmed
         if not self.harmed and harm and self.player_moved:
             self.health = 0
+            sack_mask = pygame.mask.from_surface(self.sack_img)
+            self.sack_silhouette = pygame.mask.Mask.to_surface(sack_mask, setcolor=(255, 255, 255), unsetcolor=None)
             self.dead = True
             self.harmed = True
             self.speed_dash = False
             self.speed_dash_activated = False
+            self.screen_shake_counter = 10
+            self.vel_x_r = 0
+            self.vel_x_l = 0
+            self.vel_y = 0
 
         if not self.player_moved:
             self.health = 2
 
         if not harm:
             self.harmed = False
-
-        if self.dead:
-            self.sack_img = death_animation1(self, fps_adjust)
 
         # next level portal collisions ---------------------------------------------------------------------------------
         for tile in next_level_list:
@@ -584,7 +563,8 @@ class Player:
                 self.teleport_count = 0
                 if self.speed_dash_activated:
                     self.speed_dash_activated = False
-                    self.speed_dash = False
+                    if not gem_equipped:
+                        self.speed_dash = False
                     self.vel_y = -8
                 self.player_moved = True
                 if not self.jumped and \
@@ -598,7 +578,7 @@ class Player:
                     self.animate_walk = False
                     self.airborn = True
 
-            if not key[self.controls['jump']]:
+            if not self.player_jump:
                 self.jumped = False
                 if not self.airborn:
                     # standing animation
@@ -609,38 +589,28 @@ class Player:
                             self.blink_counter = 0
                         if self.blink_counter > 75:
                             self.sack_img = self.sack0f
-                            self.sack_damage_img = self.sack0f_damage
                         elif self.blink_counter > 60:
                             self.sack_img = self.sack_blinkf
-                            self.sack_damage_img = self.sack0f_damage
                         elif self.blink_counter > 30:
                             self.sack_img = self.sack_lookf
-                            self.sack_damage_img = self.sack0f_damage
                         elif self.blink_counter > 15:
                             self.sack_img = self.sack_blinkf
-                            self.sack_damage_img = self.sack0f_damage
                         else:
                             self.sack_img = self.sack0f
-                            self.sack_damage_img = self.sack0f_damage
                     elif self.direction == 0:
                         self.blink_counter += 1*fps_adjust
                         if self.blink_counter > 150:
                             self.blink_counter = 0
                         if self.blink_counter > 75:
                             self.sack_img = self.sack0b
-                            self.sack_damage_img = pygame.transform.flip(self.sack0f_damage, True, False)
                         elif self.blink_counter > 60:
                             self.sack_img = self.sack_blinkb
-                            self.sack_damage_img = pygame.transform.flip(self.sack0f_damage, True, False)
                         elif self.blink_counter > 30:
                             self.sack_img = self.sack_lookb
-                            self.sack_damage_img = pygame.transform.flip(self.sack0f_damage, True, False)
                         elif self.blink_counter > 15:
                             self.sack_img = self.sack_blinkb
-                            self.sack_damage_img = pygame.transform.flip(self.sack0f_damage, True, False)
                         else:
                             self.sack_img = self.sack0b
-                            self.sack_damage_img = pygame.transform.flip(self.sack0f_damage, True, False)
 
             if self.airborn and not self.col_types['bottom'] and not self.speed_dash_activated:
                 if self.direction == 1:
@@ -664,13 +634,14 @@ class Player:
             walking_right = False
 
             if not self.speed_dash_activated:
-                if self.sack_rect.height != 32:
-                    self.sack_rect.height = 32
+                if self.sack_rect.height != 28:
+                    self.sack_rect.height = 28
                 # walking left
                 if key[self.controls['left']] or self.joystick_left:
                     self.player_moved = True
                     if self.speed_dash:
                         self.speed_dash_activated = True
+                        gem_equipped = False
                         self.screen_shake_counter = 10
                         self.vel_y = 0
                         self.sack_offset = 0
@@ -679,7 +650,7 @@ class Player:
                     self.speed_adder += 0.1 * fps_adjust
                     self.speed += self.speed_adder
                     if self.speed > self.player_speed:
-                        self.speed = self.player_speed * fps_adjust
+                        self.speed = self.player_speed
                     dx -= self.speed
                     self.vel_x_l = dx
                     self.vel_x_r = 0
@@ -703,6 +674,7 @@ class Player:
                     self.player_moved = True
                     if self.speed_dash:
                         self.speed_dash_activated = True
+                        gem_equipped = False
                         self.screen_shake_counter = 10
                         self.vel_y = 0
                         self.sack_offset = 0
@@ -711,7 +683,7 @@ class Player:
                     self.speed_adder += 0.1 * fps_adjust
                     self.speed += self.speed_adder
                     if self.speed > self.player_speed:
-                        self.speed = self.player_speed * fps_adjust
+                        self.speed = self.player_speed
                     dx += self.speed
                     self.vel_x_r = dx
                     self.vel_x_l = 0
@@ -742,16 +714,17 @@ class Player:
             elif self.speed_dash_activated:
                 self.sack_rect.height = 20
                 self.sack_offset = 0
+                self.speed_dash_landed = False
                 if self.speed_dash_direction == -1:
                     if self.vel_x_l > -self.speed_dash_speed:
                         self.vel_x_l -= 1 * fps_adjust
                     else:
-                        self.vel_x_l = self.speed_dash_speed * fps_adjust * self.speed_dash_direction
+                        self.vel_x_l = self.speed_dash_speed * self.speed_dash_direction
                 elif self.speed_dash_direction == 1:
                     if self.vel_x_r < self.speed_dash_speed:
                         self.vel_x_r += 1 * fps_adjust
                     else:
-                        self.vel_x_r = self.speed_dash_speed * fps_adjust * self.speed_dash_direction
+                        self.vel_x_r = self.speed_dash_speed * self.speed_dash_direction
 
         # respawn at the beginning of the level and transition
         if self.player_jump and self.dead and self.dead_counter >= 36 and not self.restart_trigger:
@@ -790,7 +763,7 @@ class Player:
 
         # gravity ------------------------------------------------------------------------------------------------------
         if not self.speed_dash_activated:
-            if self.no_gravity:
+            if self.no_gravity or self.dead:
                 self.vel_y = dy
             else:
                 self.vel_y += 0.6 * fps_adjust
@@ -804,15 +777,8 @@ class Player:
         temp_rect = self.sack_rect
         temp_rect.x += (self.vel_x + 0.5)
 
-        if self.dead:
-            x_adjust = 15
-            sack_width = 2
-        else:
-            x_adjust = 0
-            sack_width = self.sack_width
-
         for tile in tile_list:
-            if tile[1].colliderect(temp_rect.x + x_adjust + dx, temp_rect.y, sack_width, self.sack_height):
+            if tile[1].colliderect(temp_rect.x + self.vel_x, temp_rect.y, self.sack_width, self.sack_height):
                 hit_list_x.append(tile)
 
         if self.sack_rect.x + 20 > self.right_border:
@@ -842,12 +808,13 @@ class Player:
 
         if (self.col_types['left'] or self.col_types['right']) and self.speed_dash_activated:
             self.speed_dash_activated = False
-            self.speed_dash = False
+            if not gem_equipped:
+                self.speed_dash = False
             self.vel_y = -10
 
         hit_list_y = []
         for tile in tile_list:
-            if tile[1].colliderect(self.sack_rect.x + x_adjust, self.sack_rect.y + dy, sack_width, self.sack_height):
+            if tile[1].colliderect(self.sack_rect.x, self.sack_rect.y + dy, self.sack_width, self.sack_height):
                 hit_list_y.append(tile)
 
         self.on_ground_counter -= 1
@@ -865,6 +832,7 @@ class Player:
                 self.first_collision = True
                 self.on_ground_counter = self.default_on_ground_counter
                 self.animate_walk = True
+                self.speed_dash_landed = True
             if dy < 0:
                 self.sack_rect.top = tile[1].bottom
                 dy = 0
@@ -873,10 +841,7 @@ class Player:
 
         # mushroom collisions
         for mushroom in shockwave_mush_list:
-            if fps_adjust >= 2:
-                y_movement = dy
-            else:
-                y_movement = 0
+            y_movement = dy / 2
             if mushroom[1].colliderect(self.sack_rect.x + 7,
                                        self.sack_rect.y + y_movement, 6, self.sack_height)\
                     and not self.dead and dy > 1 and self.sack_rect.y < mushroom[1][1] and mushroom[3] == 0:
@@ -909,7 +874,7 @@ class Player:
                                            self.camera_movement_x, self.camera_movement_y)
 
         # updating player coordinates ----------------------------------------------------------------------------------
-        self.camera_movement_x = round(-self.vel_x)
+        self.camera_movement_x = round(-self.vel_x * fps_adjust)
         dx = 0
         if self.sack_rect.y > 180 and dy * fps_adjust > 0:
             self.camera_falling_assist = True
@@ -977,7 +942,7 @@ class Player:
 
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================
     def blit_player(self, screen, draw_hitbox, fps_adjust):
-        particle_x = self.sack_rect.x - 8
+        particle_x = self.sack_rect.x - 7
         self.init_flash = False
 
         # player flickering when taking damage (not in use because it doesn't look that good)
@@ -1013,9 +978,6 @@ class Player:
             self.sack_img = pygame.transform.scale(self.sack_img,
                                                    (width,
                                                     height - (2 - abs(self.squash_counter_y))))
-            self.sack_damage_img = pygame.transform.scale(self.sack_damage_img,
-                                                          (width,
-                                                           height - (2 - abs(self.squash_counter_y))))
             squash_offset = 2 - abs(self.squash_counter_y)
         else:
             squash_offset = 0
@@ -1062,7 +1024,7 @@ class Player:
             for i in range(3):
                 y = -math.sin((1/4) * (self.speed_dash_sine_counter + offset)) * (offset/5)
                 x -= 5 - self.speed_dash_sine_offset_counter
-                pygame.draw.circle(self.speed_dash_animation_surface, (234, 212, 170), (x, y + 15), radius, 0)
+                pygame.draw.circle(self.speed_dash_animation_surface, (234, 212, 170), (x, y + 10), radius, 0)
                 offset += 5
                 radius -= 2
 
@@ -1086,9 +1048,15 @@ class Player:
 
                 self.sack_img = pygame.transform.flip(sack_speed_dash_img, True, False)
 
+        if self.dead:
+            self.blit_plr = death_animation_counter(self, fps_adjust)
+
+        if self.dead:
+            self.sack_img = self.sack_silhouette
+
         # drawing player onto the screen
         if self.blit_plr:
-            screen.blit(self.sack_img, (self.sack_rect.x - self.sack_offset, self.sack_rect.y + squash_offset))
+            screen.blit(self.sack_img, (self.sack_rect.x - 1 - self.sack_offset, self.sack_rect.y - 4 + squash_offset))
 
         if draw_hitbox:
             pygame.draw.rect(screen, (255, 255, 255), self.sack_rect, 1)
@@ -1122,9 +1090,7 @@ class Player:
                 y_letter_offset = 0
                 img = letter[0]
                 if 10 > letter[1] > 0:
-                    y_letter_offset = 10 - letter[1]
-                    scale = 1 / y_letter_offset
-                    img = pygame.transform.scale(letter[0], (5 * scale, 9 * scale))
+                    y_letter_offset = -abs(5 - abs(-5 + (letter[1])))
                 if 100 > letter[1] > 90:
                     y_letter_offset = -abs(5 - abs(-5 + (letter[1] - 90)))
                 if letter[1] >= 100:

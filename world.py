@@ -48,7 +48,7 @@ class CircleAnimation:
 
     def draw_circle_animation(self, position, screen, fps_adjust):
         self.counter += 0.8 * fps_adjust
-        self.radius_speed -= 0.1
+        self.radius_speed -= 0.1 * fps_adjust
         if self.radius_speed < 0:
             self.radius_speed = 0
         self.radius1 += self.radius_speed * fps_adjust
@@ -82,6 +82,7 @@ class World:
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.tile_list = []
+        self.tile_pos_list = []
         self.next_level_list = []
         self.portal1_list = []
         self.bear_trap_rect_list = []
@@ -168,6 +169,20 @@ class World:
         self.dirt_patch = self.dirt_tile_top_edge
         self.dirt_patch_right = self.dirt_tile_top_edge
         self.dirt_patch_left = self.dirt_tile_top_edge
+
+        self.tiles = {
+            (True, True, True, True): self.dirt,
+            (False, True, True, True): self.dirt_tile_top_edge,
+            (True, False, True, True): self.dirt_tile_right_edge,
+            (True, True, False, True): self.dirt_tile_btm_edge,
+            (True, True, True, False): self.dirt_tile_left_edge,
+            (False, True, True, False): self.dirt_tile_left,
+            (False, False, True, True): self.dirt_tile_right,
+            (True, False, False, True): self.dirt_tile_btm_right,
+            (True, True, False, False): self.dirt_tile_btm_left,
+            (True, False, True, False): self.dirt_tile_two_edges,
+            (False, False, True, False): self.dirt_tile_two_corners,
+        }
 
         # bear trap tile images ----------------------------------------------------------------------------------------
         self.bear_trap_shut_img = img_loader('data/images/bear_trap_shut.PNG', tile_size, tile_size / 2)
@@ -283,6 +298,7 @@ class World:
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.tile_list = []
+        self.tile_pos_list = []
         self.next_level_list = []
         self.portal1_list = []
         self.bear_trap_rect_list = []
@@ -331,12 +347,12 @@ class World:
         # TILE DATA ENCODING SYSTEM ====================================================================================
         # 10 - gem
         # 11 - dirt
-        # 12 - dirt tile
-        # 13 - dirt tile top right
-        # 14 - dirt tile top left
-        # 15 - dirt tile on both sides
-        # 16 - dirt tile bottom right
-        # 17 - dirt tile bottom left
+        # 12 - free tile
+        # 13 - free tile
+        # 14 - free tile
+        # 15 - free tile
+        # 16 - free tile
+        # 17 - free tile
         # 18 - wheat
         # 19 - fake bee hive
         # 20 - portal
@@ -349,9 +365,9 @@ class World:
         # 27 - hot lava stop
         # 28 - real bee hive
         # 29 - shockwave mushroom
-        # 30 - dirt tile bottom
-        # 31 - dirt tile right
-        # 32 - dirt tile left
+        # 30 - free tile
+        # 31 - free tile
+        # 32 - free tile
         # 33 - short grass
         # 34 - short grass left
         # 35 - short grass right
@@ -368,7 +384,6 @@ class World:
         # 46 - lettuce patch
 
         lava_start = []
-        lava_stop = []
 
         for row in self.data:
             column_count = start_x
@@ -389,32 +404,8 @@ class World:
                     self.gem_list.append(tile)
                 if tile == 11:
                     # dirt
-                    tile = img_rect_pos(pygame.transform.rotate(self.dirt, random.choice(self.angles)),
-                                        column_count, row_count)
-                    self.tile_list.append(tile)
-                if tile == 12:
-                    # dirt top
-                    tile = img_rect_pos(self.dirt_tile_top_edge, column_count, row_count)
-                    self.tile_list.append(tile)
-                if tile == 13:
-                    # dirt top right
-                    tile = img_rect_pos(self.dirt_tile_right, column_count, row_count)
-                    self.tile_list.append(tile)
-                if tile == 14:
-                    # dirt top left
-                    tile = img_rect_pos(self.dirt_tile_left, column_count, row_count)
-                    self.tile_list.append(tile)
-                if tile == 15:
-                    # dirt top both sides
-                    tile = img_rect_pos(self.dirt_tile_two_corners, column_count, row_count)
-                    self.tile_list.append(tile)
-                if tile == 16:
-                    # dirt bottom right
-                    tile = img_rect_pos(self.dirt_tile_btm_right, column_count, row_count)
-                    self.tile_list.append(tile)
-                if tile == 17:
-                    # dirt bottom left
-                    tile = img_rect_pos(self.dirt_tile_btm_left, column_count, row_count)
+                    tile = img_rect_pos(self.dirt, column_count, row_count)
+                    self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.tile_list.append(tile)
                 if tile == 18:
                     # wheat
@@ -463,6 +454,7 @@ class World:
                     img_rectangle.x = column_count * tile_size
                     img_rectangle.y = row_count * tile_size
                     tile = (img, img_rectangle)
+                    self.tile_pos_list.append([img_rectangle.x, img_rectangle.y])
                     self.tile_list.append(tile)
                 if tile == 22:
                     # dirt tile two side edge
@@ -610,9 +602,11 @@ class World:
                         # set lava left
                         img = self.set_lava_left
                         img_rect = img.get_rect()
-                        img_rect.x = column_count * tile_size
+                        img_rect.width = tile_size - 10
+                        img_rect.x = column_count * tile_size + 10
                         img_rect.y = row_count * tile_size + tile_size - 5
-                        tile = (img, img_rect)
+                        offset = -10
+                        tile = (img, img_rect, offset)
                         self.set_lava_list.append(tile)
                 if tile == 38:
                     if self.world_count in [1, 2]:
@@ -635,9 +629,11 @@ class World:
                         # set lava right
                         img = self.set_lava_right
                         img_rect = img.get_rect()
+                        img_rect.width = tile_size - 10
                         img_rect.x = column_count * tile_size
                         img_rect.y = row_count * tile_size + tile_size - 5
-                        tile = (img, img_rect)
+                        offset = 0
+                        tile = (img, img_rect, offset)
                         self.set_lava_list.append(tile)
                 if tile == 39:
                     if self.world_count in [1, 2]:
@@ -662,7 +658,8 @@ class World:
                         img_rect = img.get_rect()
                         img_rect.x = column_count * tile_size
                         img_rect.y = row_count * tile_size + tile_size - 5
-                        tile = (img, img_rect)
+                        offset = 0
+                        tile = (img, img_rect, offset)
                         self.set_lava_list.append(tile)
                 if tile == 40:
                     # log
@@ -726,6 +723,26 @@ class World:
                 self.level_length += 1
             row_count += 1
             self.level_height += 1
+
+        for tile in self.tile_list:
+            #    0
+            # 3 [ ] 1
+            #    2
+            tile_edge_data = [True, True, True, True]
+            # checking if there is a tile behind
+            if [tile[1].x - tile_size, tile[1].y] not in self.tile_pos_list:
+                tile_edge_data[3] = False
+            # checking if there is a tile in front
+            if [tile[1].x + tile_size, tile[1].y] not in self.tile_pos_list:
+                tile_edge_data[1] = False
+            # checking if there is a tile above
+            if [tile[1].x, tile[1].y - tile_size] not in self.tile_pos_list:
+                tile_edge_data[0] = False
+            # checking if there is a tile beneath
+            if [tile[1].x, tile[1].y + tile_size] not in self.tile_pos_list:
+                tile_edge_data[2] = False
+            if tile[0] == self.dirt:
+                tile[0] = self.tiles[tuple(tile_edge_data)]
 
         # background tiles ---------------------------------------------------------------------------------------------
         self.bg_surface = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
@@ -823,7 +840,7 @@ class World:
     def draw_tile_list(self, screen):
         for tile in self.tile_list:
             if - tile_size < tile[1][0] < swidth:
-                if - tile_size * 2 < tile[1][1] < sheight:
+                if - tile_size * 3 < tile[1][1] < sheight:
                     screen.blit(tile[0], tile[1])
 
     # functions for drawing animated or interactive tiles and enemies ==================================================
@@ -892,7 +909,7 @@ class World:
                 set_lava_harm = True
             if - tile_size < tile[1][0] < swidth:
                 if - tile_size * 2 < tile[1][1] < sheight:
-                    screen.blit(tile[0], tile[1])
+                    screen.blit(tile[0], (tile[1][0] + tile[2], tile[1][1]))
         return set_lava_harm
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -903,7 +920,7 @@ class World:
             package[4] -= 1 * fps_adjust
             package[0].fill((0, 0, 0))
             package[0].blit(package[7], (0, 7))
-            if sack_rect.colliderect(package[1][0], package[1][1], package[3], tile_size - 7):
+            if sack_rect.colliderect(package[1][0], package[1][1] + 10, package[3], tile_size - 10):
                 hot_lava_harm = True
                 if not package[6]:
                     package[4] = 120
@@ -929,8 +946,10 @@ class World:
                         pygame.draw.line(package[0], (0, 0, 0), (x, 7 - y_lava_offset), (x, 7))
 
                     package[0].set_at(((package[5] - (pixel - 47)), 7 - y_lava_offset), (255, 0, 0))
-                pygame.draw.line(package[0], (255, 0, 0), (0, 7), (package[5] - 47, 7))
-                pygame.draw.line(package[0], (255, 0, 0), (package[5] + 47, 7), (package[3], 7))
+                if package[5] - 47 > 0:
+                    pygame.draw.line(package[0], (255, 0, 0), (0, 7), (package[5] - 47, 7))
+                if package[3] > package[5] + 47:
+                    pygame.draw.line(package[0], (255, 0, 0), (package[5] + 47, 7), (package[3], 7))
             else:
                 pygame.draw.line(package[0], (255, 0, 0), (0, 7),
                                  (package[3], 7))
@@ -1227,8 +1246,7 @@ class World:
         for list_of_wheat in self.wheat_list:
             for wheat_pos in list_of_wheat:
                 y = wheat_pos[1]
-                if wheat_pos.colliderect(sack_rect.x - 1, sack_rect.y, sack_rect.width + 2, sack_rect.height):
-
+                if wheat_pos.colliderect(sack_rect.x - 4, sack_rect.y, sack_rect.width + 8, sack_rect.height):
                     y += 6
                 screen.blit(self.wheat, (wheat_pos[0], y))
 

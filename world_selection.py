@@ -1,4 +1,5 @@
 import pygame
+import json
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
@@ -13,6 +14,15 @@ swidth = 352
 class LevelSelection:
     def __init__(self, world_count):
         button_size = tile_size * 0.75
+
+        progress_loading_error = False
+        try:
+            with open('data/unlocked_worlds.json', 'r') as json_file:
+                self.world_status = json.load(json_file)
+
+        except Exception:
+            progress_loading_error = True
+            self.world_status = [True, False, False, False]
 
         self.world_count = world_count
 
@@ -49,37 +59,43 @@ class LevelSelection:
         self.lb_button = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
         self.lb_button_press = img_loader('data/images/buttons/button_lb_press.PNG', tile_size / 2, tile_size / 2)
 
-        self.tut = Text()
-        self.tutorial = self.tut.make_text(["'tutorial'"])
+        tutorial_txt = Text().make_text(["'tutorial'"])
 
-        self.tut_desc = Text()
-        self.tutorial_description = self.tut_desc.make_text(["learn the basics the game"])
+        tutorial_description = Text().make_text(["learn the basics the game"])
 
-        self.wrld1 = Text()
-        self.world1_txt = self.wrld1.make_text(["'world 1'"])
+        world1_txt = Text().make_text(["'world 1'"])
 
-        self.wrld1_desc = Text()
-        self.world1_description = self.wrld1_desc.make_text(["a run through 'climbton farm' where bees are kept"])
+        world1_description = Text().make_text(["a run through 'climbton farm' where bees are kept"])
 
-        self.wrld2 = Text()
-        self.world2_txt = self.wrld2.make_text(["'world 2'"])
+        world2_txt = Text().make_text(["'world 2'"])
 
-        self.wrld2_desc = Text()
-        self.world2_description = self.wrld2_desc.make_text(["coming soon..."])
-        # caves stretching below the farm, bats live there
+        world2_description = Text().make_text(["lava caves beneath the farm, numerous sightings of bats"])
 
-        self.wrld3 = Text()
-        self.world3_txt = self.wrld3.make_text(["'world 3'"])
+        world3_txt = Text().make_text(["'world 3'"])
 
-        self.wrld3_desc = Text()
-        self.world3_description = self.wrld3_desc.make_text(["coming soon..."])
-        # an ancient forest with ancient inhabitants
+        world3_description = Text().make_text(["home run, literally"])
+
+        self.world_locked_txt = Text().make_text(['WORLD LOCKED'])
+
+        self.descriptions = {
+            0: tutorial_description,
+            1: world1_description,
+            2: world2_description,
+            3: world3_description
+        }
+
+        self.titles = {
+            0: tutorial_txt,
+            1: world1_txt,
+            2: world2_txt,
+            3: world3_txt
+        }
 
         spacing = 20
         self.button_y = sheight / 3
 
-        self.left_x = swidth / 2 - self.world1_txt.get_width() / 2 - spacing - button_size
-        self.right_x = swidth / 2 + self.world1_txt.get_width() / 2 + spacing
+        self.left_x = swidth / 2 - world1_txt.get_width() / 2 - spacing - button_size
+        self.right_x = swidth / 2 + world1_txt.get_width() / 2 + spacing
 
         menu_w = self.menu_button.get_width()
         play_w = self.play_button.get_width()
@@ -117,9 +133,6 @@ class LevelSelection:
         over2 = False
         over3 = False
         over4 = False
-
-        text = self.world1_txt
-        description = self.world1_description
 
         for event in events:
             if event.type == pygame.JOYAXISMOTION:
@@ -205,7 +218,7 @@ class LevelSelection:
             level_screen.blit(bumper2, (self.right_x + 4, self.button_y + 2))
 
         menu_press, over3 = self.menu_btn.draw_button(level_screen, False, mouse_adjustment, events, joystick_over1)
-        if self.world_count <= 3:
+        if self.world_status[self.world_count - 1]:
             play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, events,
                                                           joystick_over_1)
 
@@ -220,20 +233,13 @@ class LevelSelection:
         if self.world_count > 4:
             self.world_count = 4
 
-        if self.world_count == 1:
-            text = self.tutorial
-            description = self.tutorial_description
-        if self.world_count == 2:
-            text = self.world1_txt
-            description = self.world1_description
-        elif self.world_count == 3:
-            text = self.world2_txt
-            description = self.world2_description
-        elif self.world_count == 4:
-            text = self.world3_txt
-            description = self.world3_description
+        description = self.descriptions[self.world_count - 1]
+        title = self.titles[self.world_count - 1]
 
-        level_screen.blit(text, (swidth / 2 - text.get_width() / 2, self.button_y + 6))
+        if not self.world_status[self.world_count - 1]:
+            description = self.world_locked_txt
+
+        level_screen.blit(title, (swidth / 2 - title.get_width() / 2, self.button_y + 6))
         level_screen.blit(description, (swidth / 2 - description.get_width() / 2, self.button_y + 40))
 
         if over1 or over2 or over3 or over4:

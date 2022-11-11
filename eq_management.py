@@ -49,7 +49,7 @@ class eqManager:
         self.level_count = 1
 
         self.joystick_counter = 0
-        self.joystick_card_over_time = 1.5 * 60
+        self.joystick_card_over_time = 2 * 60
         self.joystick_over_counter = 0
 
         self.eq_button_list_length = 0
@@ -145,8 +145,10 @@ class eqManager:
         self.button_rb_press = img_loader('data/images/buttons/button_rb_press.PNG', tile_size / 2, tile_size / 2)
         self.button_lb = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
         self.button_lb_press = img_loader('data/images/buttons/button_lb_press.PNG', tile_size / 2, tile_size / 2)
-        self.use_text = Text().make_text(['USE'])
-        self.info_text = Text().make_text(['INFO'])
+        self.use_text_caps = Text().make_text(['USE'])
+        self.use_text = Text().make_text(['use'])
+        self.info_text_caps = Text().make_text(['INFO'])
+        self.info_text = Text().make_text(['info'])
 
         controller_btn_width = self.x_btn.get_width()
         controller_btn_height = self.x_btn.get_height()
@@ -498,20 +500,28 @@ class eqManager:
                     img2 = keybrd_img2
                     img_y = center_height - tile_size / 3
 
-                total_tutorial_width = img1.get_width() * 2 + self.use_text.get_width() +\
-                                        self.info_text.get_width() + 2 + gap * 4
-                tutorial_x = center_width - total_tutorial_width / 2
+                if gem_equipped:
+                    total_tutorial_width = img1.get_width() * 2 + self.use_text_caps.get_width() + \
+                                           self.info_text_caps.get_width() + 2 + gap * 4
+                    tutorial_x = center_width - total_tutorial_width / 2
 
-                screen.blit(img1, (tutorial_x, img_y))
-                tutorial_x += (img1.get_width() + gap)
-                screen.blit(self.use_text, (tutorial_x, center_height + 5))
-                tutorial_x += (self.use_text.get_width() + gap)
-                pygame.draw.line(screen, (255, 255, 255), (tutorial_x, center_height - 2),
-                                 (tutorial_x, center_height + tile_size / 2 + 2))
-                tutorial_x += (1 + gap)
-                screen.blit(img2, (tutorial_x, img_y))
-                tutorial_x += (img2.get_width() + gap)
-                screen.blit(self.info_text, (tutorial_x, center_height + 5))
+                    screen.blit(img1, (tutorial_x, img_y))
+                    tutorial_x += (img1.get_width() + gap)
+                    screen.blit(self.use_text_caps, (tutorial_x, center_height + 5))
+                    tutorial_x += (self.use_text_caps.get_width() + gap)
+                    pygame.draw.line(screen, (255, 255, 255), (tutorial_x, center_height - 2),
+                                     (tutorial_x, center_height + tile_size / 2 + 2))
+                    tutorial_x += (1 + gap)
+                    screen.blit(img2, (tutorial_x, img_y))
+                    tutorial_x += (img2.get_width() + gap)
+                    screen.blit(self.info_text_caps, (tutorial_x, center_height + 5))
+                else:
+                    total_tutorial_width = img1.get_width() + self.info_text_caps.get_width() + gap
+                    tutorial_x = center_width - total_tutorial_width / 2
+
+                    screen.blit(img2, (tutorial_x, img_y))
+                    tutorial_x += (img2.get_width() + gap)
+                    screen.blit(self.info_text_caps, (tutorial_x, center_height + 5))
 
             elif (not self.card_checked or gem_equipped) and player_moved:
                 if not joystick_connected:
@@ -549,7 +559,8 @@ class eqManager:
                 for card in self.eq_button_list:
                     arrow_x = card[2] + (tile_size - tile_size / 4)
                     arrow_y = sheight - 42
-                    screen.blit(self.white_arrow_down, (arrow_x, arrow_y + y_arrow_offset))
+                    if not self.card_info and not self.card_checked:
+                        screen.blit(self.white_arrow_down, (arrow_x, arrow_y + y_arrow_offset))
 
         # CARD INFO ----------------------------------------------------------------------------------------------------
         if self.card_info:
