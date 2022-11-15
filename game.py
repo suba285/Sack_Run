@@ -183,8 +183,8 @@ class Game:
         tip2_txt = Text().make_text(['Use cards to gain special abilities.'])
         tip3_txt = Text().make_text(['Collect gems to use cards.'])
 
-        self.controls_popup_text_surface = pygame.Surface((tip1_txt.get_width() + 6, 180))
-        self.controls_popup_text_space = pygame.Surface((tip1_txt.get_width() + 6, 115))
+        self.controls_popup_text_surface = pygame.Surface((tip1_txt.get_width() + 6, 180)).convert_alpha()
+        self.controls_popup_text_space = pygame.Surface((tip1_txt.get_width() + 6, 115)).convert_alpha()
         self.popup_bg_colour = img_loader('data/images/popup_bg.PNG', self.controls_popup_text_space.get_width(),
                                      self.controls_popup_text_space.get_width())
         self.controls_popup_text_space.blit(self.popup_bg_colour, (0, 0))
@@ -283,14 +283,16 @@ class Game:
             with open('data/collected_cards.json', 'r') as json_file:
                 self.eq_power_list = json.load(json_file)
 
-        except Exception:
+        except FileNotFoundError:
+            if world_count == 2:
+                self.eq_power_list = ["mid-air_jump"]
             self.eq_power_list = []
 
         self.nums_to_unlocked_world_data = {
-            1: [True, True, False, False],
-            2: [True, True, True, False],
-            3: [True, True, True, True],
-            4: [True, True, True, True]
+            1: 1,
+            2: 2,
+            3: 3,
+            4: 3
         }
 
         # variables ----------------------------------------------------------------------------------------------------
@@ -455,8 +457,6 @@ class Game:
 
         play_music = False
 
-        screen_shake = False
-
         popup_lvl_completed_press = False
 
         # new card animation
@@ -525,7 +525,7 @@ class Game:
         else:
             self.game_screen.fill(self.cave_background_colour)
         self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, sack_direction)
-        self.world.draw_background(self.game_screen, self.camera_move_x, self.camera_move_y)
+        self.world.draw_bg_tile_list(self.game_screen)
         self.world.draw_log(self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
         self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
                                     self.camera_move_x, self.camera_move_y)
@@ -723,7 +723,7 @@ class Game:
                         try:
                             with open('data/collected_cards.json', 'w') as json_file:
                                 json.dump(self.eq_power_list, json_file)
-                        except Exception:
+                        except FileNotFoundError:
                             power_list_not_saved_error = True
 
         else:
@@ -734,24 +734,31 @@ class Game:
 
         if popup_lvl_completed_press:
             try:
+                with open('data/unlocked_worlds.json', 'r') as json_file:
+                    unlocked_world_data = json.load(json_file)
+            except FileNotFoundError:
+                unlocked_world_data = [True, False, False, False]
+            unlocked_world_data[self.nums_to_unlocked_world_data[world_count]] = True
+            try:
                 with open('data/unlocked_worlds.json', 'w') as json_file:
-                    json.dump(self.nums_to_unlocked_world_data[world_count], json_file)
-            except Exception:
+                    json.dump(unlocked_world_data, json_file)
+            except FileNotFoundError:
                 progress_not_saved_error = True
 
         # new level transition -----------------------------------------------------------------------------------------
         self.player.draw_transition(fps_adjust)
 
         # sounds -------------------------------------------------------------------------------------------------------
+        if world_count == 3 and not self.music_playing:
+            self.music_playing = True
+            play_music = True
+
         if world_count == 2 and not self.music_playing:
             self.music_playing = True
             play_music = True
 
         if world_count == 1 and not self.music_playing:
             self.music_playing = True
-            play_music = True
-
-        if restart_level:
             play_music = True
 
         # returns

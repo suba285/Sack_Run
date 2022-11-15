@@ -32,7 +32,7 @@ try:
     with open('data/controllers.json', 'r') as json_file:
         controllers = json.load(json_file)
 
-except Exception:
+except FileNotFoundError:
     settings_not_loaded_error = True
     controllers = {}
 
@@ -40,7 +40,7 @@ try:
     with open('data/settings_configuration.json', 'r') as json_file:
         settings_counters = json.load(json_file)
 
-except Exception:
+except FileNotFoundError:
     settings_not_loaded_error = True
 
     settings_counters = {
@@ -89,15 +89,15 @@ settings_counters['resolution'] = resolution_counter
 recommended_res_counter = resolution_counter
 
 # screens (surfaces)
-window = pygame.display.set_mode((wiwidth, wiheight), pygame.SCALED)
-screen = pygame.Surface((swidth, sheight), pygame.SCALED)
+window = pygame.display.set_mode((wiwidth, wiheight), pygame.SCALED, pygame.HWACCEL)
+screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
 screen.set_alpha(0)
 screen_alpha = 0
-main_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
-menu_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
-pause_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
-level_selection_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
-settings_screen = pygame.Surface((swidth, sheight), pygame.SCALED)
+main_screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
+menu_screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
+pause_screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
+level_selection_screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
+settings_screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
 
 pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
 
@@ -210,7 +210,7 @@ sounds['world_completed'].set_volume(0.6)
 music = {
     '1': 'game_song1',
     '2': 'game_song2',
-    '3': 'game_song2'
+    '3': 'game_song3'
 }
 
 music_volumes = {
@@ -382,7 +382,7 @@ while run:
     last_fps_adjust = fps_adjust
     display_fps = round(real_fps)
 
-    clock.tick(fps)
+    clock.tick(60)
 
     # joystick variables and counters
     joystick_moved = False

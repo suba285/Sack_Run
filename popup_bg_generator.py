@@ -6,7 +6,7 @@ def popup_bg_generator(dimensions):
     width = dimensions[0]
     height = dimensions[1]
 
-    surface = pygame.Surface((width + 8, height + 8))
+    surface = pygame.Surface((width + 8, height + 8), pygame.HWACCEL).convert_alpha()
 
     corner1 = img_loader('data/images/popup_corner.PNG', 4, 4)
     corner2 = pygame.transform.rotate(corner1, 90)

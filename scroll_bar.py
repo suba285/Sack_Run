@@ -3,7 +3,7 @@ import pygame
 
 class ScrollBar:
     def __init__(self, height, space_height, content_height, position):
-        self.scrollbar_surface = pygame.Surface((4, height))
+        self.scrollbar_surface = pygame.Surface((4, height)).convert_alpha()
         self.scrollbar_surface_rect = self.scrollbar_surface.get_rect()
         self.scrollbar_surface_rect.x = position[0]
         self.scrollbar_surface_rect.y = position[1]
@@ -12,7 +12,7 @@ class ScrollBar:
         self.scrollbar_surface.set_alpha(self.surf_alpha)
         self.scrollbar_colour = (62, 43, 75)
         self.ratio = space_height / content_height
-        self.scroll_button = pygame.Surface((4, self.ratio * height))
+        self.scroll_button = pygame.Surface((4, self.ratio * height)).convert_alpha()
         self.scroll_button_default_colour = (198, 198, 198)
         self.scroll_button_over_colour = (255, 255, 255)
         self.scroll_button.fill(self.scroll_button_default_colour)

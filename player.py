@@ -139,32 +139,60 @@ def magic_animation(self, screen, counter, particle_x):
 class Player:
     def __init__(self, screen, controls, settings_counters, world_count):
         # player sprite assets -----------------------------------------------------------------------------------------
-        self.sack0f = img_loader('data/images/sack0.PNG', player_size_x, player_size_y)
-        self.sack1f = img_loader('data/images/sack1.PNG', player_size_x, player_size_y)
-        self.sack2f = img_loader('data/images/sack2.PNG', player_size_x, player_size_y)
-        self.sack0b = pygame.transform.flip(self.sack0f, True, False)
-        self.sack1b = pygame.transform.flip(self.sack1f, True, False)
-        self.sack2b = pygame.transform.flip(self.sack2f, True, False)
-        self.sack_blinkf = img_loader('data/images/sack_eyes_closed.PNG', player_size_x, player_size_y)
-        self.sack_lookf = img_loader('data/images/sack_side_look.PNG', player_size_x, player_size_y)
-        self.sack_jumpf = img_loader('data/images/sack_jumping.PNG', player_size_x, player_size_y)
-        self.sack_jumpb = pygame.transform.flip(self.sack_jumpf, True, False)
-        self.sack_jump1f = img_loader('data/images/sack_jumping1.PNG', tile_size, tile_size)
-        self.sack_jump2f = img_loader('data/images/sack_jumping2.PNG', tile_size, tile_size)
-        self.sack_jump3f = img_loader('data/images/sack_jumping3.PNG', tile_size, tile_size)
-        self.sack_jump1b = pygame.transform.flip(self.sack_jump1f, True, False)
-        self.sack_jump2b = pygame.transform.flip(self.sack_jump2f, True, False)
-        self.sack_jump3b = pygame.transform.flip(self.sack_jump3f, True, False)
-        self.sack_blinkb = pygame.transform.flip(self.sack_blinkf, True, False)
-        self.sack_lookb = pygame.transform.flip(self.sack_lookf, True, False)
-        self.sack_speed_dash1 = img_loader('data/images/sack_speed_dash1.PNG', player_size_x, 22)
-        self.sack_speed_dash2 = img_loader('data/images/sack_speed_dash2.PNG', player_size_x, 22)
-        self.sack_speed_dash3 = img_loader('data/images/sack_speed_dash3.PNG', player_size_x, 22)
-        self.sack_speed_dash4 = img_loader('data/images/sack_speed_dash4.PNG', player_size_x, 22)
-        self.sack_img = self.sack0f
+        self.sack = img_loader('data/images/sack_animations/sack.PNG', player_size_x, player_size_y)
+        self.sack_idle1 = {
+            1: img_loader('data/images/sack_animations/sack_idle1/sack1.PNG', player_size_x, player_size_y),
+            2: img_loader('data/images/sack_animations/sack_idle1/sack2.PNG', player_size_x, player_size_y),
+            3: img_loader('data/images/sack_animations/sack_idle1/sack3.PNG', player_size_x, player_size_y),
+            4: img_loader('data/images/sack_animations/sack_idle1/sack4.PNG', player_size_x, player_size_y),
+        }
+        self.sack_idle2 = {
+            1: img_loader('data/images/sack_animations/sack_idle2/sack1.PNG', player_size_x, player_size_y),
+            2: img_loader('data/images/sack_animations/sack_idle2/sack2.PNG', player_size_x, player_size_y),
+            3: img_loader('data/images/sack_animations/sack_idle2/sack3.PNG', player_size_x, player_size_y),
+            4: img_loader('data/images/sack_animations/sack_idle2/sack2.PNG', player_size_x, player_size_y),
+            5: img_loader('data/images/sack_animations/sack_idle2/sack1.PNG', player_size_x, player_size_y),
+        }
+        self.sack_walk = {
+            1: img_loader('data/images/sack_animations/sack_walk/sack1.PNG', player_size_x, player_size_y),
+            2: img_loader('data/images/sack_animations/sack_walk/sack2.PNG', player_size_x, player_size_y),
+            3: img_loader('data/images/sack_animations/sack_walk/sack3.PNG', player_size_x, player_size_y),
+            4: img_loader('data/images/sack_animations/sack_walk/sack4.PNG', player_size_x, player_size_y),
+            5: img_loader('data/images/sack_animations/sack_walk/sack5.PNG', player_size_x, player_size_y),
+            6: img_loader('data/images/sack_animations/sack_walk/sack6.PNG', player_size_x, player_size_y),
+            7: img_loader('data/images/sack_animations/sack_walk/sack7.PNG', player_size_x, player_size_y),
+            8: img_loader('data/images/sack_animations/sack_walk/sack8.PNG', player_size_x, player_size_y),
+        }
+        self.sack_jump = {
+            1: img_loader('data/images/sack_animations/sack_jump/sack1.PNG', player_size_x, player_size_y),
+            2: img_loader('data/images/sack_animations/sack_jump/sack2.PNG', player_size_x, player_size_y),
+            3: img_loader('data/images/sack_animations/sack_jump/sack3.PNG', player_size_x, player_size_y),
+            4: img_loader('data/images/sack_animations/sack_jump/sack4.PNG', player_size_x, player_size_y),
+            5: img_loader('data/images/sack_animations/sack_jump/sack5.PNG', player_size_x, player_size_y),
+            6: img_loader('data/images/sack_animations/sack_jump/sack6.PNG', player_size_x, player_size_y),
+        }
+        self.sack_speed_dash = {
+            1: img_loader('data/images/sack_animations/sack_speed_dash/sack1.PNG', player_size_x, 22),
+            2: img_loader('data/images/sack_animations/sack_speed_dash/sack2.PNG', player_size_x, 22),
+            3: img_loader('data/images/sack_animations/sack_speed_dash/sack3.PNG', player_size_x, 22),
+            4: img_loader('data/images/sack_animations/sack_speed_dash/sack4.PNG', player_size_x, 22)
+        }
+        self.sack_speed_dash_transition = {
+            1: img_loader('data/images/sack_animations/sack_speed_dash_transition/sack1.PNG',
+                          player_size_x, player_size_y),
+            2: img_loader('data/images/sack_animations/sack_speed_dash_transition/sack2.PNG',
+                          player_size_x, player_size_y),
+            3: img_loader('data/images/sack_animations/sack_speed_dash_transition/sack3.PNG',
+                          player_size_x, player_size_y),
+            4: img_loader('data/images/sack_animations/sack_speed_dash_transition/sack4.PNG',
+                          player_size_x, player_size_y),
+        }
+
+        self.sack_img = self.sack
         self.sack_rect = pygame.Rect(0, 0, 18, 28)
         self.sack_rect.x = swidth / 2 - self.sack_rect.width / 2
         self.sack_rect.y = sheight / 2 - self.sack_rect.height / 2
+
         self.player_speed = 2.42
         self.slide = 0.4
         self.default_on_ground_counter = 6
@@ -180,46 +208,19 @@ class Player:
         self.squash_counter_x = 10
         self.squash_counter_y = 10
 
-        self.sack_silhouette = pygame.mask.Mask.to_surface(pygame.mask.from_surface(self.sack0f),
-                                                           setcolor=(255, 255, 255), unsetcolor=(0, 0, 0))
+        self.sack_silhouette = pygame.mask.Mask.to_surface(pygame.mask.from_surface(self.sack),
+                                                           setcolor=(255, 255, 255), unsetcolor=(0, 0, 0)).convert()
         self.sack_silhouette.set_colorkey((0, 0, 0))
 
         self.controls = controls
         self.settings_counters = settings_counters
         self.world_count = world_count
 
-        # player sprite death animation frames -------------------------------------------------------------------------
-        self.dead1 = img_loader('data/images/dead_sack1.PNG', tile_size, tile_size)
-        self.dead2 = img_loader('data/images/dead_sack2.PNG', tile_size, tile_size)
-        self.dead3 = img_loader('data/images/dead_sack3.PNG', tile_size, tile_size)
-        self.dead4 = img_loader('data/images/dead_sack4.PNG', tile_size, tile_size)
-        self.dead5 = img_loader('data/images/dead_sack5.PNG', tile_size, tile_size)
-        self.dead6 = img_loader('data/images/dead_sack6.PNG', tile_size, tile_size)
-
-        # speed dash transition animation frames -----------------------------------------------------------------------
-        self.dash_transition1 = img_loader('data/images/sack_speed_dash_transition1.PNG', player_size_x, player_size_y)
-        self.dash_transition2 = img_loader('data/images/sack_speed_dash_transition2.PNG', player_size_x, player_size_y)
-        self.dash_transition3 = img_loader('data/images/sack_speed_dash_transition3.PNG', player_size_x, player_size_y)
-        self.dash_transition4 = img_loader('data/images/sack_speed_dash_transition4.PNG', player_size_x, player_size_y)
-
         # teleportation particles frames -------------------------------------------------------------------------------
         self.particles1 = img_loader('data/images/particles1.PNG', tile_size, tile_size)
         self.particles2 = img_loader('data/images/particles2.PNG', tile_size, tile_size)
         self.particles3 = img_loader('data/images/particles3.PNG', tile_size, tile_size)
         self.particles4 = img_loader('data/images/particles4.PNG', tile_size, tile_size)
-
-        # card powers indicator images ---------------------------------------------------------------------------------
-        self.jump_boost_indicator = img_loader('data/images/icon_jump_boost.PNG', tile_size, tile_size)
-        self.no_gravity_indicator = img_loader('data/images/icon_no_gravity.PNG', tile_size, tile_size)
-        self.no_harm_indicator = img_loader('data/images/icon_no_harm.PNG', tile_size, tile_size)
-
-        self.jump_boost_surf = pygame.Surface((tile_size, tile_size))
-        self.no_harm_surf = pygame.Surface((tile_size, tile_size))
-        self.no_gravity_surf = pygame.Surface((tile_size, tile_size))
-
-        self.progress_bar = pygame.Surface((tile_size, 18))
-        self.progress_bar.set_alpha(128)
-        self.progress_bar.fill((0, 0, 0))
 
         # respawn instruction images and variables ---------------------------------------------------------------------
         self.respawn_text = []
@@ -261,11 +262,24 @@ class Player:
         self.no_harm_counter = 0
         self.no_harm_duration = 300
 
+        # animation variables ------------------------------------------------------------------------------------------
+        self.animation_counter = 0
+        self.walk_counter = 1
+        self.idle_counter = 1
+        self.speed_dash_counter = 1
+        self.idle_animation = 1
+        self.idle_animation_lengths = {
+            1: 4,
+            2: 5
+        }
+        self.walk_animation_speed = 3.1
+        self.idle_animation_speed = 7
+        self.speed_dash_animation_speed = 7
+
         # other player variables ---------------------------------------------------------------------------------------
-        self.walk_counter = 0
-        self.blink_counter = 0
         self.direction = 1
         self.animate_walk = True
+        self.walking = False
         self.new_level = False
         self.new_level_cooldown = 70
         self.teleport_count = 0
@@ -293,9 +307,8 @@ class Player:
         self.screen_shake_counter = 0
 
         self.speed_dash_sine_counter = 0
-        self.speed_dash_animation_counter = 0
         self.speed_dash_sine_offset_counter = 9
-        self.speed_dash_animation_surface = pygame.Surface((40, 40))
+        self.speed_dash_animation_surface = pygame.Surface((40, 40)).convert()
         self.speed_dash_animation_surface.set_colorkey((0, 0, 0))
         self.speed_dash_animation_surface.fill((0, 0, 0))
 
@@ -328,7 +341,7 @@ class Player:
         self.power_indicator_list = []
 
         # power particle variables -------------------------------------------------------------------------------------
-        self.power_particle_surface = pygame.Surface((swidth, sheight))
+        self.power_particle_surface = pygame.Surface((swidth, sheight)).convert()
         self.power_particle_surface.set_alpha(170)
         self.power_particle_list = []
         self.power_particle_counter = 0
@@ -376,9 +389,11 @@ class Player:
 
         self.damage_counter -= 1
 
+        self.animation_counter += 1 * fps_adjust
+
         self.screen_shake_counter -= 1 * fps_adjust
 
-        self.squash_counter_y += 0.5
+        self.squash_counter_y += 0.5 * fps_adjust
 
         if self.airborn:
             self.slide = 0.2
@@ -580,55 +595,41 @@ class Player:
 
             if not self.player_jump:
                 self.jumped = False
-                if not self.airborn:
-                    # standing animation
+                if not self.airborn and not self.walking:
+                    # idle animation
                     self.sack_offset = 0
-                    if self.direction == 1:
-                        self.blink_counter += 1*fps_adjust
-                        if self.blink_counter > 150:
-                            self.blink_counter = 0
-                        if self.blink_counter > 75:
-                            self.sack_img = self.sack0f
-                        elif self.blink_counter > 60:
-                            self.sack_img = self.sack_blinkf
-                        elif self.blink_counter > 30:
-                            self.sack_img = self.sack_lookf
-                        elif self.blink_counter > 15:
-                            self.sack_img = self.sack_blinkf
+                    if self.animation_counter > self.idle_animation_speed:
+                        self.idle_counter += 1
+                        self.animation_counter = 0
+                    if self.idle_counter <= self.idle_animation_lengths[self.idle_animation]:
+                        if self.idle_animation == 1:
+                            self.sack_img = self.sack_idle1[self.idle_counter]
                         else:
-                            self.sack_img = self.sack0f
-                    elif self.direction == 0:
-                        self.blink_counter += 1*fps_adjust
-                        if self.blink_counter > 150:
-                            self.blink_counter = 0
-                        if self.blink_counter > 75:
-                            self.sack_img = self.sack0b
-                        elif self.blink_counter > 60:
-                            self.sack_img = self.sack_blinkb
-                        elif self.blink_counter > 30:
-                            self.sack_img = self.sack_lookb
-                        elif self.blink_counter > 15:
-                            self.sack_img = self.sack_blinkb
-                        else:
-                            self.sack_img = self.sack0b
+                            self.sack_img = self.sack_idle2[self.idle_counter]
+                    else:
+                        self.sack_img = self.sack
+                    if self.idle_counter > 15:
+                        self.idle_animation = random.randint(1, 2)
+                        self.idle_counter = 1
+                    if self.direction == -1:
+                        self.sack_img = pygame.transform.flip(self.sack_img, True, False)
 
-            if self.airborn and not self.col_types['bottom'] and not self.speed_dash_activated:
-                if self.direction == 1:
-                    self.sack_offset = jump_offset_amount - 3
-                    if self.vel_y < -5:
-                        self.sack_img = self.sack_jump1f
-                    elif -5 < self.vel_y < 3:
-                        self.sack_img = self.sack_jump2f
-                    else:
-                        self.sack_img = self.sack_jump3f
+            if self.airborn and not self.speed_dash_activated:
+                self.sack_offset = 0
+                if self.vel_y < -9:
+                    self.sack_img = self.sack_jump[1]
+                elif self.vel_y < -7:
+                    self.sack_img = self.sack_jump[2]
+                elif self.vel_y < -5:
+                    self.sack_img = self.sack_jump[3]
+                elif -5 < self.vel_y < 3:
+                    self.sack_img = self.sack_jump[4]
+                elif self.vel_y < 5:
+                    self.sack_img = self.sack_jump[5]
                 else:
-                    self.sack_offset = jump_offset_amount + 4
-                    if self.vel_y < -5:
-                        self.sack_img = self.sack_jump1b
-                    elif -5 < self.vel_y < 3:
-                        self.sack_img = self.sack_jump2b
-                    else:
-                        self.sack_img = self.sack_jump3b
+                    self.sack_img = self.sack_jump[6]
+                if self.direction == -1:
+                    self.sack_img = pygame.transform.flip(self.sack_img, True, False)
 
             walking_left = False
             walking_right = False
@@ -654,20 +655,8 @@ class Player:
                     dx -= self.speed
                     self.vel_x_l = dx
                     self.vel_x_r = 0
-                    self.direction = 0
+                    self.direction = -1
                     self.teleport_count = 0
-                    if self.animate_walk:
-                        self.walk_counter += 0.8 * fps_adjust
-                        if self.walk_counter > 20:
-                            self.walk_counter = 0
-                        elif self.walk_counter > 15:
-                            self.sack_img = self.sack2b
-                        elif self.walk_counter > 10:
-                            self.sack_img = self.sack0b
-                        elif self.walk_counter > 5:
-                            self.sack_img = self.sack1b
-                        else:
-                            self.sack_img = self.sack0b
 
                 # walking right
                 if key[self.controls['right']] or self.joystick_right:
@@ -689,18 +678,6 @@ class Player:
                     self.vel_x_l = 0
                     self.teleport_count = 0
                     self.direction = 1
-                    if self.animate_walk:
-                        self.walk_counter += 0.8 * fps_adjust
-                        if self.walk_counter > 20:
-                            self.walk_counter = 0
-                        elif self.walk_counter > 15:
-                            self.sack_img = self.sack2f
-                        elif self.walk_counter > 10:
-                            self.sack_img = self.sack0f
-                        elif self.walk_counter > 5:
-                            self.sack_img = self.sack1f
-                        else:
-                            self.sack_img = self.sack0f
 
                 if not walking_right and not walking_left:
                     self.speed = 0
@@ -711,6 +688,25 @@ class Player:
                     self.speed_adder = 0
                     self.walk_counter = 0
 
+                if walking_left or walking_right:
+                    self.walking = True
+                else:
+                    self.walking = False
+
+                # sack walking animation
+                if (walking_right or walking_left) and self.animate_walk and not self.airborn and self.vel_x != 0:
+                    if self.animation_counter > self.walk_animation_speed:
+                        self.walk_counter += 1
+                        self.animation_counter = 0
+                    if self.walk_counter > len(self.sack_walk):
+                        self.walk_counter = 1
+                    if self.walk_counter == 0:
+                        self.sack_img = self.sack
+                    else:
+                        self.sack_img = self.sack_walk[self.walk_counter]
+                    if self.direction == -1:
+                        self.sack_img = pygame.transform.flip(self.sack_img, True, False)
+
             elif self.speed_dash_activated:
                 self.sack_rect.height = 20
                 self.sack_offset = 0
@@ -720,7 +716,9 @@ class Player:
                         self.vel_x_l -= 1 * fps_adjust
                     else:
                         self.vel_x_l = self.speed_dash_speed * self.speed_dash_direction
+                    self.direction = -1
                 elif self.speed_dash_direction == 1:
+                    self.direction = 1
                     if self.vel_x_r < self.speed_dash_speed:
                         self.vel_x_r += 1 * fps_adjust
                     else:
@@ -743,9 +741,6 @@ class Player:
 
         if self.restart_counter > 20:
             self.transition = True
-            if self.single_fadeout:
-                self.fadeout = True
-                self.single_fadeout = False
 
         if self.restart_counter > 50 and self.single_restart:
             self.restart_level = True
@@ -822,8 +817,8 @@ class Player:
         for tile in hit_list_y:
             if dy > 0:
                 self.sack_rect.bottom = tile[1].top
-                if (self.airborn or dy > 8) and self.player_moved:
-                    self.squash_counter_y = -2
+                if (self.airborn or dy > 8) and self.player_moved and self.squash_counter_y > 4:
+                    self.squash_counter_y = -3
                 dy = 0
                 self.vel_y = 0
                 self.col_types['bottom'] = True
@@ -913,33 +908,6 @@ class Player:
             if self.mid_air_jump:
                 self.mid_air_jump_counter = 1000
 
-# displaying the currently used power icon -----------------------------------------------------------------------------
-    def player_power_indicator(self, screen):
-        spacer = 0
-        for icon in self.power_indicator_list:
-            if icon == 'jump_boost':
-                percentage = self.mid_air_jumps_num / self.mid_air_jump_counter
-                bar_y = int(18 / percentage)
-                self.jump_boost_surf.blit(self.jump_boost_indicator, (0, 0))
-                self.jump_boost_surf.blit(self.progress_bar, (0, bar_y + 8))
-                self.jump_boost_surf.set_colorkey((0, 0, 0))
-                screen.blit(self.jump_boost_surf, (2*tile_size + spacer, 0))
-            elif icon == 'no_gravity':
-                percentage = self.no_gravity_duration / self.no_gravity_counter
-                bar_y = int(18 / percentage)
-                self.no_gravity_surf.blit(self.no_gravity_indicator, (0, 0))
-                self.no_gravity_surf.blit(self.progress_bar, (0, bar_y + 8))
-                self.no_gravity_surf.set_colorkey((0, 0, 0))
-                screen.blit(self.no_gravity_surf, (2*tile_size + spacer, 0))
-            elif icon == 'no_harm':
-                percentage = self.no_harm_duration / self.no_harm_counter
-                bar_y = int(18 / percentage)
-                self.no_harm_surf.blit(self.no_harm_indicator, (0, 0))
-                self.no_harm_surf.blit(self.progress_bar, (0, bar_y + 8))
-                self.no_harm_surf.set_colorkey((0, 0, 0))
-                screen.blit(self.no_harm_surf, (2*tile_size + spacer, 0))
-            spacer += 32
-
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================
     def blit_player(self, screen, draw_hitbox, fps_adjust):
         particle_x = self.sack_rect.x - 7
@@ -972,44 +940,37 @@ class Player:
         screen.blit(self.power_particle_surface, (0, 0))
 
         # landing squash
-        if -2 <= self.squash_counter_y <= 2:
-            width = self.sack_img.get_width()
-            height = self.sack_img.get_height()
+        if -3 <= self.squash_counter_y <= 3:
+            width = self.sack.get_width()
+            height = self.sack.get_height()
+            print(height)
             self.sack_img = pygame.transform.scale(self.sack_img,
                                                    (width,
-                                                    height - (2 - abs(self.squash_counter_y))))
-            squash_offset = 2 - abs(self.squash_counter_y)
+                                                    height - (3 - abs(round(self.squash_counter_y)))))
+            squash_offset = 3 - abs(self.squash_counter_y)
         else:
             squash_offset = 0
 
         # speed dash visual effects
         if self.speed_dash_activated:
+            sack_speed_dash_img = self.sack_speed_dash_transition[1]
             if self.speed_dash_sine_counter > 10:
-                sack_speed_dash_img = self.sack_speed_dash1
-                if self.speed_dash_animation_counter >= 40:
-                    self.speed_dash_animation_counter = 0
-                    sack_speed_dash_img = self.sack_speed_dash1
-                elif self.speed_dash_animation_counter >= 30:
-                    sack_speed_dash_img = self.sack_speed_dash4
-                elif self.speed_dash_animation_counter >= 20:
-                    sack_speed_dash_img = self.sack_speed_dash3
-                elif self.speed_dash_animation_counter >= 10:
-                    sack_speed_dash_img = self.sack_speed_dash2
-                elif self.speed_dash_animation_counter >= 0:
-                    sack_speed_dash_img = self.sack_speed_dash1
+                if self.animation_counter > self.speed_dash_animation_speed:
+                    self.speed_dash_counter += 1
+                    self.animation_counter = 0
+                if self.speed_dash_counter > len(self.sack_speed_dash):
+                    self.speed_dash_counter = 1
+                sack_speed_dash_img = self.sack_speed_dash[self.speed_dash_counter]
             elif self.speed_dash_sine_counter > 7:
-                sack_speed_dash_img = self.dash_transition4
+                sack_speed_dash_img = self.sack_speed_dash_transition[4]
             elif self.speed_dash_sine_counter > 5:
-                sack_speed_dash_img = self.dash_transition3
+                sack_speed_dash_img = self.sack_speed_dash_transition[3]
             elif self.speed_dash_sine_counter > 2:
-                sack_speed_dash_img = self.dash_transition2
-            elif self.speed_dash_sine_counter >= 0:
-                sack_speed_dash_img = self.dash_transition1
-            else:
-                sack_speed_dash_img = self.dash_transition1
+                sack_speed_dash_img = self.sack_speed_dash_transition[2]
+            if self.direction == -1:
+                sack_speed_dash_img = pygame.transform.flip(sack_speed_dash_img, True, False)
 
             self.speed_dash_sine_counter += 1 * fps_adjust
-            self.speed_dash_animation_counter += 1 * fps_adjust
             self.speed_dash_animation_surface.fill((0, 0, 0))
 
             radius = 9
@@ -1039,14 +1000,12 @@ class Player:
                             (self.sack_rect.x - self.speed_dash_animation_surface.get_width() + 10 - self.sack_offset,
                              self.sack_rect.y - 1))
 
-                self.sack_img = sack_speed_dash_img
-
             elif self.speed_dash_direction == -1:
                 screen.blit(pygame.transform.flip(self.speed_dash_animation_surface, True, False),
                             (self.sack_rect.x + 10 - self.sack_offset,
                              self.sack_rect.y - 1))
 
-                self.sack_img = pygame.transform.flip(sack_speed_dash_img, True, False)
+            self.sack_img = sack_speed_dash_img
 
         if self.dead:
             self.blit_plr = death_animation_counter(self, fps_adjust)

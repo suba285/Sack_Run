@@ -132,7 +132,7 @@ class Text:
                 self.longest_line = self.char_x
 
         surface_dimentions = (self.longest_line, self.char_y)
-        text_surface = pygame.Surface(surface_dimentions)
+        text_surface = pygame.Surface(surface_dimentions).convert()
         for char in self.ready_characters:
             img = char[0]
             x = char[1]
