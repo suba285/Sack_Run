@@ -397,10 +397,14 @@ while run:
         game_paused = False
         loading = False
         game_loaded = False
+        if not controller_calibration:
+            menu_events = events
+        else:
+            menu_events = []
         controller_not_configured_counter -= 1 * fps_adjust
         level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
-                                                             slow_computer, mouse_adjustment, events, fps_adjust)
+                                                             slow_computer, mouse_adjustment, menu_events, fps_adjust)
 
         # settings not saved error
         if settings_not_saved_error:
@@ -709,7 +713,7 @@ while run:
                 settings_menu.update_settings_counters(settings_counters, controls)
                 joystick_configured = False
                 controller_popup = controller_connected_no_conf_popup
-                if not run_menu and not run_settings:
+                if not run_settings:
                     controller_calibration = True
 
             try:
