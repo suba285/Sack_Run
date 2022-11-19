@@ -136,13 +136,13 @@ class LevelSelection:
 
         for event in events:
             if event.type == pygame.JOYAXISMOTION:
-                if event.axis == 0:
+                if event.axis == controls['configuration'][0]:
                     if abs(event.value) > 0.3 and not self.joystick_moved:
                         self.joystick_counter = self.joystick_counter * -1
                         self.joystick_moved = True
                     if event.value == 0:
                         self.joystick_moved = False
-                if event.axis == 1:
+                if event.axis == controls['configuration'][0] + 1:
                     if event.value > 0.3 and not self.joystick_moved:
                         if self.joystick_counter >= 1:
                             self.joystick_counter -= 1
@@ -168,10 +168,10 @@ class LevelSelection:
                     if event.value == 0:
                         self.joystick_moved = False
             if event.type == pygame.JOYBUTTONDOWN:
-                if event.button == controls['configuration'][0]:
+                if event.button == controls['configuration'][1]:
                     self.left_bumper_press = True
                     left_bumper_press = True
-                if event.button == controls['configuration'][1]:
+                if event.button == controls['configuration'][2]:
                     self.right_bumper_press = True
                     right_bumper_press = True
             if event.type == pygame.JOYBUTTONUP:

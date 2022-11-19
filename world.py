@@ -67,8 +67,7 @@ class CircleAnimation:
 
 
 class World:
-    def __init__(self, data, screen, slow_computer, bg_data, controls, settings_counters, world_count):
-        self.controls = controls
+    def __init__(self, data, screen, slow_computer, bg_data, settings_counters, world_count):
         self.settings_counters = settings_counters
 
         self.data = data

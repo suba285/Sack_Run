@@ -404,7 +404,8 @@ while run:
         controller_not_configured_counter -= 1 * fps_adjust
         level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
-                                                             slow_computer, mouse_adjustment, menu_events, fps_adjust)
+                                                             slow_computer, mouse_adjustment, menu_events, fps_adjust,
+                                                             controls['configuration'])
 
         # settings not saved error
         if settings_not_saved_error:
@@ -750,9 +751,9 @@ while run:
                 joystick_idle = True
 
         if event.type == pygame.JOYBUTTONDOWN and not controller_calibration:
-            if event.button == controls['configuration'][0] or event.button == controls['configuration'][1]:
+            if event.button == controls['configuration'][1] or event.button == controls['configuration'][2]:
                 joystick_over_card = True
-            if event.button == controls['configuration'][2] and run_game:
+            if event.button == controls['configuration'][3] and run_game:
                 run_menu = False
                 run_game = False
                 paused = True

@@ -18,7 +18,7 @@ class eqManager:
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
 
-        self.eq_controls = eq_controls
+        self.eq_controls = eq_controls['configuration']
         self.card_delete_counter = walk_counter
 
         self.card_info = False
@@ -360,13 +360,13 @@ class eqManager:
                 if event.type == pygame.MOUSEBUTTONUP:
                     mousebuttonup = True
                 if event.type == pygame.JOYBUTTONDOWN:
-                    if event.button == self.eq_controls[0]:
+                    if event.button == self.eq_controls[1]:
                         joy_bumper_pressed = True
                         self.joystick_counter -= 1
                         if self.joystick_counter < 0:
                             if card_num >= 0:
                                 self.joystick_counter = card_num
-                    if event.button == self.eq_controls[1]:
+                    if event.button == self.eq_controls[2]:
                         joy_bumper_pressed = True
                         self.joystick_counter += 1
                         if self.joystick_counter > card_num >= 0:

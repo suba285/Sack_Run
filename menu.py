@@ -83,7 +83,7 @@ class mainMenu:
                                self.settings_button_down)
 
 # UPDATING AND DRAWING MENU ============================================================================================
-    def menu(self, menu_screen, slow_computer, mouse_adjustement, events, fps_adjust):
+    def menu(self, menu_screen, slow_computer, mouse_adjustement, events, fps_adjust, joystick_controls):
 
         menu_screen.blit(self.menu_background, (0, 0))
 
@@ -92,7 +92,7 @@ class mainMenu:
         joystick_sound = False
 
         for event in events:
-            if event.type == pygame.JOYAXISMOTION and event.axis == 1:
+            if event.type == pygame.JOYAXISMOTION and event.axis == joystick_controls[0] + 1:
                 if event.value > 0.1 and not self.joystick_moved:
                     self.joystick_counter += 1
                     self.joystick_moved = True

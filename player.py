@@ -463,7 +463,7 @@ class Player:
                 if event.button == 0:
                     self.player_jump = False
             if event.type == pygame.JOYAXISMOTION:
-                if event.axis == 0:
+                if event.axis == self.controls['configuration'][0]:
                     if event.value > 0.4:
                         self.joystick_right = True
                     else:
@@ -943,7 +943,6 @@ class Player:
         if -3 <= self.squash_counter_y <= 3:
             width = self.sack.get_width()
             height = self.sack.get_height()
-            print(height)
             self.sack_img = pygame.transform.scale(self.sack_img,
                                                    (width,
                                                     height - (3 - abs(round(self.squash_counter_y)))))

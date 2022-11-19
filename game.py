@@ -351,7 +351,7 @@ class Game:
         self.change_music_counter = 0
 
         # initiating classes -------------------------------------------------------------------------------------------
-        self.world = World(world_data, self.game_screen, slow_computer, bg_data, controls,
+        self.world = World(world_data, self.game_screen, slow_computer, bg_data,
                            settings_counters, world_count)
         self.world.create_world(self.start_x, self.start_y, world_data, bg_data)
         self.player = Player(self.game_screen, self.controls, self.settings_counters, world_count)
