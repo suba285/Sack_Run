@@ -943,7 +943,7 @@ class Player:
         if -3 <= self.squash_counter_y <= 3:
             width = self.sack.get_width()
             height = self.sack.get_height()
-            print(height)
+            # print(height)
             self.sack_img = pygame.transform.scale(self.sack_img,
                                                    (width,
                                                     height - (3 - abs(round(self.squash_counter_y)))))
