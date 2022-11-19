@@ -592,7 +592,6 @@ class Player:
                     self.player_jump = False
                     self.animate_walk = False
                     self.airborn = True
-                    self.walk_counter = 1
 
             if not self.player_jump:
                 self.jumped = False
@@ -693,7 +692,6 @@ class Player:
                     self.walking = True
                 else:
                     self.walking = False
-                    self.walk_counter = 1
 
                 # sack walking animation
                 if (walking_right or walking_left) and self.animate_walk and not self.airborn and self.vel_x != 0:
@@ -945,6 +943,7 @@ class Player:
         if -3 <= self.squash_counter_y <= 3:
             width = self.sack.get_width()
             height = self.sack.get_height()
+            print(height)
             self.sack_img = pygame.transform.scale(self.sack_img,
                                                    (width,
                                                     height - (3 - abs(round(self.squash_counter_y)))))
