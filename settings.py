@@ -69,6 +69,8 @@ class SettingsMenu:
         keyboard_walk2 = img_loader('data/images/keyboard_highlights/keyboard_walk2.PNG',
                                     tile_size * 3, tile_size)
 
+        self.controller = img_loader('data/images/controller.PNG', tile_size * 2, tile_size)
+
         self.keyboard_overlays = {
             'interact1': keyboard_interact1,
             'interact2': keyboard_interact2,
@@ -161,11 +163,6 @@ class SettingsMenu:
         self.sound_effects_txt = Text().make_text(['sound effects:'])
         self.sounds_conf1 = self.off_conf
         self.sounds_conf2 = self.on_conf
-
-        self.keyboard_walk_conf = keyboard_walk1
-        self.keyboard_jump_conf = keyboard_jump1
-        self.keyboard_shockwave_conf = keyboard_shockwave1
-        self.keyboard_interact_conf = keyboard_interact1
 
         # counters -----------------------------------------------------------------------------------------------------
         self.walk_counter = settings_counters['walking']
@@ -759,13 +756,15 @@ class SettingsMenu:
                                                         self.button_start_y + 7 + self.gap * 3))
             self.control_screen.blit(self.configuration_txt, (self.center - 10 - self.configuration_txt.get_width(),
                                                         self.button_start_y + 7 + self.gap * 4))
-
-            self.control_screen.blit(self.keyboard_base, (swidth / 2 - self.keyboard_base.get_width() / 2,
-                                                          175))
-            self.control_screen.blit(self.keyboard_overlays[f'walk{self.walk_counter}'],
-                                     (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
-            self.control_screen.blit(self.keyboard_overlays[f'jump{self.jump_counter}'],
-                                     (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
+            if not joystick_connected:
+                self.control_screen.blit(self.keyboard_base, (swidth / 2 - self.keyboard_base.get_width() / 2,
+                                                              175))
+                self.control_screen.blit(self.keyboard_overlays[f'walk{self.walk_counter}'],
+                                         (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
+                self.control_screen.blit(self.keyboard_overlays[f'jump{self.jump_counter}'],
+                                         (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
+            else:
+                self.control_screen.blit(self.controller, (swidth / 2 - tile_size, 175))
 
             self.control_screen.blit(walk_text, (button_text_center - walk_text.get_width() / 2 + button_size / 2,
                                                  self.control_row1_y + 7))

@@ -493,11 +493,15 @@ while run:
     # pause ------------------------------------------------------------------------------------------------------------
     if paused:
         game_paused = True
+        if joystick_configured or not joystick_connected:
+            paused_events = events
+        else:
+            paused_events = []
         pause_screen,\
             button_sound_trigger1,\
             resume,\
             lvl_select,\
-            settings = pause_menu.draw_pause_screen(mouse_adjustment, events)
+            settings = pause_menu.draw_pause_screen(mouse_adjustment, paused_events)
 
         if lvl_select:
             run_game = False
@@ -537,13 +541,18 @@ while run:
             except Exception:
                 world_status_loading_error = True
                 level_select.world_status = [True, False, False, False]
+        if joystick_configured or not joystick_connected:
+            lvl_selection_events = events
+        else:
+            lvl_selection_events = []
         play_press,\
             menu,\
             button_sound_trigger1,\
-            world_count = level_select.draw_level_selection(level_selection_screen, mouse_adjustment, events,
+            world_count = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
+                                                            lvl_selection_events,
                                                             joystick_connected, controls)
 
-        if play_press:
+        if play_press and (joystick_configured or not joystick_connected):
             world_data = level_dictionary[f'level1_{world_count}']
             bg_data = level_bg_dictionary[f'level1_{world_count}_bg']
             threading.Thread(target=load_game, args=[world_data, bg_data, world_count, joystick_connected]).start()
@@ -626,6 +635,9 @@ while run:
                 pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
                 play_background_music = True
                 play_music = False
+            if settings_counters['music_volume'] == 1:
+                play_background_music = False
+                play_music = False
 
             try:
                 with open('data/settings_configuration.json', 'w') as json_file:
@@ -679,6 +691,7 @@ while run:
             # play = True
 
         if event.type == pygame.JOYDEVICEADDED:
+            pygame.mouse.set_visible(False)
             joystick = pygame.joystick.Joystick(event.device_index)
             joysticks[joystick.get_instance_id()] = joystick
             joystick_connected = True
@@ -688,7 +701,6 @@ while run:
                 controller_incompatible_counter = 5 * 60
             if joystick_name in controllers:
                 controller_connected_counter = 90
-                pygame.mouse.set_visible(False)
                 joystick_configured = True
                 controller_popup = controller_connected_popup
             else:
@@ -696,7 +708,6 @@ while run:
                 settings_counters['configuration'] = 1
                 settings_menu.update_settings_counters(settings_counters, controls)
                 joystick_configured = False
-                pygame.mouse.set_visible(True)
                 controller_popup = controller_connected_no_conf_popup
                 if not run_menu and not run_settings:
                     controller_calibration = True
@@ -725,6 +736,7 @@ while run:
             joystick_connected = False
             joystick_name = ''
             joystick_configured = False
+            pygame.mouse.set_visible(True)
 
         if event.type == pygame.JOYAXISMOTION:
             if joystick_idle and abs(event.value) > 0.3:
