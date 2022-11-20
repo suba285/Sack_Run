@@ -379,7 +379,7 @@ class eqManager:
                         joystick_jump_press = True
                     if (not joystick_info_press or self.card_info or joystick_jump_press) and not joy_bumper_pressed:
                         joystick_action = True
-                if event.type == pygame.JOYAXISMOTION:
+                if event.type == pygame.JOYAXISMOTION and abs(event.value) > 0.3:
                     joystick_action = True
 
         if joy_bumper_pressed:

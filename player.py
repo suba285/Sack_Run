@@ -646,7 +646,7 @@ class Player:
                 # walking left
                 if key[self.controls['left']] or self.joystick_left or hat_value[0] == -1:
                     self.player_moved = True
-                    if self.speed_dash:
+                    if self.speed_dash and not self.speed_dash_activated:
                         self.speed_dash_activated = True
                         gem_equipped = False
                         self.screen_shake_counter = 10
@@ -667,7 +667,7 @@ class Player:
                 # walking right
                 if key[self.controls['right']] or self.joystick_right or hat_value[0] == 1:
                     self.player_moved = True
-                    if self.speed_dash:
+                    if self.speed_dash and not self.speed_dash_activated:
                         self.speed_dash_activated = True
                         gem_equipped = False
                         self.screen_shake_counter = 10
