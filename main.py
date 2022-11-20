@@ -405,7 +405,7 @@ while run:
         level_selection, slow_computer, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
                                                              slow_computer, mouse_adjustment, menu_events, fps_adjust,
-                                                             controls['configuration'])
+                                                             controls['configuration'], joysticks)
 
         # settings not saved error
         if settings_not_saved_error:
@@ -468,9 +468,9 @@ while run:
             play_music_trigger,\
             fadeout_music,\
             lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
-                                          draw_hitbox, mouse_adjustment, events,
-                                          game_counter, world_count, controls, joystick_configured,
-                                          controller_calibration)
+                                                 draw_hitbox, mouse_adjustment, events,
+                                                 game_counter, world_count, controls, joystick_configured,
+                                                 controller_calibration, joysticks)
 
         if play_music_trigger:
             play_music = True
@@ -506,7 +506,7 @@ while run:
             button_sound_trigger1,\
             resume,\
             lvl_select,\
-            settings = pause_menu.draw_pause_screen(mouse_adjustment, paused_events)
+            settings = pause_menu.draw_pause_screen(mouse_adjustment, paused_events, joysticks)
 
         if lvl_select:
             run_game = False
@@ -555,7 +555,7 @@ while run:
             button_sound_trigger1,\
             world_count = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
                                                             lvl_selection_events,
-                                                            joystick_connected, controls)
+                                                            joystick_connected, controls, joysticks)
 
         if play_press and (joystick_configured or not joystick_connected):
             world_data = level_dictionary[f'level1_{world_count}']
@@ -609,7 +609,7 @@ while run:
             adjust_resolution,\
             settings_counters,\
             calibrated_press = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events,
-                                                                fps_adjust, joystick_connected)
+                                                                fps_adjust, joystick_connected, joysticks)
 
         if performance_counter == 1:
             slow_computer = False
@@ -700,7 +700,7 @@ while run:
             joystick = pygame.joystick.Joystick(event.device_index)
             joysticks[joystick.get_instance_id()] = joystick
             joystick_connected = True
-            joystick.rumble(0.7, 0, 800)
+            joystick.rumble(0.7, 0.7, 800)
             joystick_name = str(joystick.get_name())
             if joystick.get_numaxes() == 0:
                 controller_incompatible_counter = 5 * 60

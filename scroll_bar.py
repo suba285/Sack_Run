@@ -35,7 +35,7 @@ class ScrollBar:
         self.joystick_scroll_value = 0
         self.scroll_speed = 2
 
-    def draw_scroll_bar(self, screen, mouse_adjustment, events):
+    def draw_scroll_bar(self, screen, mouse_adjustment, events, joysticks):
 
         mouse_pos = pygame.mouse.get_pos()
 
@@ -53,6 +53,10 @@ class ScrollBar:
                 self.scroll_button_clicked = False
             if event.type == pygame.JOYAXISMOTION and event.axis == 1:
                 self.joystick_scroll_value = self.scroll_speed * event.value
+
+        if joysticks:
+            hat_value = joysticks[0].get_hat(0)
+            self.joystick_scroll_value = self.scroll_speed * -hat_value[1]
 
         if (self.scroll_button_rect.collidepoint(mouse_pos[0] / mouse_adjustment, mouse_pos[1] / mouse_adjustment)
                 and pygame.mouse.get_focused()) or abs(self.joystick_scroll_value) > 0:

@@ -112,11 +112,12 @@ class LevelSelection:
 
         self.joystick_counter = -1
         self.joystick_moved = False
+        self.hat_x_pressed = False
 
         self.left_bumper_press = False
         self.right_bumper_press = False
 
-    def draw_level_selection(self, level_screen, mouse_adjustment, events, joystick_connected, controls):
+    def draw_level_selection(self, level_screen, mouse_adjustment, events, joystick_connected, controls, joysticks):
 
         level_screen.blit(self.menu_background, (0, 0))
 
@@ -137,34 +138,10 @@ class LevelSelection:
         for event in events:
             if event.type == pygame.JOYAXISMOTION:
                 if event.axis == controls['configuration'][0]:
+                    # right and left
                     if abs(event.value) > 0.3 and not self.joystick_moved:
-                        self.joystick_counter = self.joystick_counter * -1
+                        self.joystick_counter *= -1
                         self.joystick_moved = True
-                    if event.value == 0:
-                        self.joystick_moved = False
-                if event.axis == controls['configuration'][0] + 1:
-                    if event.value > 0.3 and not self.joystick_moved:
-                        if self.joystick_counter >= 1:
-                            self.joystick_counter -= 1
-                            if self.joystick_counter < 1:
-                                self.joystick_counter = 1
-                            self.joystick_moved = True
-                        if self.joystick_counter <= -1:
-                            self.joystick_counter += 1
-                            if self.joystick_counter > -1:
-                                self.joystick_counter = -1
-                            self.joystick_moved = True
-                    if event.value < -0.3 and not self.joystick_moved:
-                        if self.joystick_counter >= 1:
-                            self.joystick_counter += 1
-                            if self.joystick_counter > 1:
-                                self.joystick_counter = 1
-                            self.joystick_moved = True
-                        if self.joystick_counter <= -1:
-                            self.joystick_counter -= 1
-                            if self.joystick_counter < -1:
-                                self.joystick_counter = -1
-                            self.joystick_moved = True
                     if event.value == 0:
                         self.joystick_moved = False
             if event.type == pygame.JOYBUTTONDOWN:
@@ -177,6 +154,17 @@ class LevelSelection:
             if event.type == pygame.JOYBUTTONUP:
                 self.left_bumper_press = False
                 self.right_bumper_press = False
+
+        # D-pad input
+        if joysticks:
+            hat_value = joysticks[0].get_hat(0)
+            if not self.hat_x_pressed:
+                # left and right
+                if abs(hat_value[0]) == 1:
+                    self.joystick_counter *= -1
+                    self.hat_x_pressed = True
+            if hat_value[0] == 0:
+                self.hat_x_pressed = False
 
         joystick_over1 = False
         joystick_over2 = False

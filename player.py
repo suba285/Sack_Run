@@ -382,7 +382,7 @@ class Player:
     def update_pos_animation(self, screen, tile_list, next_level_list, level_count, harm_in, fps_adjust,
                              mid_air_jump_trigger, speed_dash_trigger,
                              left_border, right_border, game_counter,
-                             move, shockwave_mush_list, events, gem_equipped):
+                             move, shockwave_mush_list, events, gem_equipped, joysticks):
 
         dx = 0
         dy = 0
@@ -476,6 +476,12 @@ class Player:
                 self.joystick_left = False
                 self.joystick_right = False
                 self.player_jump = False
+
+        # D-pad input
+        if joysticks:
+            hat_value = joysticks[0].get_hat(0)
+        else:
+            hat_value = (0, 0)
 
         # special power cards effects ----------------------------------------------------------------------------------
         if mid_air_jump_trigger and not self.mid_air_jump:
@@ -638,7 +644,7 @@ class Player:
                 if self.sack_rect.height != 28:
                     self.sack_rect.height = 28
                 # walking left
-                if key[self.controls['left']] or self.joystick_left:
+                if key[self.controls['left']] or self.joystick_left or hat_value[0] == -1:
                     self.player_moved = True
                     if self.speed_dash:
                         self.speed_dash_activated = True
@@ -659,7 +665,7 @@ class Player:
                     self.teleport_count = 0
 
                 # walking right
-                if key[self.controls['right']] or self.joystick_right:
+                if key[self.controls['right']] or self.joystick_right or hat_value[0] == 1:
                     self.player_moved = True
                     if self.speed_dash:
                         self.speed_dash_activated = True

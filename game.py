@@ -445,7 +445,7 @@ class Game:
 
 # THE GAME =============================================================================================================
     def game(self, screen, level_count, slow_computer, fps_adjust, draw_hitbox, mouse_adjustment, events,
-             game_counter, world_count, controls, joystick_connected, joystick_calibration):
+             game_counter, world_count, controls, joystick_connected, joystick_calibration, joysticks):
 
         self.controls = controls
 
@@ -513,7 +513,8 @@ class Game:
                                                             self.move,
                                                             self.world.shockwave_mushroom_list,
                                                             events,
-                                                            self.gem_equipped
+                                                            self.gem_equipped,
+                                                            joysticks
                                                             )
 
         # updating solid tile positions --------------------------------------------------------------------------------
@@ -651,7 +652,8 @@ class Game:
 
             if game_counter >= 0.25:
                 controls_popup_percentage = self.controls_popup_scrollbar.draw_scroll_bar(screen,
-                                                                                          mouse_adjustment, events)
+                                                                                          mouse_adjustment, events,
+                                                                                          joysticks)
                 self.controls_popup_text_space.blit(self.popup_bg_colour, (0, 0))
                 self.controls_popup_text_space.blit(self.controls_popup_text_surface,
                                                     (0, -controls_popup_percentage * (self.controls_popup_text_surface.get_height() - self.controls_popup_text_space.get_height())))

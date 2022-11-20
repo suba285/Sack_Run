@@ -15,6 +15,7 @@ class PauseScreen:
 
         self.joystick_counter = 0
         self.joystick_moved = False
+        self.hat_y_pressed = False
 
         self.background = img_loader('data/images/menu_background.PNG', swidth, sheight)
 
@@ -45,7 +46,7 @@ class PauseScreen:
                                self.settings_button, self.settings_button_press,
                                self.settings_button_down)
 
-    def draw_pause_screen(self, mouse_adjustment, events):
+    def draw_pause_screen(self, mouse_adjustment, events, joysticks):
 
         self.pause_screen.blit(self.background, (0, 0))
 
@@ -71,6 +72,23 @@ class PauseScreen:
                         self.joystick_counter = 2
                 elif event.value == 0:
                     self.joystick_moved = False
+
+        # D-pad input
+        if joysticks:
+            hat_value = joysticks[0].get_hat(0)
+            if not self.hat_y_pressed:
+                if hat_value[1] == 1:
+                    self.joystick_counter -= 1
+                    self.hat_y_pressed = True
+                    if self.joystick_counter < 0:
+                        self.joystick_counter = 2
+                if hat_value[1] == -1:
+                    self.joystick_counter += 1
+                    self.hat_y_pressed = True
+                    if self.joystick_counter > 2:
+                        self.joystick_counter = 0
+            if hat_value[1] == 0:
+                self.hat_y_pressed = False
 
         if self.joystick_counter == 0:
             joystick_over0 = True

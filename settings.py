@@ -185,6 +185,8 @@ class SettingsMenu:
         # --------------------------------------------------------------------------------------------------------------
         self.joystick_counter = 0
         self.joystick_moved = False
+        self.hat_x_pressed = False
+        self.hat_y_pressed = False
 
         # button positional variables and other ------------------------------------------------------------------------
         gap = 30
@@ -348,10 +350,14 @@ class SettingsMenu:
         button_cross = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
         button_circle = img_loader('data/images/buttons/button_circle.PNG', tile_size / 2, tile_size / 2)
         self.controller_stick_animation = {
-            0: img_loader('data/images/controller_stick_animation/controller_stick1.PNG', tile_size, tile_size),
-            1: img_loader('data/images/controller_stick_animation/controller_stick2.PNG', tile_size, tile_size),
-            2: img_loader('data/images/controller_stick_animation/controller_stick3.PNG', tile_size, tile_size),
-            3: img_loader('data/images/controller_stick_animation/controller_stick4.PNG', tile_size, tile_size)
+            0: pygame.transform.flip(img_loader('data/images/controller_stick_animation/controller_stick1.PNG',
+                                                tile_size, tile_size), True, False),
+            1: pygame.transform.flip(img_loader('data/images/controller_stick_animation/controller_stick2.PNG',
+                                                tile_size, tile_size), True, False),
+            2: pygame.transform.flip(img_loader('data/images/controller_stick_animation/controller_stick3.PNG',
+                                                tile_size, tile_size), True, False),
+            3: pygame.transform.flip(img_loader('data/images/controller_stick_animation/controller_stick4.PNG',
+                                                tile_size, tile_size), True, False),
         }
         self.controller_stick_animation_surf = pygame.Surface((tile_size, tile_size))
         self.controller_stick_animation_surf.set_colorkey((0, 0, 0))
@@ -480,7 +486,7 @@ class SettingsMenu:
         if self.choose_different_btn_counter > 0:
             self.choose_different_btn_counter -= 1 * fps_adjust
         for event in events:
-            if event.type == pygame.JOYAXISMOTION:
+            if event.type == pygame.JOYAXISMOTION and event.value > 0.9:
                 if not self.controller_configuration:
                     self.controller_configuration.append(event.axis)
                     self.controller_calibration_step_counter += 1
@@ -517,16 +523,16 @@ class SettingsMenu:
                 self.controller_taken_btns = [1]
                 calibrated = False
 
-            if event.type == pygame.JOYAXISMOTION and event.axis == self.controller_configuration[0] \
-                    and self.controller_calibration_step_counter == 4:
-                if not self.joystick_moved and abs(event.value) > 0.3:
-                    if self.btn_names_counter == 1:
-                        self.btn_names_counter = 2
-                    else:
-                        self.btn_names_counter = 1
-                    self.joystick_moved = True
-                if event.value == 0:
-                    self.joystick_moved = False
+            if self.controller_calibration_step_counter == 4:
+                if event.type == pygame.JOYAXISMOTION and event.axis == self.controller_configuration[0]:
+                    if not self.joystick_moved and abs(event.value) > 0.3:
+                        if self.btn_names_counter == 1:
+                            self.btn_names_counter = 2
+                        else:
+                            self.btn_names_counter = 1
+                        self.joystick_moved = True
+                    if event.value == 0:
+                        self.joystick_moved = False
 
         if self.controller_calibration_step_counter == 5:
             self.controller_calibration = False
@@ -609,7 +615,7 @@ class SettingsMenu:
         return configuration, calibration_done, calibrated
 
         # --------------------------------------------------------------------------------------------------------------
-    def draw_settings_menu(self, settings_screen, mouse_adjustment, events, fps_adjust, joystick_connected):
+    def draw_settings_menu(self, settings_screen, mouse_adjustment, events, fps_adjust, joystick_connected, joysticks):
         settings_screen.fill((0, 0, 0))
         settings_screen.blit(self.menu_background, (0, 0))
 
@@ -629,14 +635,18 @@ class SettingsMenu:
 
         if not self.controller_calibration:
             for event in events:
+                # axis input
                 if event.type == pygame.JOYAXISMOTION:
+                    # horizontal joystick movement
                     if event.axis == self.controls['configuration'][0]:
                         if abs(event.value) > 0.3 and not self.joystick_moved:
                             self.joystick_counter = self.joystick_counter * -1
                             self.joystick_moved = True
                         if event.value == 0:
                             self.joystick_moved = False
+                    # vertical joystick movement
                     if event.axis == self.controls['configuration'][0] + 1:
+                        # down
                         if event.value > 0.3 and not self.joystick_moved:
                             if self.joystick_counter >= 0:
                                 self.joystick_counter -= 1
@@ -648,6 +658,7 @@ class SettingsMenu:
                                 if self.joystick_counter > 0:
                                     self.joystick_counter = 0
                                 self.joystick_moved = True
+                        # up
                         if event.value < -0.3 and not self.joystick_moved:
                             if self.joystick_counter >= 0:
                                 self.joystick_counter += 1
@@ -663,10 +674,48 @@ class SettingsMenu:
                             self.joystick_moved = False
 
                 if event.type == pygame.JOYBUTTONDOWN:
+                    # bumper input
                     if event.button == 4 or event.button == 9:
                         joystick_tab_left = True
                     if event.button == 5 or event.button == 10:
                         joystick_tab_right = True
+        # D-pad input
+        if joysticks:
+            hat_value = joysticks[0].get_hat(0)
+            if not self.hat_x_pressed:
+                if abs(hat_value[0]) == 1:
+                    self.joystick_counter = self.joystick_counter * -1
+                    self.hat_x_pressed = True
+            if not self.hat_y_pressed:
+                # down
+                if hat_value[1] == -1:
+                    if self.joystick_counter >= 0:
+                        self.joystick_counter -= 1
+                        if self.joystick_counter < 0:
+                            self.joystick_counter = 0
+                        self.joystick_moved = True
+                    if self.joystick_counter < 0:
+                        self.joystick_counter += 1
+                        if self.joystick_counter > 0:
+                            self.joystick_counter = 0
+                    self.hat_y_pressed = True
+                # up
+                if hat_value[1] == 1:
+                    if self.joystick_counter >= 0:
+                        self.joystick_counter += 1
+                        if self.joystick_counter > joystick_counter_cap:
+                            self.joystick_counter = 0
+                        self.joystick_moved = True
+                    if self.joystick_counter < 0:
+                        self.joystick_counter -= 1
+                        if self.joystick_counter < -joystick_counter_cap:
+                            self.joystick_counter = 0
+                    self.hat_y_pressed = True
+            # if not pressed
+            if hat_value[0] == 0:
+                self.hat_x_pressed = False
+            if hat_value[1] == 0:
+                self.hat_y_pressed = False
                     
         if self.joystick_counter > joystick_counter_cap:
             self.joystick_counter = joystick_counter_cap

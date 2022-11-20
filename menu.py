@@ -57,6 +57,7 @@ class mainMenu:
 
         self.joystick_counter = 0
         self.joystick_moved = False
+        self.hat_y_pressed = False
 
         self.logo_surface = pygame.Surface((swidth, 70 + self.logo.get_height()))
         self.logo_surface.set_colorkey((0, 0, 0))
@@ -83,7 +84,7 @@ class mainMenu:
                                self.settings_button_down)
 
 # UPDATING AND DRAWING MENU ============================================================================================
-    def menu(self, menu_screen, slow_computer, mouse_adjustement, events, fps_adjust, joystick_controls):
+    def menu(self, menu_screen, slow_computer, mouse_adjustement, events, fps_adjust, joystick_controls, joysticks):
 
         menu_screen.blit(self.menu_background, (0, 0))
 
@@ -92,13 +93,16 @@ class mainMenu:
         joystick_sound = False
 
         for event in events:
+            # vertical axis input
             if event.type == pygame.JOYAXISMOTION and event.axis == joystick_controls[0] + 1:
+                # down
                 if event.value > 0.1 and not self.joystick_moved:
                     self.joystick_counter += 1
                     self.joystick_moved = True
                     joystick_sound = True
                     if self.joystick_counter > 1:
                         self.joystick_counter = 0
+                # up
                 elif event.value < -0.1 and not self.joystick_moved:
                     self.joystick_counter -= 1
                     joystick_sound = True
@@ -107,6 +111,21 @@ class mainMenu:
                         self.joystick_counter = 1
                 elif event.value == 0:
                     self.joystick_moved = False
+        # D-pad input
+        if joysticks:
+            hat_value = joysticks[0].get_hat(0)
+            if hat_value[1] == -1 and not self.hat_y_pressed:
+                self.hat_y_pressed = True
+                self.joystick_counter += 1
+                if self.joystick_counter > 1:
+                    self.joystick_counter = 0
+            if hat_value[1] == 1 and not self.hat_y_pressed:
+                self.hat_y_pressed = True
+                self.joystick_counter -= 1
+                if self.joystick_counter < 0:
+                    self.joystick_counter = 1
+            if hat_value[1] == 0:
+                self.hat_y_pressed = False
 
         if self.joystick_counter == 1:
             joystick_over1 = True
