@@ -117,7 +117,7 @@ class LevelSelection:
         self.left_bumper_press = False
         self.right_bumper_press = False
 
-    def draw_level_selection(self, level_screen, mouse_adjustment, events, joystick_connected, controls, joysticks):
+    def draw_level_selection(self, level_screen, mouse_adjustment, events, controls, joysticks):
 
         level_screen.blit(self.menu_background, (0, 0))
 
@@ -125,7 +125,6 @@ class LevelSelection:
 
         left_press = False
         right_press = False
-        menu_press = False
         play_press = False
         left_bumper_press = False
         right_bumper_press = False
@@ -137,7 +136,7 @@ class LevelSelection:
 
         for event in events:
             if event.type == pygame.JOYAXISMOTION:
-                if event.axis == controls['configuration'][0]:
+                if event.axis == controls['configuration'][0][0]:
                     # right and left
                     if abs(event.value) > 0.3 and not self.joystick_moved:
                         self.joystick_counter *= -1
@@ -171,12 +170,13 @@ class LevelSelection:
         joystick_over_1 = False
         joystick_over_2 = False
 
-        if self.joystick_counter == 1:
-            joystick_over1 = True
-        if self.joystick_counter == -1:
-            joystick_over_1 = True
+        if joysticks:
+            if self.joystick_counter == 1:
+                joystick_over1 = True
+            if self.joystick_counter == -1:
+                joystick_over_1 = True
 
-        if not joystick_connected:
+        if not joysticks:
             if self.world_count > 1:
                 left_press, over1 = self.left_btn.draw_button(level_screen, False, mouse_adjustment, events,
                                                               joystick_over2)

@@ -236,6 +236,14 @@ class Player:
         self.cross_button = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
         self.space_key = img_loader('data/images/buttons/key_space.PNG', tile_size, tile_size / 2)
         self.space_key_press = img_loader('data/images/buttons/key_space_press.PNG', tile_size, tile_size / 2)
+        self.respawn_keys = {
+            '1': img_loader('data/images/buttons/key_space.PNG', tile_size, tile_size / 2),
+            '1_press': img_loader('data/images/buttons/key_space_press.PNG', tile_size, tile_size / 2),
+            '2': img_loader('data/images/buttons/key_w.PNG', tile_size / 2, tile_size / 2),
+            '2_press': img_loader('data/images/buttons/key_w_press.PNG', tile_size / 2, tile_size / 2),
+            '3': img_loader('data/images/buttons/key_up.PNG', tile_size / 2, tile_size / 2),
+            '3_press': img_loader('data/images/buttons/key_up_press.PNG', tile_size / 2, tile_size / 2),
+        }
 
         self.respawn_press_counter = 0
 
@@ -463,7 +471,7 @@ class Player:
                 if event.button == 0:
                     self.player_jump = False
             if event.type == pygame.JOYAXISMOTION:
-                if event.axis == self.controls['configuration'][0]:
+                if event.axis == self.controls['configuration'][0][0]:
                     if event.value > 0.4:
                         self.joystick_right = True
                     else:
@@ -1044,7 +1052,7 @@ class Player:
             press = False
             self.respawn_press_counter += 1 * fps_adjust
 
-            if self.settings_counters['configuration'] == 1:
+            if self.controls['configuration'][4] == 1:
                 controller_btn = self.a_button
             else:
                 controller_btn = self.cross_button
@@ -1070,8 +1078,8 @@ class Player:
             if joystick_connected:
                 screen.blit(controller_btn, (swidth / 2 - tile_size / 4, sheight / 3 + 16))
             else:
-                key_img = self.space_key
+                key_img = self.respawn_keys[str(self.settings_counters['jumping'])]
                 if press:
-                    key_img = self.space_key_press
+                    key_img = self.respawn_keys[f'{self.settings_counters["jumping"]}_press']
                 if self.respawn_press_counter > 8:
-                    screen.blit(key_img, (swidth / 2 - tile_size / 2, sheight / 3 + 16))
+                    screen.blit(key_img, (swidth / 2 - key_img.get_width() / 2, sheight / 3 + 16))

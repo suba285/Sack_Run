@@ -46,7 +46,7 @@ class PauseScreen:
                                self.settings_button, self.settings_button_press,
                                self.settings_button_down)
 
-    def draw_pause_screen(self, mouse_adjustment, events, joysticks):
+    def draw_pause_screen(self, mouse_adjustment, events, joysticks, joystick_configuration):
 
         self.pause_screen.blit(self.background, (0, 0))
 
@@ -59,7 +59,7 @@ class PauseScreen:
         joystick_over2 = False
 
         for event in events:
-            if event.type == pygame.JOYAXISMOTION and event.axis == 1:
+            if event.type == pygame.JOYAXISMOTION and event.axis == joystick_configuration[0][1]:
                 if event.value > 0.1 and not self.joystick_moved:
                     self.joystick_counter += 1
                     self.joystick_moved = True
@@ -90,12 +90,13 @@ class PauseScreen:
             if hat_value[1] == 0:
                 self.hat_y_pressed = False
 
-        if self.joystick_counter == 0:
-            joystick_over0 = True
-        if self.joystick_counter == 1:
-            joystick_over1 = True
-        if self.joystick_counter == 2:
-            joystick_over2 = True
+        if joysticks:
+            if self.joystick_counter == 0:
+                joystick_over0 = True
+            if self.joystick_counter == 1:
+                joystick_over1 = True
+            if self.joystick_counter == 2:
+                joystick_over2 = True
 
         resume, over1 = self.resume_btn.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over0)
         menu, over2 = self.menu_btn.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over1)

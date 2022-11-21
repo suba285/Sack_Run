@@ -91,10 +91,12 @@ class mainMenu:
         key = pygame.key.get_pressed()
 
         joystick_sound = False
+        joystick_over1 = False
+        joystick_over0 = False
 
         for event in events:
             # vertical axis input
-            if event.type == pygame.JOYAXISMOTION and event.axis == joystick_controls[0] + 1:
+            if event.type == pygame.JOYAXISMOTION and event.axis == joystick_controls[0][1]:
                 # down
                 if event.value > 0.1 and not self.joystick_moved:
                     self.joystick_counter += 1
@@ -127,14 +129,11 @@ class mainMenu:
             if hat_value[1] == 0:
                 self.hat_y_pressed = False
 
-        if self.joystick_counter == 1:
-            joystick_over1 = True
-        else:
-            joystick_over1 = False
-        if self.joystick_counter == 0:
-            joystick_over0 = True
-        else:
-            joystick_over0 = False
+        if joysticks:
+            if self.joystick_counter == 1:
+                joystick_over1 = True
+            if self.joystick_counter == 0:
+                joystick_over0 = True
 
         self.logo_surface.fill((0, 0, 0))
         self.button_surface.fill((0, 0, 0))

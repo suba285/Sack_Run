@@ -157,7 +157,7 @@ class Game:
 
         walk_counter = settings_counters['walking']
         jump_counter = settings_counters['jumping']
-        configuration_counter = settings_counters['configuration']
+        configuration_counter = controls['configuration'][4]
         if configuration_counter == 1:
             self.controller_type = 'xbox'
             jump_btn = 'A'
@@ -175,7 +175,7 @@ class Game:
             jumping_controls_txt = Text().make_text([f"jumping: {self.nums_to_text[f'jump{jump_counter}']}"])
             card_controls_txt = Text().make_text(['cards: mouse'])
         else:
-            walking_controls_txt = Text().make_text(['walking: Left stick'])
+            walking_controls_txt = Text().make_text(['walking: Left stick or D-pad'])
             jumping_controls_txt = Text().make_text([f'jumping: {jump_btn} button'])
             card_controls_txt = Text().make_text(['cards: RB and LB'])
         tip1_txt = Text().make_text(['Follow the compass in the top-left corner,'])
@@ -401,9 +401,9 @@ class Game:
 
         return press
 
-    def update_controller_type(self, settings_counters):
-        configuration_counter = settings_counters['configuration']
-        self.player.settings_counters = settings_counters
+    def update_controller_type(self, joystick_controls):
+        configuration_counter = joystick_controls[4]
+        self.player.settings_counters = joystick_controls[4]
         if configuration_counter == 1:
             self.controller_type = 'xbox'
             jump_btn = 'A'
@@ -653,7 +653,8 @@ class Game:
             if game_counter >= 0.25:
                 controls_popup_percentage = self.controls_popup_scrollbar.draw_scroll_bar(screen,
                                                                                           mouse_adjustment, events,
-                                                                                          joysticks)
+                                                                                          joysticks,
+                                                                                          self.controls['configuration'])
                 self.controls_popup_text_space.blit(self.popup_bg_colour, (0, 0))
                 self.controls_popup_text_space.blit(self.controls_popup_text_surface,
                                                     (0, -controls_popup_percentage * (self.controls_popup_text_surface.get_height() - self.controls_popup_text_space.get_height())))

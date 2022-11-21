@@ -251,7 +251,7 @@ controls_nums = {
     'jump1': pygame.K_SPACE,
     'jump2': pygame.K_w,
     'jump3': pygame.K_UP,
-    'configuration': [4, 5, 10, 1],  # controller button configuration [lb, rb, pause, settings_counter]
+    'configuration': [[0, 1], 4, 5, 10, 1],  # controller button configuration [lb, rb, pause, settings_counter]
     'rumble1': pygame.K_x,
     'rumble2': pygame.K_e,
     'rumble3': pygame.K_SLASH,
@@ -506,7 +506,8 @@ while run:
             button_sound_trigger1,\
             resume,\
             lvl_select,\
-            settings = pause_menu.draw_pause_screen(mouse_adjustment, paused_events, joysticks)
+            settings = pause_menu.draw_pause_screen(mouse_adjustment, paused_events,
+                                                    joysticks, controls['configuration'])
 
         if lvl_select:
             run_game = False
@@ -515,7 +516,7 @@ while run:
             run_menu = False
             paused = False
             screen_alpha = 0
-            main_game.update_controller_type(settings_counters)
+            main_game.update_controller_type(controls['configuration'])
 
         if resume:
             run_menu = False
@@ -524,7 +525,7 @@ while run:
             run_level_selection = False
             play_music = True
             load_music = True
-            main_game.update_controller_type(settings_counters)
+            main_game.update_controller_type(controls['configuration'])
 
         if settings:
             run_menu = False
@@ -555,7 +556,7 @@ while run:
             button_sound_trigger1,\
             world_count = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
                                                             lvl_selection_events,
-                                                            joystick_connected, controls, joysticks)
+                                                            controls, joysticks)
 
         if play_press and (joystick_configured or not joystick_connected):
             world_data = level_dictionary[f'level1_{world_count}']
@@ -698,7 +699,7 @@ while run:
         if event.type == pygame.JOYDEVICEADDED:
             pygame.mouse.set_visible(False)
             joystick = pygame.joystick.Joystick(event.device_index)
-            joysticks[joystick.get_instance_id()] = joystick
+            joysticks[0] = joystick
             joystick_connected = True
             joystick.rumble(0.7, 0.7, 800)
             joystick_name = str(joystick.get_name())
@@ -735,7 +736,7 @@ while run:
 
         if event.type == pygame.JOYDEVICEREMOVED:
             controller_disconnected_counter = 90
-            del joysticks[event.instance_id]
+            joysticks = {}
             if not joystick_configured:
                 del controllers[joystick_name]
             joystick_connected = False
@@ -909,7 +910,7 @@ while run:
     # controller calibration
     if controller_calibration:
         configuration, done, calibrated = settings_menu.controller_calibration_func(main_screen, events, fps_adjust,
-                                                                                    False)
+                                                                                    False, joysticks)
         if done:
             controllers[joystick_name] = configuration
             controls['configuration'] = configuration

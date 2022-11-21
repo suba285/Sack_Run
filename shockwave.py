@@ -30,7 +30,9 @@ class Shockwave:
             self.speed -= 0.075
             self.radius += self.speed * fps_adjust
             self.width -= 0.08
-            pygame.draw.circle(self.surface, (255, 255, 255), (self.x, self.y), self.radius, round(self.width))
+            width = round(self.width)
+            if width > 0:
+                pygame.draw.circle(self.surface, (255, 255, 255), (self.x, self.y), self.radius, width)
         if self.radius >= 100:
             self.expand = False
             self.speed = 4

@@ -53,7 +53,7 @@ class Button:
             self.image = self.image2
             self.cursor_over = True
             for event in events:
-                if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1) or \
+                if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not joystick_over) or \
                         (event.type == pygame.JOYBUTTONDOWN and event.button == joystick_button):
                     self.image = self.image1
                     self.image_rect.x = self.x
