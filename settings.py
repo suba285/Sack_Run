@@ -492,6 +492,13 @@ class SettingsMenu:
         self.controller_calibration_button_counter += 1 * fps_adjust
         if self.choose_different_btn_counter > 0:
             self.choose_different_btn_counter -= 1 * fps_adjust
+
+        if self.controller_calibration_step_counter == 0 and joysticks:
+            axes = joysticks[0].get_numaxes()
+            if axes == 0:
+                self.controller_calibration_step_counter = 1
+                self.controller_configuration.append((0, 1))
+
         for event in events:
             if event.type == pygame.JOYAXISMOTION and event.value > 0.9:
                 if not self.controller_configuration:
@@ -636,7 +643,7 @@ class SettingsMenu:
 
         local_screen.blit(popup, (swidth / 2 - popup.get_width() / 2, sheight / 2 - popup.get_height() / 2))
 
-        if self.choose_different_btn_counter > 0:
+        if self.choose_different_btn_counter > 0 and 0 < self.controller_calibration_step_counter < 4:
             local_screen.blit(self.choose_different_btn_surf,
                               (swidth / 2 - self.choose_different_btn_surf.get_width() / 2,
                                sheight / 2 - 8))

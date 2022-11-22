@@ -619,7 +619,7 @@ class Game:
                                                                tutorial, fps_adjust, level_count,
                                                                self.health, self.move, self.player_moved,
                                                                self.gem_equipped, self.controls['configuration'],
-                                                               joystick_connected, self.controller_type,
+                                                               joysticks, self.controller_type,
                                                                joystick_calibration)
 
         if self.mid_air_jump_trigger or self.speed_dash_trigger:

@@ -297,7 +297,7 @@ class eqManager:
 
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
     def draw_eq(self, screen, eq_list, mouse_adjustment, events, tutorial, fps_adjust, level_count,
-                health, move, player_moved, gem_equipped, eq_controls, joystick_connected, controller_type,
+                health, move, player_moved, gem_equipped, eq_controls, joysticks, controller_type,
                 joystick_calibration):
 
         self.mid_air_jump_trigger = False
@@ -381,6 +381,11 @@ class eqManager:
                         joystick_action = True
                 if event.type == pygame.JOYAXISMOTION and abs(event.value) > 0.3:
                     joystick_action = True
+
+        if joysticks:
+            hat_value = joysticks[0].get_hat(0)
+            if hat_value[0] != 0:
+                joystick_action = True
 
         if joy_bumper_pressed:
             self.joystick_over_counter = self.joystick_card_over_time
@@ -491,7 +496,7 @@ class eqManager:
                 center_width = swidth / 2
                 center_height = sheight / 3 - tile_size / 2 + tile_size / 4
 
-                if joystick_connected:
+                if joysticks:
                     img1 = cont_img
                     img2 = cont_img2
                     img_y = center_height
@@ -524,7 +529,7 @@ class eqManager:
                     screen.blit(self.info_text_caps, (tutorial_x, center_height + 5))
 
             elif (not self.card_checked or gem_equipped) and player_moved:
-                if not joystick_connected:
+                if not joysticks:
                     if self.press_counter >= 60:
                         mouse_img = self.mouse0
                         self.press_counter = 0

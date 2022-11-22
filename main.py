@@ -310,38 +310,22 @@ settings_not_saved_error_txt = Text().make_text(['error while saving settings co
 settings_not_loaded_error_txt = Text().make_text(['error while loading settings configuration'])
 # controller connections
 controller_not_configured_txt = Text().make_text(['Controller not configured [settings]'])
+controller_not_configured_popup = popup_bg_generator((controller_not_configured_txt.get_width() + 10, 15))
+controller_not_configured_popup.blit(controller_not_configured_txt, (7, 7))
 controller_not_configured_counter = 0
 
 controller_connected_txt = Text().make_text(['Controller connected'])
 controller_disconnected_txt = Text().make_text(['Controller disconnected'])
-controller_connected_no_conf_txt = Text().make_text(['Controller connected, NOT CALIBRATED'])
 controller_connected_popup = popup_bg_generator((controller_connected_txt.get_width() + 10, 15))
 controller_disconnected_popup = popup_bg_generator((controller_disconnected_txt.get_width() + 10, 15))
-controller_connected_no_conf_popup = popup_bg_generator((controller_connected_no_conf_txt.get_width() + 10, 15))
 controller_connected_popup.blit(controller_connected_txt, (7, 7))
-controller_connected_no_conf_popup.blit(controller_connected_no_conf_txt, (7, 7))
 controller_disconnected_popup.blit(controller_disconnected_txt, (7, 7))
 controller_connected_counter = 0
 controller_disconnected_counter = 0
 controller_popup = controller_connected_popup
 
-controller_incompatible_text_title = Text().make_text(['WARNING!'])
-controller_incompatible_text1 = Text().make_text(['Controller incompatible,'])
-controller_incompatible_text2 = Text().make_text(['the game requires a controller with sticks'])
-controller_incompatible_popup = popup_bg_generator((controller_incompatible_text2.get_width() + 10,
-                                                    60))
-controller_incompatible_popup.blit(controller_incompatible_text_title,
-                                   (controller_incompatible_popup.get_width() / 2 -
-                                    controller_incompatible_text_title.get_width() / 2, 6))
-controller_incompatible_popup.blit(controller_incompatible_text1,
-                                   (controller_incompatible_popup.get_width() / 2 -
-                                    controller_incompatible_text1.get_width() / 2, 25))
-controller_incompatible_popup.blit(controller_incompatible_text2,
-                                   (controller_incompatible_popup.get_width() / 2 -
-                                    controller_incompatible_text2.get_width() / 2, 40))
-controller_incompatible_counter = 0
-
 controller_calibration = False
+calibration_start_counter = 0
 
 # fps variables --------------------------------------------------------------------------------------------------------
 last_time = time.time()
@@ -389,7 +373,7 @@ while run:
     joystick_over_card = False
     controller_disconnected_counter -= 1 * fps_adjust
     controller_connected_counter -= 1 * fps_adjust
-    controller_incompatible_counter -= 1 * fps_adjust
+    calibration_start_counter += 1 * fps_adjust
 
     # running the menu -------------------------------------------------------------------------------------------------
     if run_menu:
@@ -434,7 +418,7 @@ while run:
 
         # controller not configured message
         if controller_not_configured_counter > 0:
-            menu_screen.blit(controller_not_configured_txt, (swidth / 2 - controller_not_configured_txt.get_width() / 2,
+            menu_screen.blit(controller_not_configured_popup, (swidth / 2 - controller_not_configured_popup.get_width() / 2,
                                                              130))
 
         # changing the displayed screens
@@ -703,8 +687,6 @@ while run:
             joystick_connected = True
             joystick.rumble(0.7, 0.7, 800)
             joystick_name = str(joystick.get_name())
-            if joystick.get_numaxes() == 0:
-                controller_incompatible_counter = 5 * 60
             if joystick_name in controllers:
                 controller_connected_counter = 90
                 joystick_configured = True
@@ -714,7 +696,7 @@ while run:
                 settings_counters['configuration'] = 1
                 settings_menu.update_settings_counters(settings_counters, controls)
                 joystick_configured = False
-                controller_popup = controller_connected_no_conf_popup
+                controller_popup = controller_connected_popup
                 if not run_settings:
                     controller_calibration = True
 
@@ -848,7 +830,6 @@ while run:
         if not mouse_still_count >= 70:
             pygame.mouse.set_visible(True)
             mouse_vis = True
-            # screen.blit(cursor, (mouse_pos[0]/mouse_adjustment, mouse_pos[1]/mouse_adjustment))
         else:
             pygame.mouse.set_visible(False)
             mouse_vis = False
@@ -901,14 +882,8 @@ while run:
         main_screen.blit(controller_disconnected_popup,
                          (swidth / 2 - controller_disconnected_popup.get_width() / 2, cont_connect_y))
 
-    # controller incompatible popup
-    if controller_incompatible_counter > 0:
-        main_screen.blit(controller_incompatible_popup,
-                         (swidth / 2 - controller_incompatible_popup.get_width() / 2,
-                          sheight / 2 - controller_incompatible_popup.get_height() / 2))
-
     # controller calibration
-    if controller_calibration:
+    if controller_calibration and calibration_start_counter > 60 and joystick_connected:
         configuration, done, calibrated = settings_menu.controller_calibration_func(main_screen, events, fps_adjust,
                                                                                     False, joysticks)
         if done:
