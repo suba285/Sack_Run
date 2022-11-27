@@ -10,6 +10,7 @@ joysticks = {}
 
 # basic game variables -------------------------------------------------------------------------------------------------
 screen_dimensions = pygame.display.Info()
+print(screen_dimensions)
 monitor_height = screen_dimensions.current_h
 monitor_width = screen_dimensions.current_w
 screen_width = monitor_height * (360 / 264)
@@ -83,18 +84,23 @@ for res in list_of_resolutions:
 if resolution_counter < 1:
     resolution_counter = 1
 
-resolution_counter = 4
-
-wiwidth = screen_width
-wiheight = monitor_height
-width_window_space = monitor_width
-scale = (wiwidth / 352)
+if monitor_height >= 1000:
+    resolution_counter = 4
+    wiwidth = screen_width
+    wiheight = monitor_height
+    width_window_space = monitor_width
+    flag = pygame.FULLSCREEN
+else:
+    wiwidth = recommended_resolution[0]
+    wiheight = recommended_resolution[1]
+    width_window_space = wiwidth
+    flag = pygame.SCALED
 
 settings_counters['resolution'] = resolution_counter
 recommended_res_counter = resolution_counter
 
 # screens (surfaces)
-window = pygame.display.set_mode((monitor_width, monitor_height), pygame.FULLSCREEN, pygame.HWACCEL)
+window = pygame.display.set_mode((monitor_width, monitor_height), flag, pygame.HWACCEL)
 screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
 screen.set_alpha(0)
 screen_alpha = 0
@@ -368,7 +374,7 @@ last_time = time.time()
 last_fps = 1
 last_fps_adjust = 1
 
-game_counter = 0
+game_duration_counter = 0
 
 # MAIN LOOP ============================================================================================================
 while run:
@@ -409,8 +415,8 @@ while run:
     # joystick variables and counters
     joystick_moved = False
     joystick_over_card = False
-    game_counter += 1 * fps_adjust
-    if game_counter > 20:
+    game_duration_counter += 1 * fps_adjust
+    if game_duration_counter > 20:
         controller_disconnected_counter -= 1 * fps_adjust
         controller_connected_counter -= 1 * fps_adjust
     calibration_start_counter += 1 * fps_adjust
@@ -690,7 +696,6 @@ while run:
             else:
                 flag = pygame.SCALED
                 window = pygame.display.set_mode(current_resolution, flag)
-            scale = (wiwidth / 352)
 
         if calibrated_press:
             joystick_configured = True
@@ -802,7 +807,7 @@ while run:
             except Exception:
                 joystick_connection_error = True
 
-        if event.type == pygame.JOYDEVICEREMOVED and game_counter > 20:
+        if event.type == pygame.JOYDEVICEREMOVED and game_duration_counter > 20:
             controller_disconnected_counter = 90
             joysticks = {}
             if not joystick_configured:
@@ -957,14 +962,14 @@ while run:
     # controller errors and messages -----------------------------------------------------------------------------------
 
     # controller connected message
-    if controller_connected_counter > -10 and game_counter > 20:
+    if controller_connected_counter > -10 and game_duration_counter > 20:
         cont_connect_y = 10
         if controller_connected_counter < 5:
             cont_connect_y = controller_connected_counter * 2
         main_screen.blit(controller_popup,
                          (swidth / 2 - controller_popup.get_width() / 2, cont_connect_y))
     # controller disconnected message
-    if controller_disconnected_counter > -10 and game_counter > 20:
+    if controller_disconnected_counter > -10 and game_duration_counter > 20:
         cont_connect_y = 10
         if controller_disconnected_counter < 5:
             cont_connect_y = controller_disconnected_counter * 2

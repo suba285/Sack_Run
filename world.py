@@ -208,10 +208,6 @@ class World:
         self.bear_trap_shut_img = img_loader('data/images/bear_trap_shut.PNG', tile_size, tile_size / 2)
 
         # portal tile images -------------------------------------------------------------------------------------------
-        self.portal1 = img_loader('data/images/portal1.PNG', tile_size, tile_size)
-        self.portal2 = img_loader('data/images/portal2.PNG', tile_size, tile_size)
-        self.portal3 = img_loader('data/images/portal3.PNG', tile_size, tile_size)
-        self.portal4 = img_loader('data/images/portal4.PNG', tile_size, tile_size)
         self.portal = img_loader('data/images/portal.PNG', tile_size, tile_size)
         self.portal_part_list = []
         self.portal.set_colorkey((0, 0, 0))
