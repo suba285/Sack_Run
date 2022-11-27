@@ -39,6 +39,8 @@ class mainMenu:
         self.author_txt = Text().make_text(['Made by Suba'])
         self.author_txt_alpha = 255
 
+        self.screen_alpha = 0
+
         # variables ----------------------------------------------------------------------------------------------------
         self.play_x = swidth / 2 - self.play_button.get_width() / 2
         self.play_y = 155
@@ -95,6 +97,16 @@ class mainMenu:
         joystick_over1 = False
         joystick_over0 = False
 
+        self.screen_alpha += 6 * fps_adjust
+        if self.screen_alpha <= 255:
+            menu_screen.set_alpha(self.screen_alpha)
+        if self.screen_alpha > 255 > menu_screen.get_alpha():
+            menu_screen.set_alpha(255)
+
+        if self.screen_alpha > 255:
+            self.opening_animation_counter += 1 * fps_adjust
+            self.logo_pos_counter += 1 * fps_adjust
+
         for event in events:
             # vertical axis input
             if event.type == pygame.JOYAXISMOTION and event.axis == joystick_controls[0][1]:
@@ -138,9 +150,6 @@ class mainMenu:
 
         self.logo_surface.fill((0, 0, 0))
         self.button_surface.fill((0, 0, 0))
-
-        self.opening_animation_counter += 1 * fps_adjust
-        self.logo_pos_counter += 1 * fps_adjust
 
         for particle in self.particles:
             particle[0] += 1 * fps_adjust

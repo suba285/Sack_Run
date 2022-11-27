@@ -119,6 +119,12 @@ class SettingsMenu:
         self.controls_txt = Text().make_text(['CONTROL'])
         self.visual_txt = Text().make_text(['VISUAL'])
         self.sound_txt = Text().make_text(['SOUND'])
+        self.controls_txt_vague = self.controls_txt.copy()
+        self.controls_txt_vague.set_alpha(180)
+        self.visual_txt_vague = self.visual_txt.copy()
+        self.visual_txt_vague.set_alpha(180)
+        self.sound_txt_vague = self.sound_txt.copy()
+        self.sound_txt_vague.set_alpha(180)
 
         self.on_conf = Text().make_text(['on'])
         self.off_conf = Text().make_text(['off'])
@@ -145,6 +151,7 @@ class SettingsMenu:
         self.res_conf1 = Text().make_text([f'{swidth*2} x {sheight*2}'])
         self.res_conf2 = Text().make_text([f'{swidth*3} x {sheight*3}'])
         self.res_conf3 = Text().make_text([f'{swidth*4} x {sheight*4}'])
+        self.res_conf4 = Text().make_text(['FULLSCREEN'])
         self.perf_conf1 = Text().make_text(['Normal'])
         self.perf_conf2 = Text().make_text(['Fast'])
         self.resolution_message1 = Text().make_text(['This window size is recommended for'])
@@ -213,7 +220,7 @@ class SettingsMenu:
         section_btn_select.blit(self.menu_background, (0, 0))
 
         section_btn_dark = pygame.Surface((118, 20))
-        section_btn_dark.blit(self.menu_background, (0, 0))
+        section_btn_dark.fill((56, 41, 59))
 
         self.draw_control_screen = False
         self.draw_visual_screen = True
@@ -224,11 +231,8 @@ class SettingsMenu:
         self.visual_button_select = pygame.Surface((118, 20))
 
         self.control_button_dark = pygame.Surface((117, 20))
-        self.control_button_dark.set_alpha(180)
         self.sound_button_dark = pygame.Surface((117, 20))
-        self.sound_button_dark.set_alpha(180)
         self.visual_button_dark = pygame.Surface((118, 20))
-        self.visual_button_dark.set_alpha(180)
 
         self.control_button_select.blit(section_btn_select, (0, 0))
         self.control_button_select.blit(self.controls_txt, (swidth / 6 - self.controls_txt.get_width() / 2, 7))
@@ -240,13 +244,13 @@ class SettingsMenu:
         self.visual_button_select.blit(self.visual_txt, (swidth / 6 - self.visual_txt.get_width() / 2, 7))
 
         self.control_button_dark.blit(section_btn_dark, (0, 0))
-        self.control_button_dark.blit(self.controls_txt, (swidth / 6 - self.controls_txt.get_width() / 2, 7))
+        self.control_button_dark.blit(self.controls_txt, (swidth / 6 - self.controls_txt_vague.get_width() / 2, 7))
 
         self.sound_button_dark.blit(section_btn_dark, (0, 0))
-        self.sound_button_dark.blit(self.sound_txt, (swidth / 6 - self.sound_txt.get_width() / 2, 7))
+        self.sound_button_dark.blit(self.sound_txt, (swidth / 6 - self.sound_txt_vague.get_width() / 2, 7))
 
         self.visual_button_dark.blit(section_btn_dark, (0, 0))
-        self.visual_button_dark.blit(self.visual_txt, (swidth / 6 - self.visual_txt.get_width() / 2, 7))
+        self.visual_button_dark.blit(self.visual_txt, (swidth / 6 - self.visual_txt_vague.get_width() / 2, 7))
 
         self.control_button_over = pygame.Surface((117, 20))
         self.control_button_over.blit(self.control_button_dark, (0, 0))
@@ -627,8 +631,8 @@ class SettingsMenu:
                 joystick_over_btn1 = True
             if self.btn_names_counter == 2:
                 joystick_over_btn2 = True
-            self.btn_names_button1.draw_button(raw_popup, False, 1, events, joystick_over_btn1)
-            self.btn_names_button2.draw_button(raw_popup, False, 1, events, joystick_over_btn2)
+            self.btn_names_button1.draw_button(raw_popup, False, [1, 0], events, joystick_over_btn1)
+            self.btn_names_button2.draw_button(raw_popup, False, [1, 0], events, joystick_over_btn2)
 
         if 0.25 > self.controller_calibration_counter > 0:
             scaling = self.controller_calibration_counter
@@ -657,7 +661,7 @@ class SettingsMenu:
         settings_screen.blit(self.menu_background, (0, 0))
 
         mouse_pos = pygame.mouse.get_pos()
-        mouse_pos = (mouse_pos[0]/mouse_adjustment, mouse_pos[1]/mouse_adjustment)
+        mouse_pos = (mouse_pos[0]/mouse_adjustment[0] - mouse_adjustment[1], mouse_pos[1]/mouse_adjustment[0])
 
         joystick_counter_cap = 0
         if not self.draw_control_screen:
@@ -826,8 +830,6 @@ class SettingsMenu:
         over6 = False
         over7 = False
         over8 = False
-
-        menu_press = False
 
         calibrated = False
 
@@ -1065,8 +1067,10 @@ class SettingsMenu:
             res_text = self.res_conf1
         elif self.resolution_counter == 2:
             res_text = self.res_conf2
-        else:
+        elif self.resolution_counter == 3:
             res_text = self.res_conf3
+        else:
+            res_text = self.res_conf4
 
         if self.performance_counter == 1:
             perf_text = self.perf_conf1
@@ -1097,7 +1101,7 @@ class SettingsMenu:
                 if joystick_over3:
                     self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, 33 + self.gap))
 
-            if self.resolution_counter < 3:
+            if self.resolution_counter < 4:
                 res_right_press, over2 = self.resolution_btn_right.draw_button(self.visual_screen,
                                                                                False, mouse_adjustment, events,
                                                                                joystick_over_3)
@@ -1154,7 +1158,7 @@ class SettingsMenu:
 
         if res_left_press and self.resolution_counter > 1:
             self.resolution_counter -= 1
-        if res_right_press and self.resolution_counter < 3:
+        if res_right_press and self.resolution_counter < 4:
             self.resolution_counter += 1
 
         if perf_left_press and self.performance_counter > 1:

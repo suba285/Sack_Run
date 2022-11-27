@@ -397,7 +397,7 @@ class eqManager:
                 joystick_over1 = True
 
         if not move or self.card_info:
-            mouse_adjustment = 0.001
+            mouse_adjustment = [0.0001, 0]
 
         if self.card_info and mousebuttondown:
             self.close_card_info_press = True

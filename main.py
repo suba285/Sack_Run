@@ -60,7 +60,8 @@ except FileNotFoundError:
 resolutions = {
         '1': (swidth * 2, sheight * 2),
         '2': (swidth * 3, sheight * 3),
-        '3': (swidth * 4, sheight * 4)
+        '3': (swidth * 4, sheight * 4),
+        '4': (screen_width, monitor_height)
     }
 
 resolution_1 = resolutions['1']
@@ -82,14 +83,18 @@ for res in list_of_resolutions:
 if resolution_counter < 1:
     resolution_counter = 1
 
-wiwidth = recommended_resolution[0]
-wiheight = recommended_resolution[1]
+resolution_counter = 4
+
+wiwidth = screen_width
+wiheight = monitor_height
+width_window_space = monitor_width
+scale = (wiwidth / 352)
 
 settings_counters['resolution'] = resolution_counter
 recommended_res_counter = resolution_counter
 
 # screens (surfaces)
-window = pygame.display.set_mode((wiwidth, wiheight), pygame.SCALED, pygame.HWACCEL)
+window = pygame.display.set_mode((monitor_width, monitor_height), pygame.FULLSCREEN, pygame.HWACCEL)
 screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
 screen.set_alpha(0)
 screen_alpha = 0
@@ -104,7 +109,7 @@ pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUS
 pygame.display.set_caption('sack run')
 
 background_sky_colour = (100, 63, 102)
-window.fill((100, 63, 102))
+window.fill((0, 0, 0))
 
 # external file imports ------------------------------------------------------------------------------------------------
 from levels import *
@@ -352,7 +357,7 @@ controller_disconnected_popup = popup_bg_generator((controller_disconnected_txt.
 controller_connected_popup.blit(controller_connected_txt, (7, 7))
 controller_disconnected_popup.blit(controller_disconnected_txt, (7, 7))
 controller_connected_counter = 0
-controller_disconnected_counter = 0
+controller_disconnected_counter = -10
 controller_popup = controller_connected_popup
 
 controller_calibration = False
@@ -362,6 +367,8 @@ calibration_start_counter = 0
 last_time = time.time()
 last_fps = 1
 last_fps_adjust = 1
+
+game_counter = 0
 
 # MAIN LOOP ============================================================================================================
 while run:
@@ -387,7 +394,7 @@ while run:
     if not run_level_selection:
         reload_world_status = True
 
-    mouse_adjustment = wiwidth / swidth
+    mouse_adjustment = [(wiwidth / swidth), (swidth / wiwidth) * ((width_window_space - wiwidth) / 2)]
 
     # fps adjustment ---------------------------------------------------------------------------------------------------
     real_fps = clock.get_fps()
@@ -402,8 +409,10 @@ while run:
     # joystick variables and counters
     joystick_moved = False
     joystick_over_card = False
-    controller_disconnected_counter -= 1 * fps_adjust
-    controller_connected_counter -= 1 * fps_adjust
+    game_counter += 1 * fps_adjust
+    if game_counter > 20:
+        controller_disconnected_counter -= 1 * fps_adjust
+        controller_connected_counter -= 1 * fps_adjust
     calibration_start_counter += 1 * fps_adjust
 
     # running the menu -------------------------------------------------------------------------------------------------
@@ -671,9 +680,17 @@ while run:
             slow_computer = True
 
         if adjust_resolution:
-            window = pygame.display.set_mode(current_resolution, pygame.SCALED)
             wiwidth = current_resolution[0]
             wiheight = current_resolution[1]
+            width_window_space = wiwidth
+            if current_resolution == (screen_width, monitor_height):
+                width_window_space = monitor_width
+                flag = pygame.FULLSCREEN
+                window = pygame.display.set_mode((monitor_width, monitor_height), flag)
+            else:
+                flag = pygame.SCALED
+                window = pygame.display.set_mode(current_resolution, flag)
+            scale = (wiwidth / 352)
 
         if calibrated_press:
             joystick_configured = True
@@ -785,7 +802,7 @@ while run:
             except Exception:
                 joystick_connection_error = True
 
-        if event.type == pygame.JOYDEVICEREMOVED:
+        if event.type == pygame.JOYDEVICEREMOVED and game_counter > 20:
             controller_disconnected_counter = 90
             joysticks = {}
             if not joystick_configured:
@@ -904,7 +921,10 @@ while run:
             mouse_vis = False
 
     # updating the display ---------------------------------------------------------------------------------------------
-    main_screen.fill(background_sky_colour)
+    if run_game:
+        main_screen.fill(background_sky_colour)
+    else:
+        main_screen.fill((0, 0, 0))
     if run_game:
         menu_transition_counter -= (sheight / 23) * fps_adjust
         game_counter += 0.04 * fps_adjust
@@ -937,14 +957,14 @@ while run:
     # controller errors and messages -----------------------------------------------------------------------------------
 
     # controller connected message
-    if controller_connected_counter > -10:
+    if controller_connected_counter > -10 and game_counter > 20:
         cont_connect_y = 10
         if controller_connected_counter < 5:
             cont_connect_y = controller_connected_counter * 2
         main_screen.blit(controller_popup,
                          (swidth / 2 - controller_popup.get_width() / 2, cont_connect_y))
     # controller disconnected message
-    if controller_disconnected_counter > -10:
+    if controller_disconnected_counter > -10 and game_counter > 20:
         cont_connect_y = 10
         if controller_disconnected_counter < 5:
             cont_connect_y = controller_disconnected_counter * 2
@@ -967,7 +987,7 @@ while run:
                 settings_not_saved_error = True
 
     # DISPLAYING EVERYTHING ON THE MAIN WINDOW
-    window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)), (0, 0))
+    window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)), (width_window_space / 2 - wiwidth / 2, 0))
     pygame.display.update()
 
 pygame.quit()

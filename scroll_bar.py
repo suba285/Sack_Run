@@ -46,10 +46,10 @@ class ScrollBar:
 
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.over_btn:
-                self.mouse_pos_on_button = (mouse_pos[1] / mouse_adjustment) - self.scroll_button_rect.y
+                self.mouse_pos_on_button = (mouse_pos[1] / mouse_adjustment[0]) - self.scroll_button_rect.y
                 self.scroll_button_clicked = True
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.over_scroll:
-                self.scroll_button_rect.y = (mouse_pos[1] / mouse_adjustment) - self.scroll_button.get_height() / 2
+                self.scroll_button_rect.y = (mouse_pos[1] / mouse_adjustment[0]) - self.scroll_button.get_height() / 2
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 self.scroll_button_clicked = False
             if event.type == pygame.JOYAXISMOTION and event.axis == joystick_controls[0][1]:
@@ -63,15 +63,16 @@ class ScrollBar:
             if not self.scrolling:
                 self.joystick_scroll_value = self.scroll_speed * -hat_value[1]
 
-        if (self.scroll_button_rect.collidepoint(mouse_pos[0] / mouse_adjustment, mouse_pos[1] / mouse_adjustment)
+        if (self.scroll_button_rect.collidepoint(mouse_pos[0] / mouse_adjustment[0] - mouse_adjustment[1],
+                                                 mouse_pos[1] / mouse_adjustment[0])
                 and pygame.mouse.get_focused()) or abs(self.joystick_scroll_value) > 0:
             self.over_btn = True
             self.scroll_button.fill(self.scroll_button_over_colour)
         else:
             self.over_btn = False
 
-        if self.scrollbar_surface_rect.collidepoint(mouse_pos[0] / mouse_adjustment, mouse_pos[1] / mouse_adjustment) \
-                and pygame.mouse.get_focused():
+        if self.scrollbar_surface_rect.collidepoint(mouse_pos[0] / mouse_adjustment[0] - mouse_adjustment[1],
+                                                    mouse_pos[1] / mouse_adjustment[0]) and pygame.mouse.get_focused():
             self.over_scroll = True
         else:
             self.over_scroll = False
@@ -82,7 +83,7 @@ class ScrollBar:
         self.scroll_button_rect.y += self.joystick_scroll_value
 
         if self.scroll_button_clicked:
-            self.scroll_button_rect.y = (mouse_pos[1] / mouse_adjustment) - self.mouse_pos_on_button
+            self.scroll_button_rect.y = (mouse_pos[1] / mouse_adjustment[0]) - self.mouse_pos_on_button
 
         if self.scroll_button_rect.top < self.position[1]:
             self.scroll_button_rect.top = self.position[1]

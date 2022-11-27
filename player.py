@@ -535,7 +535,9 @@ class Player:
         if not self.harmed and harm and self.player_moved:
             self.health = 0
             sack_mask = pygame.mask.from_surface(self.sack_img)
-            self.sack_silhouette = pygame.mask.Mask.to_surface(sack_mask, setcolor=(255, 255, 255), unsetcolor=None)
+            self.sack_silhouette = pygame.mask.Mask.to_surface(sack_mask, setcolor=(255, 255, 255),
+                                                               unsetcolor=(0, 0, 0))
+            self.sack_silhouette.set_colorkey((0, 0, 0))
             self.dead = True
             self.harmed = True
             self.speed_dash = False
