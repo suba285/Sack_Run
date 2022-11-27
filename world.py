@@ -296,7 +296,7 @@ class World:
         }
 
         # bee hive tile images -----------------------------------------------------------------------------------------
-        self.bee_hive = img_loader('data/images/bee_hive.PNG', tile_size, 2 * tile_size)
+        self.bee_hive = img_loader('data/images/bee_hive.PNG', tile_size, 1.5 * tile_size)
         self.bee_hive.set_colorkey((0, 0, 0))
 
         # bush tiles ---------------------------------------------------------------------------------------------------
@@ -498,7 +498,7 @@ class World:
                     img = self.bee_hive
                     img_rect = self.bee_hive.get_rect()
                     img_rect.x = column_count * tile_size
-                    img_rect.y = row_count * tile_size
+                    img_rect.y = row_count * tile_size + tile_size / 2
                     tile = (img, img_rect)
                     self.decoration_list.append(tile)
                 if tile == 20:
@@ -586,11 +586,10 @@ class World:
                     self.hot_lava_list.append(lava_package)
                 if tile == 28:
                     # bee hive
-                    img = pygame.transform.scale(self.bee_hive, (tile_size, 2 * tile_size))
-                    img.set_colorkey((0, 0, 0))
+                    img = self.bee_hive
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size
-                    img_rectangle.y = row_count * tile_size
+                    img_rectangle.y = row_count * tile_size + tile_size / 2
                     bee_list = []
                     for i in range(4):
                         bee = Bee(img_rectangle.x, img_rectangle.y)

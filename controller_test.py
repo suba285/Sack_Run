@@ -55,6 +55,7 @@ def main():
                 print("Joystick button pressed.")
                 if event.button == 0:
                     joystick = joysticks[event.instance_id]
+                    pygame.joystick.Joystick.get_numaxes(joystick)
                     if joystick.rumble(0, 0.7, 500):
                         print(f"Rumble effect played on joystick {event.instance_id}")
 

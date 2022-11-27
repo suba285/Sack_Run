@@ -10,6 +10,7 @@ from popup_bg_generator import popup_bg_generator
 from scroll_bar import ScrollBar
 import json
 import random
+import math
 
 
 particle_num = 12
@@ -221,11 +222,15 @@ class Game:
 
         # bees popup window
         bees_txt = Text().make_text(['BEEWARE!'])
-        bees_intro_txt = Text().make_text(['You are about to encounter bees,'])
-        bees_things_to_know_txt = Text().make_text(['Bee tip:'])
-        bees_tip1_txt = Text().make_text([f'- jump on blue mushrooms to kill bees'])
 
-        self.bees_popup = popup_bg_generator((bees_tip1_txt.get_width() + 6, 115))
+        self.bees_popup = popup_bg_generator((220, 150))
+
+        self.bee_banner = img_loader('data/images/banner_shockwave.PNG', 200, 100)
+
+        self.bee_banner_final_y = sheight / 2 - 52
+        self.bee_banner_y_counter = sheight - self.bee_banner_final_y
+        self.bee_banner_y = sheight
+        self.bee_banner_x = swidth / 2 - 100
 
         bee_bg_center = self.bees_popup.get_width() / 2
 
@@ -234,11 +239,6 @@ class Game:
                                  ok_button_img, ok_button_press, ok_button_down)
 
         self.bees_popup.blit(bees_txt, (bee_bg_center - bees_txt.get_width() / 2, 6))
-        self.bees_popup.blit(bees_intro_txt, (bee_bg_center - bees_intro_txt.get_width() / 2, 25))
-        self.bees_popup.blit(bees_things_to_know_txt, (bee_bg_center - bees_things_to_know_txt.get_width() / 2, 40))
-        self.bees_popup.blit(bees_tip1_txt, (bee_bg_center - bees_tip1_txt.get_width() / 2, 55))
-        self.bees_popup.blit(ok_button_down, (bee_bg_center - ok_button_img.get_width() / 2 + 1,
-                                              self.bees_popup.get_height() - tile_size * 0.75 - 3))
 
         # new card popup window
         new_card_txt = Text().make_text(['NEW CARD UNLOCKED'])
@@ -287,13 +287,6 @@ class Game:
             if world_count == 2:
                 self.eq_power_list = ["mid-air_jump"]
             self.eq_power_list = []
-
-        self.nums_to_unlocked_world_data = {
-            1: 1,
-            2: 2,
-            3: 3,
-            4: 3
-        }
 
         # variables ----------------------------------------------------------------------------------------------------
         self.level_check = 1
@@ -376,7 +369,7 @@ class Game:
         self.portal_surface_x = portal_position[0] + tile_size / 2 - swidth / 2
         self.portal_surface_y = portal_position[1] + tile_size / 2 - sheight / 2
 
-    def popup_window(self, popup_window, screen, button, mouse_adjustment, events):
+    def popup_window(self, popup_window, screen, button, mouse_adjustment, events, joystick_over):
         self.move = False
         if 1.7 > self.level_duration_counter > 1.45:
             scaling = self.level_duration_counter - 1.45
@@ -395,14 +388,15 @@ class Game:
             press, ok_over = button.draw_button(screen,
                                                 False,
                                                 mouse_adjustment,
-                                                events, True)
+                                                events, joystick_over)
         else:
             press = False
 
         return press
 
-    def update_controller_type(self, joystick_controls):
+    def update_controller_type(self, joystick_controls, settings_counters):
         configuration_counter = joystick_controls[4]
+        self.settings_counters = settings_counters
         self.player.settings_counters = joystick_controls[4]
         if configuration_counter == 1:
             self.controller_type = 'xbox'
@@ -590,12 +584,12 @@ class Game:
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------
         if screen_shake:
-            screen.blit(self.game_screen, (random.choice([-2, 0, 2]), random.choice([-2, 0, 2])))
+            screen.blit(self.game_screen, (random.choice([-3, 0, 3]), random.choice([-3, 0, 3])))
         else:
             screen.blit(self.game_screen, (0, 0))
 
         # respawn instructions -----------------------------------------------------------------------------------------
-        self.player.blit_respawn_instructions(screen, fps_adjust, joystick_connected)
+        self.player.blit_respawn_instructions(screen, fps_adjust, joystick_connected, self.settings_counters)
 
         # eq full message ----------------------------------------------------------------------------------------------
         self.world.draw_eq_full(screen)
@@ -633,12 +627,13 @@ class Game:
             self.music_playing = False
             fadeout = True
 
-        # level count display ------------------------------------------------------------------------------------------
-        if not (tutorial and level_count == 3) and not (world_count == 2 and level_count == 9):
-            self.level_display.draw_level_number(screen, game_counter)
-
         # popup window -------------------------------------------------------------------------------------------------
         ok_over = False
+
+        if joystick_connected:
+            joystick_over = True
+        else:
+            joystick_over = False
 
         # controls popup
         if self.popup_window_controls:
@@ -668,7 +663,8 @@ class Game:
 
             if game_counter >= 0.25:
                 popup_controls_press, ok_over = self.ok_controls_btn.draw_button(screen,
-                                                                                 False, mouse_adjustment, events, True)
+                                                                                 False, mouse_adjustment,
+                                                                                 events, joystick_over)
             else:
                 popup_controls_press = False
 
@@ -695,14 +691,24 @@ class Game:
                 popup_lvl_completed_press, ok_over = self.lvl_selection_btn.draw_button(screen,
                                                                                         False,
                                                                                         mouse_adjustment,
-                                                                                        events, True)
+                                                                                        events, joystick_over)
             else:
                 popup_lvl_completed_press = False
 
         # bee info popup
         elif self.bee_info_popup and not self.bee_info_popup_done:
             popup_bees_press = Game.popup_window(self, self.bees_popup, screen, self.ok_bee_btn,
-                                                 mouse_adjustment, events)
+                                                 mouse_adjustment, events, joystick_over)
+            if self.level_duration_counter > 1.45:
+                self.bee_banner_y_counter -= 15 * fps_adjust
+                if self.bee_banner_y_counter < 0:
+                    self.bee_banner_y_counter = 0
+                self.bee_banner_y = self.bee_banner_final_y + self.bee_banner_y_counter
+                if self.bee_banner_y_counter == 0:
+                    y_offset = math.cos(self.level_duration_counter * 2) * 2
+                else:
+                    y_offset = 0
+                screen.blit(self.bee_banner, (self.bee_banner_x, self.bee_banner_y + y_offset))
             if popup_bees_press:
                 self.bee_info_popup = False
                 self.bee_info_popup_done = True
@@ -715,7 +721,7 @@ class Game:
             else:
                 if self.level_duration_counter > 1.45:
                     popup_new_card_press = Game.popup_window(self, self.new_card_popup, screen, self.ok_new_card_button,
-                                                             mouse_adjustment, events)
+                                                             mouse_adjustment, events, joystick_over)
 
                     self.eq_manager.new_card(card_type, screen, fps_adjust, self.level_duration_counter)
 
@@ -734,19 +740,6 @@ class Game:
 
         if ok_over:
             game_button_over = True
-
-        if popup_lvl_completed_press:
-            try:
-                with open('data/unlocked_worlds.json', 'r') as json_file:
-                    unlocked_world_data = json.load(json_file)
-            except FileNotFoundError:
-                unlocked_world_data = [True, False, False, False]
-            unlocked_world_data[self.nums_to_unlocked_world_data[world_count]] = True
-            try:
-                with open('data/unlocked_worlds.json', 'w') as json_file:
-                    json.dump(unlocked_world_data, json_file)
-            except FileNotFoundError:
-                progress_not_saved_error = True
 
         # new level transition -----------------------------------------------------------------------------------------
         self.player.draw_transition(fps_adjust)

@@ -26,6 +26,7 @@ class Button:
         self.play_over_sound = True
         self.button_down = False
         self.joystick_over_button = False
+        self.joystick_over_counter = 0
 
     def draw_button(self, screen, card, mouse_adjustment, events, joystick_over):
         action = False
@@ -44,6 +45,11 @@ class Button:
 
         # cursor position
         pos = pygame.mouse.get_pos()
+
+        if joystick_over:
+            self.joystick_over_counter += 1
+        else:
+            self.joystick_over_counter = 0
 
         if (self.image_rect.collidepoint((pos[0] / mouse_adjustment,
                                          pos[1] / mouse_adjustment)) and
@@ -72,6 +78,8 @@ class Button:
 
         screen.blit(self.image, self.image_rect)
         if self.joystick_over_button and not self.button_down and not card:
+            if 255 >= self.joystick_over_counter > 0:
+                self.outline1_surf.set_alpha(self.joystick_over_counter * 51)
             screen.blit(self.outline1_surf, self.image_rect)
 
         return action, self.cursor_over

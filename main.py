@@ -123,8 +123,37 @@ from settings import SettingsMenu
 world_data = level1_1
 bg_data = level1_1_bg
 first_level = 1
-world_count = 1
-level_count = first_level
+try:
+    with open('data/level_count.json', 'r') as json_file:
+        level_counters = json.load(json_file)
+
+except FileNotFoundError:
+    level_counters = [1, 1, 1, 1]
+try:
+    with open('data/unlocked_worlds.json', 'r') as json_file:
+        unlocked_worlds_data = json.load(json_file)
+        counter = 1
+        for value in unlocked_worlds_data:
+            if value:
+                world_count = counter
+            counter += 1
+except FileNotFoundError:
+    world_count = 1
+
+level_count = level_counters[world_count]
+
+world_level_nums = {
+    1: 3,
+    2: 9,
+    3: 7
+}
+
+nums_to_unlocked_world_data = {
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 3
+}
 
 default_game_counter = -3
 game_counter = default_game_counter
@@ -150,6 +179,8 @@ proceed_with_transition = False
 reload_world_status = False
 menu_y = 0
 game_y = swidth
+
+new_world_unlocked = False
 
 if settings_counters['hitbox'] == 1:
     draw_hitbox = False
@@ -408,7 +439,6 @@ while run:
             run_game = False
             run_menu = False
             run_level_selection = True
-            level_count = first_level
             menu_y = 0
             game_y = swidth
 
@@ -430,6 +460,7 @@ while run:
             if joystick_connected and not joystick_configured:
                 settings_menu.section_counter = 0
                 settings_menu.joystick_counter = 1
+            settings_menu.screen_alpha_counter = 0
 
     # running the game -------------------------------------------------------------------------------------------------
     if run_game:
@@ -469,13 +500,34 @@ while run:
 
         # changing the displayed screens
         if lvl_selection_press:
+            try:
+                with open('data/level_count.json', 'w') as json_file:
+                    level_count = 1
+                    level_counters[world_count - 1] = level_count
+                    json.dump(level_counters, json_file)
+            except FileNotFoundError:
+                pass
+
+            try:
+                with open('data/unlocked_worlds.json', 'r') as json_file:
+                    unlocked_world_data = json.load(json_file)
+            except FileNotFoundError:
+                unlocked_world_data = [True, False, False, False]
+            if world_count < 4 and not unlocked_world_data[world_count]:
+                new_world_unlocked = True
+            unlocked_world_data[nums_to_unlocked_world_data[world_count]] = True
+            try:
+                with open('data/unlocked_worlds.json', 'w') as json_file:
+                    json.dump(unlocked_world_data, json_file)
+            except FileNotFoundError:
+                progress_not_saved_error = True
+
             game_counter = default_game_counter
             run_game = False
             run_menu = False
             run_settings = False
             run_level_selection = True
             fadeout_music = True
-            level_count = first_level
             menu_y = 0
             game_y = swidth
 
@@ -500,7 +552,18 @@ while run:
             run_menu = False
             paused = False
             screen_alpha = 0
-            main_game.update_controller_type(controls['configuration'])
+            main_game.update_controller_type(controls['configuration'], settings_counters)
+            try:
+                with open('data/level_count.json', 'w') as json_file:
+                    if level_count == world_level_nums[world_count]:
+                        level_count = 1
+                    else:
+                        pass
+                    level_counters[world_count - 1] = level_count
+                    json.dump(level_counters, json_file)
+
+            except FileNotFoundError:
+                pass
 
         if resume:
             run_menu = False
@@ -509,7 +572,7 @@ while run:
             run_level_selection = False
             play_music = True
             load_music = True
-            main_game.update_controller_type(controls['configuration'])
+            main_game.update_controller_type(controls['configuration'], settings_counters)
 
         if settings:
             run_menu = False
@@ -520,6 +583,7 @@ while run:
             if joystick_connected and not joystick_configured:
                 settings_menu.section_counter = 0
                 settings_menu.joystick_counter = 1
+            settings_menu.screen_alpha_counter = 0
 
     # world selection --------------------------------------------------------------------------------------------------
     if run_level_selection:
@@ -528,7 +592,7 @@ while run:
                 with open('data/unlocked_worlds.json', 'r') as json_file:
                     level_select.world_status = json.load(json_file)
                     reload_world_status = False
-            except Exception:
+            except FileNotFoundError:
                 world_status_loading_error = True
                 level_select.world_status = [True, False, False, False]
         if joystick_configured or not joystick_connected:
@@ -538,13 +602,19 @@ while run:
         play_press,\
             menu,\
             button_sound_trigger1,\
-            world_count = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
-                                                            lvl_selection_events,
-                                                            controls, joysticks)
+            world_count,\
+            new_world_unlocked = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
+                                                                   lvl_selection_events,
+                                                                   controls, joysticks, fps_adjust, world_count,
+                                                                   new_world_unlocked)
 
         if play_press and (joystick_configured or not joystick_connected):
-            world_data = level_dictionary[f'level1_{world_count}']
-            bg_data = level_bg_dictionary[f'level1_{world_count}_bg']
+            if world_count != 1:
+                level_count = level_counters[world_count - 1]
+            else:
+                level_count = 1
+            world_data = level_dictionary[f'level{level_count}_{world_count}']
+            bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
             threading.Thread(target=load_game, args=[world_data, bg_data, world_count, joystick_connected]).start()
             loading = True
             proceed_with_transition = False
@@ -572,7 +642,6 @@ while run:
             run_menu = False
             run_game = True
             paused = False
-            level_count = 1
             run_level_selection = False
             menu_transition = True
             menu_transition_counter = 0
@@ -685,7 +754,7 @@ while run:
             joystick = pygame.joystick.Joystick(event.device_index)
             joysticks[0] = joystick
             joystick_connected = True
-            joystick.rumble(0.7, 0.7, 800)
+            joysticks[0].rumble(0.5, 0.5, 500)
             joystick_name = str(joystick.get_name())
             if joystick_name in controllers:
                 controller_connected_counter = 90

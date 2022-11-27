@@ -3,6 +3,7 @@ from button import *
 from image_loader import img_loader
 from font_manager import Text
 import random
+import math
 
 local_tile_size = 32
 tile_size = local_tile_size
@@ -194,11 +195,7 @@ class mainMenu:
         over4 = False
 
         if self.opening_animation_counter > 260:
-            if self.logo_pos_counter >= 60:
-                self.sack_run_logo_y = 70
-                self.logo_pos_counter = 0
-            elif self.logo_pos_counter >= 50:
-                self.sack_run_logo_y = 69
+            self.sack_run_logo_y = 70 - math.sin(self.logo_pos_counter / 16) * 3
 
         if self.opening_animation_counter > 230:
             # play button

@@ -234,8 +234,6 @@ class Player:
 
         self.a_button = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
         self.cross_button = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
-        self.space_key = img_loader('data/images/buttons/key_space.PNG', tile_size, tile_size / 2)
-        self.space_key_press = img_loader('data/images/buttons/key_space_press.PNG', tile_size, tile_size / 2)
         self.respawn_keys = {
             '1': img_loader('data/images/buttons/key_space.PNG', tile_size, tile_size / 2),
             '1_press': img_loader('data/images/buttons/key_space_press.PNG', tile_size, tile_size / 2),
@@ -455,7 +453,7 @@ class Player:
         self.new_level_cooldown += 1*fps_adjust
 
         # turning the 'harm' boolean into a single variable
-        if harm_in and self.teleport_count <= 100:
+        if harm_in and self.teleport_count <= 10:
             harm = True
 
         # joystick input management
@@ -558,7 +556,7 @@ class Player:
             if tile[1].colliderect(self.sack_rect.x, self.sack_rect.y,
                                    self.sack_width, self.sack_height) and not self.dead:
                 self.teleport_count += 1*fps_adjust
-                if self.teleport_count >= 100:
+                if self.teleport_count >= 20:
                     if not self.transition:
                         self.circle_transition = CircleTransition(screen)
                     self.transition = True
@@ -569,7 +567,7 @@ class Player:
                         if level_count == 8:
                             self.fadeout = True
 
-                if self.teleport_count >= 130:
+                if self.teleport_count >= 50:
                     if self.mid_air_jump:
                         self.mid_air_jump_counter = 4
                     level_count += 1
@@ -584,7 +582,7 @@ class Player:
                     self.direction = 1
 
         # movement and animation ---------------------------------------------------------------------------------------
-        if self.new_level_cooldown >= 30 and not self.dead and self.teleport_count < 100\
+        if self.new_level_cooldown >= 30 and not self.dead and self.teleport_count < 20\
                 and not (self.col_types['right'] or self.col_types['left']) and game_counter >= 0 and move:
             # player control
             self.transition = False
@@ -1037,7 +1035,7 @@ class Player:
         self.hey_particle1.blit_particle(screen)
 
         # drawing teleportation particles onto the screen
-        if not self.dead and self.teleport_count > 20:
+        if not self.dead and self.teleport_count > 0:
             magic_animation(self, screen, self.teleport_count, particle_x)
 
 # inter-level transition -----------------------------------------------------------------------------------------------
@@ -1046,7 +1044,7 @@ class Player:
             self.circle_transition.draw_circle_transition(self.sack_rect, fps_adjust)
 
 # respawn instructions -------------------------------------------------------------------------------------------------
-    def blit_respawn_instructions(self, screen, fps_adjust, joystick_connected):
+    def blit_respawn_instructions(self, screen, fps_adjust, joystick_connected, settings_counters):
         if self.health == 0 and self.dead_counter >= 36 and self.restart_counter == 0:
             x = swidth / 2 - 3 * 8
             press = False
@@ -1078,8 +1076,8 @@ class Player:
             if joystick_connected:
                 screen.blit(controller_btn, (swidth / 2 - tile_size / 4, sheight / 3 + 16))
             else:
-                key_img = self.respawn_keys[str(self.settings_counters['jumping'])]
+                key_img = self.respawn_keys[str(settings_counters['jumping'])]
                 if press:
-                    key_img = self.respawn_keys[f'{self.settings_counters["jumping"]}_press']
+                    key_img = self.respawn_keys[f'{settings_counters["jumping"]}_press']
                 if self.respawn_press_counter > 8:
                     screen.blit(key_img, (swidth / 2 - key_img.get_width() / 2, sheight / 3 + 16))

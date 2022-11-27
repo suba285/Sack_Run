@@ -91,6 +91,7 @@ class SettingsMenu:
         self.keyboard_highlight_counter = 60
         self.keyboard_highlight_off = False
         self.keyboard_bg_alpha = 100
+        self.screen_alpha_counter = 0
 
         # major surfaces -----------------------------------------------------------------------------------------------
         self.control_screen = pygame.Surface((swidth, 220))
@@ -711,9 +712,9 @@ class SettingsMenu:
 
                 if event.type == pygame.JOYBUTTONDOWN:
                     # bumper input
-                    if event.button == 4 or event.button == 9:
+                    if event.button == 4 or event.button == self.controls['configuration'][1]:
                         joystick_tab_left = True
-                    if event.button == 5 or event.button == 10:
+                    if event.button == 5 or event.button == self.controls['configuration'][2]:
                         joystick_tab_right = True
             # D-pad input
             if joysticks:
@@ -1253,11 +1254,20 @@ class SettingsMenu:
 
         # screen managing ==============================================================================================
         if not self.draw_control_screen:
+            if self.screen_alpha_counter <= 255:
+                self.control_screen.set_alpha(self.screen_alpha_counter)
             settings_screen.blit(self.control_screen, (0, 0))
         if not self.draw_visual_screen:
+            if self.screen_alpha_counter <= 255:
+                self.visual_screen.set_alpha(self.screen_alpha_counter)
             settings_screen.blit(self.visual_screen, (0, 0))
         if not self.draw_sound_screen:
+            if self.screen_alpha_counter <= 255:
+                self.sound_screen.set_alpha(self.screen_alpha_counter)
             settings_screen.blit(self.sound_screen, (0, 0))
+
+        # setting screen transition ------------------------------------------------------------------------------------
+        self.screen_alpha_counter += 16 * fps_adjust
 
         # calibration window -------------------------------------------------------------------------------------------
         if self.controller_calibration:
@@ -1305,16 +1315,21 @@ class SettingsMenu:
 
         if control_btn_trigger:
             self.section_counter = 0
+            self.screen_alpha_counter = 0
         if visual_btn_trigger:
             self.section_counter = 1
+            self.screen_alpha_counter = 0
         if sound_btn_trigger:
             self.section_counter = 2
+            self.screen_alpha_counter = 0
 
         if joystick_tab_left:
+            self.screen_alpha_counter = 0
             self.section_counter -= 1
             if self.section_counter < 0:
                 self.section_counter = 2
         if joystick_tab_right:
+            self.screen_alpha_counter = 0
             self.section_counter += 1
             if self.section_counter > 2:
                 self.section_counter = 0
