@@ -2,6 +2,8 @@ import time
 import pygame
 import json
 import threading
+import ctypes
+
 
 pygame.init()
 pygame.joystick.init()
@@ -9,10 +11,20 @@ pygame.mixer.pre_init(40000, -16, 1, 1024)
 joysticks = {}
 
 # basic game variables -------------------------------------------------------------------------------------------------
-screen_dimensions = pygame.display.Info()
-print(screen_dimensions)
-monitor_height = screen_dimensions.current_h
-monitor_width = screen_dimensions.current_w
+try:
+    user32 = ctypes.windll.user32
+    user32.SetProcessDPIAware()
+    geometry = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
+    monitor_width = geometry[0]
+    monitor_height = geometry[1]
+    print('proper display scaling')
+except Exception:
+    screen_dimensions = pygame.display.Info()
+    monitor_width = screen_dimensions.current_w
+    monitor_height = screen_dimensions.current_h
+    print('wrong display scaling')
+print(monitor_width)
+print(monitor_height)
 screen_width = monitor_height * (360 / 264)
 
 sheight = 264
@@ -84,23 +96,17 @@ for res in list_of_resolutions:
 if resolution_counter < 1:
     resolution_counter = 1
 
-if monitor_height >= 1000:
-    resolution_counter = 4
-    wiwidth = screen_width
-    wiheight = monitor_height
-    width_window_space = monitor_width
-    flag = pygame.FULLSCREEN
-else:
-    wiwidth = recommended_resolution[0]
-    wiheight = recommended_resolution[1]
-    width_window_space = wiwidth
-    flag = pygame.SCALED
+
+resolution_counter = 4
+wiwidth = screen_width
+wiheight = monitor_height
+width_window_space = monitor_width
 
 settings_counters['resolution'] = resolution_counter
 recommended_res_counter = resolution_counter
 
 # screens (surfaces)
-window = pygame.display.set_mode((monitor_width, monitor_height), flag, pygame.HWACCEL)
+window = pygame.display.set_mode((monitor_width, monitor_height), pygame.FULLSCREEN, pygame.HWACCEL)
 screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
 screen.set_alpha(0)
 screen_alpha = 0
