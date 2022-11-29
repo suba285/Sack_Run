@@ -1,7 +1,5 @@
 import pygame
 
-swidth = 360
-sheight = 264
 tile_size = 32
 
 

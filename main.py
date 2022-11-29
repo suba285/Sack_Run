@@ -2,7 +2,6 @@ import time
 import pygame
 import json
 import threading
-import ctypes
 
 
 pygame.init()
@@ -11,21 +10,12 @@ pygame.mixer.pre_init(40000, -16, 1, 1024)
 joysticks = {}
 
 # basic game variables -------------------------------------------------------------------------------------------------
-try:
-    user32 = ctypes.windll.user32
-    user32.SetProcessDPIAware()
-    geometry = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
-    monitor_width = geometry[0]
-    monitor_height = geometry[1]
-    print('proper display scaling')
-except Exception:
-    screen_dimensions = pygame.display.Info()
-    monitor_width = screen_dimensions.current_w
-    monitor_height = screen_dimensions.current_h
-    print('wrong display scaling')
+screen_dimensions = pygame.display.Info()
+monitor_width = screen_dimensions.current_w
+monitor_height = screen_dimensions.current_h
 print(monitor_width)
 print(monitor_height)
-screen_width = monitor_height * (360 / 264)
+screen_width = monitor_height * (352 / 264)
 
 sheight = 264
 swidth = 352
@@ -97,16 +87,27 @@ if resolution_counter < 1:
     resolution_counter = 1
 
 
-resolution_counter = 4
-wiwidth = screen_width
-wiheight = monitor_height
-width_window_space = monitor_width
+if settings_counters['resolution'] > 3:
+    wiwidth = screen_width
+    wiheight = monitor_height
+    display_geometry = (monitor_width, monitor_height)
+    flag = pygame.FULLSCREEN
+    resolution_counter = 4
+    width_window_space = monitor_width
+else:
+    geometry = resolutions[str(settings_counters['resolution'])]
+    wiwidth = geometry[0]
+    wiheight = geometry[1]
+    display_geometry = (wiwidth, wiheight)
+    flag = pygame.SCALED
+    resolution_counter = settings_counters['resolution']
+    width_window_space = wiwidth
 
 settings_counters['resolution'] = resolution_counter
 recommended_res_counter = resolution_counter
 
 # screens (surfaces)
-window = pygame.display.set_mode((monitor_width, monitor_height), pygame.FULLSCREEN, pygame.HWACCEL)
+window = pygame.display.set_mode(display_geometry, flag, pygame.HWACCEL)
 screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
 screen.set_alpha(0)
 screen_alpha = 0
