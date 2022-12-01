@@ -9,8 +9,8 @@ from button import inactive_button
 
 tile_size = 32
 
-sheight = 264
-swidth = 352
+sheight = 270
+swidth = 480
 
 
 class LevelSelection:
@@ -161,6 +161,7 @@ class LevelSelection:
 
         if new_world_unlocked:
             self.new_world_animation_counter = self.new_world_animation_stage0
+            self.lock_animation_counter = 0
             self.new_world_dim_surf.set_alpha(self.new_world_dim_surf_max_alpha)
             self.new_world_dim_surf_alpha = self.new_world_dim_surf_max_alpha
             self.world_count += 1
@@ -179,7 +180,7 @@ class LevelSelection:
         over3 = False
         over4 = False
 
-        for event in events:
+        for event in local_events:
             if event.type == pygame.JOYAXISMOTION:
                 if event.axis == controls['configuration'][0][0]:
                     # right and left

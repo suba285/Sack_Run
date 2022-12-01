@@ -8,8 +8,8 @@ import math
 local_tile_size = 32
 tile_size = local_tile_size
 
-sheight = 264
-swidth = 352
+sheight = 270
+swidth = 480
 
 
 class mainMenu:
@@ -25,7 +25,7 @@ class mainMenu:
                                                tile_size * 0.75)
 
         self.menu_background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
-        self.menu_background = pygame.transform.scale(self.menu_background_raw, (360, 296))
+        self.menu_background = pygame.transform.scale(self.menu_background_raw, (swidth, sheight))
 
         self.logo = img_loader('data/images/sack_run_logo.PNG', tile_size * 4, tile_size)
         self.logo_rect = self.logo.get_rect()

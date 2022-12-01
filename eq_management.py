@@ -7,8 +7,8 @@ from popup_bg_generator import popup_bg_generator
 
 tile_size = 32
 
-sheight = 264
-swidth = 352
+sheight = 270
+swidth = 480
 
 card_tile_size = 2 * tile_size
 
@@ -29,7 +29,7 @@ class eqManager:
 
         self.card_checked = False
 
-        self.y = 264 - 2*tile_size
+        self.y = sheight - 2*tile_size
         self.x = 0
         self.eq_button_list = []
 

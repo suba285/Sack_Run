@@ -51,8 +51,8 @@ class Button:
         else:
             self.joystick_over_counter = 0
 
-        if (self.image_rect.collidepoint((pos[0] / mouse_adjustment[0] - mouse_adjustment[1],
-                                         pos[1] / mouse_adjustment[0])) and
+        if (self.image_rect.collidepoint((pos[0] / mouse_adjustment[0] - mouse_adjustment[2],
+                                         pos[1] / mouse_adjustment[0] - mouse_adjustment[1])) and
             pygame.mouse.get_focused() and joystick_count == 0) or \
                 self.joystick_over_button:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)

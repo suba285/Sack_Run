@@ -15,10 +15,11 @@ monitor_width = screen_dimensions.current_w
 monitor_height = screen_dimensions.current_h
 print(monitor_width)
 print(monitor_height)
-screen_width = monitor_height * (352 / 264)
+screen_width = monitor_width
+screen_height = monitor_width / 16 * 9
 
-sheight = 264
-swidth = 352
+sheight = 270
+swidth = 480
 wiheight = sheight * 2
 wiwidth = swidth * 2
 tile_size = 32
@@ -64,7 +65,7 @@ resolutions = {
         '1': (swidth * 2, sheight * 2),
         '2': (swidth * 3, sheight * 3),
         '3': (swidth * 4, sheight * 4),
-        '4': (screen_width, monitor_height)
+        '4': (screen_width, screen_height)
     }
 
 resolution_1 = resolutions['1']
@@ -78,7 +79,7 @@ recommended_resolution = resolution_1
 resolution_counter = 3
 
 for res in list_of_resolutions:
-    if res[1] < (monitor_height * 0.9):
+    if res[0] < monitor_width:
         recommended_resolution = res
         break
     resolution_counter -= 1
@@ -89,18 +90,20 @@ if resolution_counter < 1:
 
 if settings_counters['resolution'] > 3:
     wiwidth = screen_width
-    wiheight = monitor_height
+    wiheight = screen_height
     display_geometry = (monitor_width, monitor_height)
     flag = pygame.FULLSCREEN
     resolution_counter = 4
+    height_window_space = monitor_height
     width_window_space = monitor_width
 else:
     geometry = resolutions[str(settings_counters['resolution'])]
     wiwidth = geometry[0]
     wiheight = geometry[1]
     display_geometry = (wiwidth, wiheight)
-    flag = pygame.SCALED
+    flag = pygame.RESIZABLE
     resolution_counter = settings_counters['resolution']
+    height_window_space = wiheight
     width_window_space = wiwidth
 
 settings_counters['resolution'] = resolution_counter
@@ -404,15 +407,21 @@ while run:
 
     load_music = False
 
+    adjust_resolution = False
+
     if not run_level_selection:
         reload_world_status = True
 
-    mouse_adjustment = [(wiwidth / swidth), (swidth / wiwidth) * ((width_window_space - wiwidth) / 2)]
+    mouse_adjustment = [(wiwidth / swidth),
+                        (swidth / wiwidth) * ((height_window_space - wiheight) / 2),
+                        (swidth / wiwidth) * ((width_window_space - wiwidth) / 2)]
 
     # fps adjustment ---------------------------------------------------------------------------------------------------
     real_fps = clock.get_fps()
     fps_adjust = time.time() - last_time
     fps_adjust = fps_adjust * 60
+    if fps_adjust > 3:
+        fps_adjust = 3
     last_time = time.time()
     last_fps_adjust = fps_adjust
     display_fps = round(real_fps)
@@ -494,20 +503,24 @@ while run:
             play = False
 
         run_menu = False
-        level_count,\
-            menu_press,\
-            play_card_pull_sound,\
-            play_lock_sound,\
-            play_bear_trap_cling_sound,\
-            play_healing_sound,\
-            button_sound_trigger2,\
-            play_paper_sound,\
-            play_music_trigger,\
-            fadeout_music,\
-            lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
-                                                 draw_hitbox, mouse_adjustment, events,
-                                                 game_counter, world_count, controls, joystick_configured,
-                                                 controller_calibration, joysticks)
+        if pygame.WINDOWMAXIMIZED not in events:
+            level_count,\
+                menu_press,\
+                play_card_pull_sound,\
+                play_lock_sound,\
+                play_bear_trap_cling_sound,\
+                play_healing_sound,\
+                button_sound_trigger2,\
+                play_paper_sound,\
+                play_music_trigger,\
+                fadeout_music,\
+                lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
+                                                     draw_hitbox, mouse_adjustment, events,
+                                                     game_counter, world_count, controls, joystick_configured,
+                                                     controller_calibration, joysticks)
+        else:
+            menu_press = False
+            lvl_selection_press = False
 
         if play_music_trigger:
             play_music = True
@@ -695,17 +708,32 @@ while run:
         if adjust_resolution:
             wiwidth = current_resolution[0]
             wiheight = current_resolution[1]
+            height_window_space = wiheight
             width_window_space = wiwidth
-            if current_resolution == (screen_width, monitor_height):
+            if current_resolution == (screen_width, screen_height):
+                height_window_space = monitor_height
                 width_window_space = monitor_width
                 flag = pygame.FULLSCREEN
-                window = pygame.display.set_mode((monitor_width, monitor_height), flag)
+                window = pygame.display.set_mode((monitor_width, monitor_width), flag)
             else:
-                flag = pygame.SCALED
+                flag = pygame.RESIZABLE
                 window = pygame.display.set_mode(current_resolution, flag)
+            try:
+                with open('data/settings_configuration.json', 'w') as json_file:
+                    json.dump(settings_counters, json_file)
+            except Exception:
+                settings_not_saved_error = True
+            pygame.event.clear(pygame.VIDEORESIZE)
 
         if calibrated_press:
             joystick_configured = True
+            if joystick_connected and joystick_name != '':
+                controllers[joystick_name] = controls['configuration']
+                try:
+                    with open('data/controllers.json', 'w') as json_file:
+                        json.dump(controllers, json_file)
+                except FileNotFoundError:
+                    settings_not_saved_error = True
 
         if menu:
             run_game = False
@@ -726,20 +754,6 @@ while run:
             if settings_counters['music_volume'] == 1:
                 play_background_music = False
                 play_music = False
-
-            try:
-                with open('data/settings_configuration.json', 'w') as json_file:
-                    json.dump(settings_counters, json_file)
-            except Exception:
-                settings_not_saved_error = True
-
-            if joystick_connected and joystick_name != '':
-                controllers[joystick_name] = controls['configuration']
-                try:
-                    with open('data/controllers.json', 'w') as json_file:
-                        json.dump(controllers, json_file)
-                except Exception:
-                    settings_not_saved_error = True
 
             if settings_counters['sounds'] == 1:
                 play_sounds = False
@@ -777,6 +791,28 @@ while run:
             if event.key == pygame.K_LCTRL:
                 user_quit2 = False
             # play = True
+        if event.type == pygame.VIDEORESIZE and not adjust_resolution:
+            window_geometry = (window.get_width(), window.get_height())
+            if window_geometry[0] / 16 > window_geometry[1] / 9:
+                height_window_space = window_geometry[1]
+                width_window_space = window_geometry[0]
+                wiheight = window_geometry[1]
+                wiwidth = wiheight / 9 * 16
+            else:
+                height_window_space = window_geometry[1]
+                width_window_space = window_geometry[0]
+                wiwidth = window_geometry[0]
+                wiheight = wiwidth / 16 * 9
+
+            res_diff = abs(resolutions['1'][0] - wiwidth)
+            current_res_count = 1
+            for counter in range(2, 5):
+                current_res_diff = abs(resolutions[str(counter)][0] - wiwidth)
+                if current_res_diff < res_diff:
+                    res_diff = current_res_diff
+                    current_res_count = counter
+            settings_counters['resolution'] = current_res_count
+            settings_menu.update_settings_counters(settings_counters, controls)
 
         if event.type == pygame.JOYDEVICEADDED:
             pygame.mouse.set_visible(False)
@@ -999,7 +1035,9 @@ while run:
                 settings_not_saved_error = True
 
     # DISPLAYING EVERYTHING ON THE MAIN WINDOW
-    window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)), (width_window_space / 2 - wiwidth / 2, 0))
+    window.fill((0, 0, 0))
+    window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)),
+                (width_window_space / 2 - wiwidth / 2, height_window_space / 2 - wiheight / 2))
     pygame.display.update()
 
 pygame.quit()

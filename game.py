@@ -15,8 +15,8 @@ import math
 
 particle_num = 12
 
-sheight = 264
-swidth = 352
+sheight = 270
+swidth = 480
 
 level_dictionary = {
     "level1_1": level1_1,
@@ -57,22 +57,22 @@ level_bg_dictionary = {
 }
 
 level_pos_dictionary = {
-    "level1_1": (2, -2),
-    "level2_1": (3, -2),
-    "level3_1": (3, -2),
-    "level1_2": (0, -4),
-    "level2_2": (4, -5),
-    "level3_2": (0, -4),
-    "level4_2": (0, -5),
-    "level5_2": (4, -7),
-    "level6_2": (2, 2),
-    "level7_2": (4, -18),
-    "level8_2": (4, -5),
-    "level9_2": (3, -2),
-    "level1_3": (2, -4),
-    "level2_3": (-3, -5),
-    "level3_3": (2, -3),
-    "level4_3": (0, -3)
+    "level1_1": (4, -2),
+    "level2_1": (5, -2),
+    "level3_1": (5, -2),
+    "level1_2": (2, -4),
+    "level2_2": (6, -5),
+    "level3_2": (2, -4),
+    "level4_2": (2, -5),
+    "level5_2": (6, -7),
+    "level6_2": (4, 2),
+    "level7_2": (6, -19),
+    "level8_2": (6, -5),
+    "level9_2": (5, -2),
+    "level1_3": (4, -4),
+    "level2_3": (-1, -5),
+    "level3_3": (4, -3),
+    "level4_3": (2, -3)
 }
 
 level_card_dictionary = {

@@ -4,8 +4,8 @@ from font_manager import Text
 from button import Button
 import pygame
 
-sheight = 264
-swidth = 352
+sheight = 270
+swidth = 480
 tile_size = 32
 
 

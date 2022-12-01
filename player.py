@@ -5,8 +5,8 @@ from font_manager import Text
 import random
 import math
 
-sheight = 264
-swidth = 352
+sheight = 270
+swidth = 480
 
 pygame.init()
 tile_size = 32
@@ -866,7 +866,7 @@ class Player:
             self.new_level = False
 
         # ensuring the player sprite is always in the middle level of the screen
-        self.sack_rect.x = 164
+        self.sack_rect.x = swidth / 2 - self.sack_width / 2
         if not self.first_collision:
             self.sack_rect.y = 132
 

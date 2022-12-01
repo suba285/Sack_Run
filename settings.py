@@ -8,8 +8,8 @@ from popup_bg_generator import popup_bg_generator
 tile_size = 32
 button_size = tile_size * 0.75
 
-sheight = 264
-swidth = 352
+sheight = 270
+swidth = 480
 
 # this file is a total mess, you have been warned
 
@@ -204,7 +204,7 @@ class SettingsMenu:
         self.button_start_y = control_button_start_y
         interbutton_space = 120
 
-        self.center = 150
+        self.center = swidth / 2 - 20
 
         self.control_row1_y = control_button_start_y + gap
         self.control_row2_y = control_button_start_y + gap * 2
@@ -216,23 +216,23 @@ class SettingsMenu:
 
         self.res_adjusted = False
 
-        section_btn_select = pygame.Surface((118, 20))
+        section_btn_select = pygame.Surface((160, 20))
         section_btn_select.blit(self.menu_background, (0, 0))
 
-        section_btn_dark = pygame.Surface((118, 20))
+        section_btn_dark = pygame.Surface((160, 20))
         section_btn_dark.fill((56, 41, 59))
 
         self.draw_control_screen = False
         self.draw_visual_screen = True
         self.draw_sound_screen = True
 
-        self.control_button_select = pygame.Surface((117, 20))
-        self.sound_button_select = pygame.Surface((117, 20))
-        self.visual_button_select = pygame.Surface((118, 20))
+        self.control_button_select = pygame.Surface((160, 20))
+        self.sound_button_select = pygame.Surface((160, 20))
+        self.visual_button_select = pygame.Surface((160, 20))
 
-        self.control_button_dark = pygame.Surface((117, 20))
-        self.sound_button_dark = pygame.Surface((117, 20))
-        self.visual_button_dark = pygame.Surface((118, 20))
+        self.control_button_dark = pygame.Surface((160, 20))
+        self.sound_button_dark = pygame.Surface((160, 20))
+        self.visual_button_dark = pygame.Surface((160, 20))
 
         self.control_button_select.blit(section_btn_select, (0, 0))
         self.control_button_select.blit(self.controls_txt, (swidth / 6 - self.controls_txt.get_width() / 2, 7))
@@ -252,15 +252,15 @@ class SettingsMenu:
         self.visual_button_dark.blit(section_btn_dark, (0, 0))
         self.visual_button_dark.blit(self.visual_txt, (swidth / 6 - self.visual_txt_vague.get_width() / 2, 7))
 
-        self.control_button_over = pygame.Surface((117, 20))
+        self.control_button_over = pygame.Surface((160, 20))
         self.control_button_over.blit(self.control_button_dark, (0, 0))
         self.control_button_over.blit(self.controls_txt, (swidth / 6 - self.controls_txt.get_width() / 2, 7))
 
-        self.visual_button_over = pygame.Surface((118, 20))
+        self.visual_button_over = pygame.Surface((160, 20))
         self.visual_button_over.blit(self.visual_button_dark, (0, 0))
         self.visual_button_over.blit(self.visual_txt, (swidth / 6 - self.visual_txt.get_width() / 2, 7))
 
-        self.sound_button_over = pygame.Surface((117, 20))
+        self.sound_button_over = pygame.Surface((160, 20))
         self.sound_button_over.blit(self.sound_button_dark, (0, 0))
         self.sound_button_over.blit(self.sound_txt, (swidth / 6 - self.sound_txt.get_width() / 2, 7))
 
@@ -291,8 +291,8 @@ class SettingsMenu:
 
         self.control_btn = Button(0, 0, self.control_button_dark, self.control_button_over,
                                   self.control_button_dark)
-        self.sound_btn = Button(117 + 118, 0, self.sound_button_dark, self.sound_button_over, self.sound_button_dark)
-        self.visual_btn = Button(117, 0, self.visual_button_dark, self.visual_button_over,
+        self.sound_btn = Button(320, 0, self.sound_button_dark, self.sound_button_over, self.sound_button_dark)
+        self.visual_btn = Button(160, 0, self.visual_button_dark, self.visual_button_over,
                                  self.visual_button_dark)
 
         self.resolution_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap,
@@ -661,7 +661,8 @@ class SettingsMenu:
         settings_screen.blit(self.menu_background, (0, 0))
 
         mouse_pos = pygame.mouse.get_pos()
-        mouse_pos = (mouse_pos[0]/mouse_adjustment[0] - mouse_adjustment[1], mouse_pos[1]/mouse_adjustment[0])
+        mouse_pos = (mouse_pos[0]/mouse_adjustment[0] - mouse_adjustment[2],
+                     mouse_pos[1]/mouse_adjustment[0] - mouse_adjustment[1])
 
         joystick_counter_cap = 0
         if not self.draw_control_screen:
@@ -1302,16 +1303,16 @@ class SettingsMenu:
             visual_btn_trigger, not_over = self.visual_btn.draw_button(settings_screen, False, mouse_adjustment,
                                                                        events, False)
         else:
-            settings_screen.blit(self.visual_button_select, (117, 0))
+            settings_screen.blit(self.visual_button_select, (160, 0))
             button_width = self.visual_button_select.get_width()
-            x = 117
+            x = 160
         if self.draw_sound_screen:
             sound_btn_trigger, not_over = self.sound_btn.draw_button(settings_screen, False, mouse_adjustment,
                                                                      events, False)
         else:
-            settings_screen.blit(self.sound_button_select, (117 + 118, 0))
+            settings_screen.blit(self.sound_button_select, (320, 0))
             button_width = self.sound_button_select.get_width()
-            x = 117 + 118
+            x = 320
 
         if joystick_connected:
             settings_screen.blit(self.button_lb, (x + 10, 3))
