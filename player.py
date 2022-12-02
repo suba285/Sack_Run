@@ -2,11 +2,20 @@ import pygame
 from level_transition import CircleTransition
 from image_loader import img_loader
 from font_manager import Text
+from screen_info import global_monitor_height, global_monitor_width
 import random
 import math
 
+monitor_width = global_monitor_width
+monitor_height = global_monitor_height
+
 sheight = 270
 swidth = 480
+
+if monitor_width / 16 <= monitor_height / 9:
+    fullscreen_scale = round(monitor_width / swidth)
+    swidth = monitor_width / fullscreen_scale
+    sheight = swidth / 16 * 9
 
 pygame.init()
 tile_size = 32

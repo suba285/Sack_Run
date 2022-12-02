@@ -2,14 +2,23 @@
 from button import *
 from image_loader import img_loader
 from font_manager import Text
+from screen_info import global_monitor_height, global_monitor_width
 import random
 import math
 
 local_tile_size = 32
 tile_size = local_tile_size
 
+monitor_width = global_monitor_width
+monitor_height = global_monitor_height
+
 sheight = 270
 swidth = 480
+
+if monitor_width / 16 <= monitor_height / 9:
+    fullscreen_scale = round(monitor_width / swidth)
+    swidth = monitor_width / fullscreen_scale
+    sheight = swidth / 16 * 9
 
 
 class mainMenu:
@@ -30,9 +39,10 @@ class mainMenu:
         self.logo = img_loader('data/images/sack_run_logo.PNG', tile_size * 4, tile_size)
         self.logo_rect = self.logo.get_rect()
         self.logo_rect.x = swidth / 2 - self.logo.get_width() / 2
-        self.logo_rect.y = 70
+        self.logo_rect.y = round(sheight * 0.26)
 
         self.quit_txt = Text().make_text([' Quit (ctrl + Q)'])
+        self.quit_txt_y = round(sheight * 0.85)
         self.quit_txt.set_alpha(180)
         self.quit_txt_alpha = 0
 
@@ -43,16 +53,16 @@ class mainMenu:
 
         # variables ----------------------------------------------------------------------------------------------------
         self.play_x = swidth / 2 - self.play_button.get_width() / 2
-        self.play_y = 155
+        self.play_y = round(sheight * 0.57)
 
         self.settings_x = swidth / 2 - self.settings_button.get_width() / 2
-        self.settings_y = 189
+        self.settings_y = round(sheight * 0.7)
 
         self.settings = False
         self.settings_cooldown = 0
 
         self.sack_run_logo_y = sheight / 2 - self.logo.get_height() / 2
-        self.final_sack_run_logo_y = 70
+        self.final_sack_run_logo_y = round(70 / 270 * sheight)
 
         self.logo_pos_counter = 0
 
@@ -62,10 +72,10 @@ class mainMenu:
         self.joystick_moved = False
         self.hat_y_pressed = False
 
-        self.logo_surface = pygame.Surface((swidth, 70 + self.logo.get_height()))
+        self.logo_surface = pygame.Surface((swidth, self.logo_rect.y + self.logo.get_height()))
         self.logo_surface.set_colorkey((0, 0, 0))
         self.logo_surface.set_alpha(0)
-        self.logo_surface_y = sheight / 2 - self.logo_surface.get_height() / 2
+        self.logo_surface_y = round(30 / 270 * sheight)
 
         self.button_surface = pygame.Surface((swidth, sheight))
         self.surface_alpha = 0
@@ -157,11 +167,12 @@ class mainMenu:
             if particle[0] > swidth:
                 particle[0] = 0
                 particle[1] = random.randrange(1, self.logo_surface.get_height() - 2)
-        menu_screen.blit(self.logo_surface, (0, 30))
+        menu_screen.blit(self.logo_surface, (0, self.logo_surface_y))
 
         menu_screen.blit(self.logo, (self.logo_rect.x, self.sack_run_logo_y))
         if self.author_txt_alpha > 0:
-            menu_screen.blit(self.author_txt, (swidth / 2 - self.author_txt.get_width() / 2, sheight/2 + 40))
+            menu_screen.blit(self.author_txt, (swidth / 2 - self.author_txt.get_width() / 2,
+                                               sheight/2 + round(270 / 40 * sheight)))
 
         if self.opening_animation_counter > 280:
             if self.quit_txt_alpha < 180:
@@ -177,7 +188,7 @@ class mainMenu:
                     self.quit_txt_bright = False
                     self.quit_txt.set_alpha(180)
 
-            menu_screen.blit(self.quit_txt, (swidth / 2 - self.quit_txt.get_width() / 2, 230))
+            menu_screen.blit(self.quit_txt, (swidth / 2 - self.quit_txt.get_width() / 2, self.quit_txt_y))
 
         if self.opening_animation_counter > 230:
             self.surface_alpha += 8 * fps_adjust

@@ -2,10 +2,20 @@
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
+from screen_info import global_monitor_height, global_monitor_width
 import pygame
+
+monitor_width = global_monitor_width
+monitor_height = global_monitor_height
 
 sheight = 270
 swidth = 480
+
+if monitor_width / 16 <= monitor_height / 9:
+    fullscreen_scale = round(monitor_width / swidth)
+    swidth = monitor_width / fullscreen_scale
+    sheight = swidth / 16 * 9
+
 tile_size = 32
 
 

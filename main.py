@@ -1,7 +1,7 @@
 import time
-import pygame
 import json
 import threading
+from screen_info import *
 
 
 pygame.init()
@@ -10,19 +10,26 @@ pygame.mixer.pre_init(40000, -16, 1, 1024)
 joysticks = {}
 
 # basic game variables -------------------------------------------------------------------------------------------------
-screen_dimensions = pygame.display.Info()
-monitor_width = screen_dimensions.current_w
-monitor_height = screen_dimensions.current_h
-print(monitor_width)
-print(monitor_height)
-screen_width = monitor_width
-screen_height = monitor_width / 16 * 9
+monitor_width = global_monitor_width
+monitor_height = global_monitor_height
+screen_width = global_screen_width
+screen_height = global_screen_height
+
 
 sheight = 270
 swidth = 480
 wiheight = sheight
 wiwidth = swidth
 tile_size = 32
+
+if monitor_width / 16 <= monitor_height / 9:
+    fullscreen_scale = round(monitor_width / swidth)
+    swidth = monitor_width / fullscreen_scale
+    sheight = swidth / 16 * 9
+
+wiheight = sheight
+wiwidth = swidth
+
 
 clock = pygame.time.Clock()
 fps = 60
@@ -88,7 +95,7 @@ if resolution_counter < 1:
     resolution_counter = 1
 
 
-if settings_counters['resolution'] > 3:
+if settings_counters['resolution'] == 4:
     wiwidth = screen_width
     wiheight = screen_height
     display_geometry = (monitor_width, monitor_height)

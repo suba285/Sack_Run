@@ -3,12 +3,21 @@ from image_loader import img_loader
 from font_manager import Text
 from button import Button
 from popup_bg_generator import popup_bg_generator
+from screen_info import global_monitor_height, global_monitor_width
 
 tile_size = 32
 button_size = tile_size * 0.75
 
+monitor_width = global_monitor_width
+monitor_height = global_monitor_height
+
 sheight = 270
 swidth = 480
+
+if monitor_width / 16 <= monitor_height / 9:
+    fullscreen_scale = round(monitor_width / swidth)
+    swidth = monitor_width / fullscreen_scale
+    sheight = swidth / 16 * 9
 
 # this file is a total mess, you have been warned
 
@@ -93,9 +102,9 @@ class SettingsMenu:
         self.screen_alpha_counter = 0
 
         # major surfaces -----------------------------------------------------------------------------------------------
-        self.control_screen = pygame.Surface((swidth, 220))
-        self.visual_screen = pygame.Surface((swidth, 220))
-        self.sound_screen = pygame.Surface((swidth, 220))
+        self.control_screen = pygame.Surface((swidth, (220 / 270 * sheight)))
+        self.visual_screen = pygame.Surface((swidth, (220 / 270 * sheight)))
+        self.sound_screen = pygame.Surface((swidth, (220 / 270 * sheight)))
 
         # dictionaries -------------------------------------------------------------------------------------------------
         self.nums_to_btns = {
@@ -147,9 +156,9 @@ class SettingsMenu:
         # visual settings
         self.resolution_txt = Text().make_text(['window size:'])
         self.performance_txt = Text().make_text(['performance:'])
-        self.res_conf1 = Text().make_text([f'{swidth*2} x {sheight*2}'])
-        self.res_conf2 = Text().make_text([f'{swidth*3} x {sheight*3}'])
-        self.res_conf3 = Text().make_text([f'{swidth*4} x {sheight*4}'])
+        self.res_conf1 = Text().make_text([f'{int(swidth*2)} x {int(sheight*2)}'])
+        self.res_conf2 = Text().make_text([f'{int(swidth*3)} x {int(sheight*3)}'])
+        self.res_conf3 = Text().make_text([f'{int(swidth*4)} x {int(sheight*4)}'])
         self.res_conf4 = Text().make_text(['FULLSCREEN'])
         self.perf_conf1 = Text().make_text(['Normal'])
         self.perf_conf2 = Text().make_text(['Fast'])
@@ -196,10 +205,10 @@ class SettingsMenu:
         self.hat_y_pressed = False
 
         # button positional variables and other ------------------------------------------------------------------------
-        gap = 30
-        self.gap = 30
-        control_button_start_y = 13
-        self.vis_sound_button_start_y = 33
+        gap = 30 / 270 * sheight
+        self.gap = 30 / 270 * sheight
+        control_button_start_y = round(13 / 270 * sheight)
+        self.vis_sound_button_start_y = round(33 / 270 * sheight)
         self.button_start_y = control_button_start_y
         interbutton_space = 120
 
@@ -285,7 +294,7 @@ class SettingsMenu:
                                       control_button_start_y + gap * 4,
                                       self.calibrate_btn, self.calibrate_btn_press, self.calibrate_btn_down)
 
-        self.menu_btn = Button(swidth / 2 - self.menu_button.get_width() / 2, 220,
+        self.menu_btn = Button(swidth / 2 - self.menu_button.get_width() / 2, round(220 / 270 * sheight),
                                self.menu_button, self.menu_button_press, self.menu_button_down)
 
         self.control_btn = Button(0, 0, self.control_button_dark, self.control_button_over,
@@ -883,11 +892,11 @@ class SettingsMenu:
                 self.control_screen.blit(self.keyboard_base, (swidth / 2 - self.keyboard_base.get_width() / 2,
                                                               175))
                 self.control_screen.blit(self.keyboard_overlays[f'walk{self.walk_counter}'],
-                                         (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
+                                         (swidth / 2 - self.keyboard_base.get_width() / 2, (175 / 270 * sheight)))
                 self.control_screen.blit(self.keyboard_overlays[f'jump{self.jump_counter}'],
-                                         (swidth / 2 - self.keyboard_base.get_width() / 2, 175))
+                                         (swidth / 2 - self.keyboard_base.get_width() / 2, (175 / 270 * sheight)))
             else:
-                self.control_screen.blit(self.controller, (swidth / 2 - tile_size, 175))
+                self.control_screen.blit(self.controller, (swidth / 2 - tile_size, (175 / 270 * sheight)))
 
             self.control_screen.blit(walk_text, (button_text_center - walk_text.get_width() / 2 + button_size / 2,
                                                  self.control_row1_y + 7))
@@ -1083,57 +1092,68 @@ class SettingsMenu:
                                                                              False, mouse_adjustment, events,
                                                                              joystick_over3)
             else:
-                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap))
+                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, self.vis_sound_button_start_y + self.gap))
                 if joystick_over3:
-                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, 33 + self.gap))
+                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x,
+                                                                             self.vis_sound_button_start_y + self.gap))
 
             if self.resolution_counter < 4:
                 res_right_press, over2 = self.resolution_btn_right.draw_button(self.visual_screen,
                                                                                False, mouse_adjustment, events,
                                                                                joystick_over_3)
             else:
-                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap))
+                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x,
+                                                                 self.vis_sound_button_start_y + self.gap))
                 if joystick_over_3:
-                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, 33 + self.gap))
+                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x,
+                                                                             self.vis_sound_button_start_y + self.gap))
 
             if self.performance_counter > 1:
                 perf_left_press, over3 = self.performance_btn_left.draw_button(self.visual_screen,
                                                                                False, mouse_adjustment, events,
                                                                                joystick_over2)
             else:
-                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap * 2))
+                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x,
+                                                                self.vis_sound_button_start_y + self.gap * 2))
                 if joystick_over2:
-                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, 33 + self.gap * 2))
+                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x,
+                                                                             self.vis_sound_button_start_y + self.gap * 2))
 
             if self.performance_counter < 2:
                 perf_right_press, over4 = self.performance_btn_right.draw_button(self.visual_screen,
                                                                                  False, mouse_adjustment, events,
                                                                                  joystick_over_2)
             else:
-                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap * 2))
+                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x,
+                                                                 self.vis_sound_button_start_y + self.gap * 2))
 
                 if joystick_over_2:
-                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, 33 + self.gap * 2))
+                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x,
+                                                                             self.vis_sound_button_start_y + self.gap * 2))
 
             if self.hitbox_counter > 1:
                 hit_left_press, over5 = self.hitbox_btn_left.draw_button(self.visual_screen,
                                                                          False, mouse_adjustment, events,
                                                                          joystick_over1)
             else:
-                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap * 3))
+                self.visual_screen.blit(self.left_button_grey, (self.left_btn_x,
+                                                                self.vis_sound_button_start_y + self.gap * 3))
 
                 if joystick_over1:
-                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, 33 + self.gap * 3))
+                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x,
+                                                                             self.vis_sound_button_start_y + self.gap * 3))
 
             if self.hitbox_counter < 2:
                 hit_right_press, over6 = self.hitbox_btn_right.draw_button(self.visual_screen,
                                                                            False, mouse_adjustment, events,
                                                                            joystick_over_1)
             else:
-                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap * 3))
+                self.visual_screen.blit(self.right_button_grey, (self.right_btn_x,
+                                                                 self.vis_sound_button_start_y + self.gap * 3))
 
                 if joystick_over_1:
-                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, 33 + self.gap * 3))
+                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x,
+                                                                             self.vis_sound_button_start_y + self.gap * 3))
 
         if res_left_press and self.resolution_counter > 1:
             self.resolution_counter -= 1
