@@ -85,13 +85,4 @@ class Button:
         return action, self.cursor_over
 
 
-def inactive_button(x, y, image, mouse_adjustment):
-    # cursor position
-    pos = pygame.mouse.get_pos()
-    rect = image.get_rect()
-    rect.x = x
-    rect.y = y
-    if rect.collidepoint((pos[0] / mouse_adjustment[0] - mouse_adjustment[1], pos[1] / mouse_adjustment[0])):
-        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_NO)
-
 

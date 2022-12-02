@@ -1,4 +1,8 @@
 
+sheight = 270
+swidth = 480
+
+
 def display_frames_per_second(screen, fps, num_list):
     string_fps = str(fps)
     number = list(string_fps)
@@ -49,7 +53,7 @@ def display_frames_per_second(screen, fps, num_list):
 
         iteration += 1
 
-    screen.blit(output1, (335, 248))
-    screen.blit(output2, (340, 248))
+    screen.blit(output1, (swidth - 20, sheight - 20))
+    screen.blit(output2, (swidth - 15, sheight - 20))
 
 

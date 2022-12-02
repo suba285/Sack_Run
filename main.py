@@ -20,8 +20,8 @@ screen_height = monitor_width / 16 * 9
 
 sheight = 270
 swidth = 480
-wiheight = sheight * 2
-wiwidth = swidth * 2
+wiheight = sheight
+wiwidth = swidth
 tile_size = 32
 
 clock = pygame.time.Clock()
@@ -710,11 +710,11 @@ while run:
             wiheight = current_resolution[1]
             height_window_space = wiheight
             width_window_space = wiwidth
-            if current_resolution == (screen_width, screen_height):
+            if settings_counters['resolution'] == 4:
                 height_window_space = monitor_height
                 width_window_space = monitor_width
                 flag = pygame.FULLSCREEN
-                window = pygame.display.set_mode((monitor_width, monitor_width), flag)
+                window = pygame.display.set_mode((monitor_width, monitor_height), flag)
             else:
                 flag = pygame.RESIZABLE
                 window = pygame.display.set_mode(current_resolution, flag)
@@ -723,7 +723,7 @@ while run:
                     json.dump(settings_counters, json_file)
             except Exception:
                 settings_not_saved_error = True
-            pygame.event.clear(pygame.VIDEORESIZE)
+            pygame.event.clear(pygame.VIDEORESIZE, pygame.WINDOWMAXIMIZED)
 
         if calibrated_press:
             joystick_configured = True
@@ -803,16 +803,10 @@ while run:
                 width_window_space = window_geometry[0]
                 wiwidth = window_geometry[0]
                 wiheight = wiwidth / 16 * 9
-
-            res_diff = abs(resolutions['1'][0] - wiwidth)
-            current_res_count = 1
-            for counter in range(2, 5):
-                current_res_diff = abs(resolutions[str(counter)][0] - wiwidth)
-                if current_res_diff < res_diff:
-                    res_diff = current_res_diff
-                    current_res_count = counter
-            settings_counters['resolution'] = current_res_count
-            settings_menu.update_settings_counters(settings_counters, controls)
+            if height_window_space == monitor_height and width_window_space == monitor_width:
+                print('helo')
+                settings_counters['resolution'] = 4
+                settings_menu.update_settings_counters(settings_counters, controls)
 
         if event.type == pygame.JOYDEVICEADDED:
             pygame.mouse.set_visible(False)

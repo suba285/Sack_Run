@@ -5,7 +5,6 @@ import math
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
-from button import inactive_button
 
 tile_size = 32
 
@@ -283,8 +282,6 @@ class LevelSelection:
                                                               joystick_over2)
             else:
                 level_screen.blit(self.left_button_grey, (self.left_x, self.button_y))
-                inactive_button(self.left_x, self.button_y, self.left_button_grey,
-                                mouse_adjustment)
                 if joystick_over2:
                     level_screen.blit(self.arrow_button_outline_surf, (self.left_x, self.button_y))
             if self.world_count < 4:
@@ -292,8 +289,6 @@ class LevelSelection:
                                                                 joystick_over_2)
             else:
                 level_screen.blit(self.right_button_grey, (self.right_x, self.button_y))
-                inactive_button(self.right_x, self.button_y, self.right_button_grey,
-                                mouse_adjustment)
                 if joystick_over_2:
                     level_screen.blit(self.arrow_button_outline_surf, (self.right_x, self.button_y))
         else:

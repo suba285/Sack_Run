@@ -2,7 +2,6 @@ import pygame
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
-from button import inactive_button
 from popup_bg_generator import popup_bg_generator
 
 tile_size = 32
@@ -631,8 +630,8 @@ class SettingsMenu:
                 joystick_over_btn1 = True
             if self.btn_names_counter == 2:
                 joystick_over_btn2 = True
-            self.btn_names_button1.draw_button(raw_popup, False, [1, 0], events, joystick_over_btn1)
-            self.btn_names_button2.draw_button(raw_popup, False, [1, 0], events, joystick_over_btn2)
+            self.btn_names_button1.draw_button(raw_popup, False, [1, 0, 0], events, joystick_over_btn1)
+            self.btn_names_button2.draw_button(raw_popup, False, [1, 0, 0], events, joystick_over_btn2)
 
         if 0.25 > self.controller_calibration_counter > 0:
             scaling = self.controller_calibration_counter
@@ -903,8 +902,6 @@ class SettingsMenu:
                                                                               joystick_over4)
             else:
                 self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row1_y))
-                inactive_button(self.left_btn_x, self.control_row1_y, self.left_button_grey,
-                                mouse_adjustment)
                 if joystick_over4:
                     self.control_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, self.control_row1_y))
 
@@ -914,8 +911,6 @@ class SettingsMenu:
                                                                                 joystick_over_4)
             else:
                 self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row1_y))
-                inactive_button(self.right_btn_x, self.control_row1_y, self.right_button_grey,
-                                mouse_adjustment)
                 if joystick_over_4:
                     self.control_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, self.control_row1_y))
 
@@ -925,8 +920,6 @@ class SettingsMenu:
                                                                               joystick_over3)
             else:
                 self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row2_y))
-                inactive_button(self.left_btn_x, self.control_row2_y, self.left_button_grey,
-                                mouse_adjustment)
                 if joystick_over3:
                     self.control_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, self.control_row2_y))
 
@@ -936,8 +929,6 @@ class SettingsMenu:
                                                                                 joystick_over_3)
             else:
                 self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row2_y))
-                inactive_button(self.right_btn_x, self.control_row2_y, self.right_button_grey,
-                                mouse_adjustment)
                 if joystick_over_3:
                     self.control_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, self.control_row2_y))
 
@@ -947,8 +938,6 @@ class SettingsMenu:
                                                                             joystick_over2)
             else:
                 self.control_screen.blit(self.left_button_grey, (self.left_btn_x, self.control_row3_y))
-                inactive_button(self.left_btn_x, self.control_row2_y, self.left_button_grey,
-                                mouse_adjustment)
                 if joystick_over2:
                     self.control_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, self.control_row3_y))
 
@@ -958,8 +947,6 @@ class SettingsMenu:
                                                                               joystick_over_2)
             else:
                 self.control_screen.blit(self.right_button_grey, (self.right_btn_x, self.control_row3_y))
-                inactive_button(self.right_btn_x, self.control_row2_y, self.right_button_grey,
-                                mouse_adjustment)
                 if joystick_over_2:
                     self.control_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, self.control_row3_y))
 
@@ -1097,8 +1084,6 @@ class SettingsMenu:
                                                                              joystick_over3)
             else:
                 self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap))
-                inactive_button(self.left_btn_x, 33 + self.gap, self.left_button_grey,
-                                mouse_adjustment)
                 if joystick_over3:
                     self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, 33 + self.gap))
 
@@ -1108,8 +1093,6 @@ class SettingsMenu:
                                                                                joystick_over_3)
             else:
                 self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap))
-                inactive_button(self.right_btn_x, 33 + self.gap, self.right_button_grey,
-                                mouse_adjustment)
                 if joystick_over_3:
                     self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, 33 + self.gap))
 
@@ -1119,8 +1102,6 @@ class SettingsMenu:
                                                                                joystick_over2)
             else:
                 self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap * 2))
-                inactive_button(self.left_btn_x, 33 + self.gap * 2, self.left_button_grey,
-                                mouse_adjustment)
                 if joystick_over2:
                     self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, 33 + self.gap * 2))
 
@@ -1130,8 +1111,7 @@ class SettingsMenu:
                                                                                  joystick_over_2)
             else:
                 self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap * 2))
-                inactive_button(self.right_btn_x, 33 + self.gap * 2, self.right_button_grey,
-                                mouse_adjustment)
+
                 if joystick_over_2:
                     self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, 33 + self.gap * 2))
 
@@ -1141,8 +1121,7 @@ class SettingsMenu:
                                                                          joystick_over1)
             else:
                 self.visual_screen.blit(self.left_button_grey, (self.left_btn_x, 33 + self.gap * 3))
-                inactive_button(self.left_btn_x, 33 + self.gap * 3, self.left_button_grey,
-                                mouse_adjustment)
+
                 if joystick_over1:
                     self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, 33 + self.gap * 3))
 
@@ -1152,8 +1131,7 @@ class SettingsMenu:
                                                                            joystick_over_1)
             else:
                 self.visual_screen.blit(self.right_button_grey, (self.right_btn_x, 33 + self.gap * 3))
-                inactive_button(self.right_btn_x, 33 + self.gap * 3, self.right_button_grey,
-                                mouse_adjustment)
+
                 if joystick_over_1:
                     self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, 33 + self.gap * 3))
 
@@ -1198,8 +1176,6 @@ class SettingsMenu:
             else:
                 self.sound_screen.blit(self.left_button_grey,
                                        (self.left_btn_x, self.vis_sound_button_start_y + self.gap))
-                inactive_button(self.left_btn_x, self.vis_sound_button_start_y + self.gap, self.left_button_grey,
-                                mouse_adjustment)
                 if joystick_over2:
                     self.sound_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x,
                                                                             self.vis_sound_button_start_y + self.gap))
@@ -1210,8 +1186,6 @@ class SettingsMenu:
             else:
                 self.sound_screen.blit(self.right_button_grey,
                                        (self.right_btn_x, self.vis_sound_button_start_y + self.gap))
-                inactive_button(self.right_btn_x, self.vis_sound_button_start_y + self.gap, self.right_button_grey,
-                                mouse_adjustment)
                 if joystick_over_2:
                     self.sound_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x,
                                                                             self.vis_sound_button_start_y + self.gap))
@@ -1226,8 +1200,6 @@ class SettingsMenu:
             else:
                 self.sound_screen.blit(self.left_button_grey,
                                        (self.left_btn_x, self.vis_sound_button_start_y + self.gap * 2))
-                inactive_button(self.left_btn_x, self.vis_sound_button_start_y + self.gap * 2, self.left_button_grey,
-                                mouse_adjustment)
                 if joystick_over1:
                     self.sound_screen.blit(self.arrow_button_outline_surf,
                                            (self.left_btn_x, self.vis_sound_button_start_y + self.gap * 2))
@@ -1238,8 +1210,6 @@ class SettingsMenu:
             else:
                 self.sound_screen.blit(self.right_button_grey,
                                        (self.right_btn_x, self.vis_sound_button_start_y + self.gap * 2))
-                inactive_button(self.right_btn_x, self.vis_sound_button_start_y + self.gap * 2, self.right_button_grey,
-                                mouse_adjustment)
                 if joystick_over_1:
                     self.sound_screen.blit(self.arrow_button_outline_surf,
                                            (self.right_btn_x, self.vis_sound_button_start_y + self.gap * 2))
@@ -1364,16 +1334,15 @@ class SettingsMenu:
 
         resolution = self.resolutions[str(self.resolution_counter)]
 
-        if menu_press:
-            self.settings_counters['walking'] = self.walk_counter
-            self.settings_counters['jumping'] = self.jump_counter
-            self.settings_counters['rumble'] = self.rumble_counter
-            self.settings_counters['configuration'] = self.configuration_counter
-            self.settings_counters['resolution'] = self.resolution_counter
-            self.settings_counters['performance'] = self.performance_counter
-            self.settings_counters['music_volume'] = self.volume_counter
-            self.settings_counters['sounds'] = self.sounds_counter
-            self.settings_counters['hitbox'] = self.hitbox_counter
+        self.settings_counters['walking'] = self.walk_counter
+        self.settings_counters['jumping'] = self.jump_counter
+        self.settings_counters['rumble'] = self.rumble_counter
+        self.settings_counters['configuration'] = self.configuration_counter
+        self.settings_counters['resolution'] = self.resolution_counter
+        self.settings_counters['performance'] = self.performance_counter
+        self.settings_counters['music_volume'] = self.volume_counter
+        self.settings_counters['sounds'] = self.sounds_counter
+        self.settings_counters['hitbox'] = self.hitbox_counter
 
         return menu_press, self.controls, final_over1, final_over2, self.performance_counter, resolution,\
                adjust_resolution, self.settings_counters, calibrated
