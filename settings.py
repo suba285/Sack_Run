@@ -16,8 +16,8 @@ swidth = 480
 
 if monitor_width / 16 <= monitor_height / 9:
     fullscreen_scale = round(monitor_width / swidth)
-    swidth = monitor_width / fullscreen_scale
-    sheight = swidth / 16 * 9
+    swidth = round(monitor_width / fullscreen_scale)
+    sheight = round(swidth / 16 * 9)
 
 # this file is a total mess, you have been warned
 
@@ -1037,28 +1037,16 @@ class SettingsMenu:
             self.controls['rumble'] = self.nums_to_btns[f'rumble{self.rumble_counter}']
 
         # VISUAL SETTINGS SCREEN =======================================================================================
+        text_titles_y = round(40 / 270 * sheight)
         self.visual_screen.blit(self.resolution_txt,
-                                (self.center - 10 - self.resolution_txt.get_width(), 40 + self.gap))
+                                (self.center - 10 - self.resolution_txt.get_width(),
+                                 text_titles_y + self.gap))
         self.visual_screen.blit(self.performance_txt,
-                                (self.center - 10 - self.performance_txt.get_width(), 40 + self.gap * 2))
+                                (self.center - 10 - self.performance_txt.get_width(),
+                                 text_titles_y + self.gap * 2))
         self.visual_screen.blit(self.hitbox_txt,
-                                (self.center - 10 - self.hitbox_txt.get_width(), 40 + self.gap * 3))
-
-        if self.performance_counter == 2:
-            self.visual_screen.blit(self.perf_message1, (swidth / 2 - self.perf_message1.get_width() / 2,
-                                                         50 + self.gap * 4))
-            self.visual_screen.blit(self.perf_message2, (swidth / 2 - self.perf_message2.get_width() / 2,
-                                                         35 + self.gap * 5))
-
-        elif self.recommended_res_counter == self.resolution_counter:
-            self.visual_screen.blit(self.resolution_message1, (swidth / 2 - self.resolution_message1.get_width() / 2,
-                                                               50 + self.gap * 4))
-            self.visual_screen.blit(self.resolution_message2, (swidth / 2 - self.resolution_message2.get_width() / 2,
-                                                               35 + self.gap * 5))
-
-        if self.recommended_res_counter < self.resolution_counter and self.performance_counter != 2:
-            self.visual_screen.blit(self.resolution_message3, (swidth / 2 - self.resolution_message3.get_width() / 2,
-                                                               57 + self.gap * 4))
+                                (self.center - 10 - self.hitbox_txt.get_width(),
+                                 text_titles_y + self.gap * 3))
 
         if self.resolution_counter == 1:
             res_text = self.res_conf1
@@ -1080,11 +1068,11 @@ class SettingsMenu:
             hit_text = self.hitbox_conf2
 
         self.visual_screen.blit(res_text, (button_text_center - res_text.get_width() / 2 + button_size / 2,
-                                             33 + self.gap + 7))
+                                           self.vis_sound_button_start_y + self.gap + 7))
         self.visual_screen.blit(perf_text, (button_text_center - perf_text.get_width() / 2 + button_size / 2,
-                                             33 + self.gap * 2 + 7))
+                                            self.vis_sound_button_start_y + self.gap * 2 + 7))
         self.visual_screen.blit(hit_text, (button_text_center - hit_text.get_width() / 2 + button_size / 2,
-                                            33 + self.gap * 3 + 7))
+                                           self.vis_sound_button_start_y + self.gap * 3 + 7))
 
         if not self.draw_visual_screen:
             if self.resolution_counter > 1:
@@ -1171,10 +1159,11 @@ class SettingsMenu:
             self.hitbox_counter += 1
 
         # SOUND SETTINGS SCREEN ========================================================================================
+        text_titles_y = round(40 / 270 * sheight)
         self.sound_screen.blit(self.volume_txt,
-                               (self.center - 10 - self.volume_txt.get_width(), 40 + self.gap))
+                               (self.center - 10 - self.volume_txt.get_width(), text_titles_y + self.gap))
         self.sound_screen.blit(self.sound_effects_txt,
-                               (self.center - 10 - self.sound_effects_txt.get_width(), 40 + self.gap * 2))
+                               (self.center - 10 - self.sound_effects_txt.get_width(), text_titles_y + self.gap * 2))
 
         if self.volume_counter == 1:
             vol_text = self.volume_conf1

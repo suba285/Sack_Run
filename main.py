@@ -24,8 +24,8 @@ tile_size = 32
 
 if monitor_width / 16 <= monitor_height / 9:
     fullscreen_scale = round(monitor_width / swidth)
-    swidth = monitor_width / fullscreen_scale
-    sheight = swidth / 16 * 9
+    swidth = round(monitor_width / fullscreen_scale)
+    sheight = round(swidth / 16 * 9)
 
 wiheight = sheight
 wiwidth = swidth
@@ -512,7 +512,6 @@ while run:
         run_menu = False
         if pygame.WINDOWMAXIMIZED not in events:
             level_count,\
-                menu_press,\
                 play_card_pull_sound,\
                 play_lock_sound,\
                 play_bear_trap_cling_sound,\
@@ -533,7 +532,7 @@ while run:
             play_music = True
 
         # changing the displayed screens
-        if menu_press or key[pygame.K_ESCAPE]:
+        if key[pygame.K_ESCAPE]:
             run_menu = False
             run_game = False
             paused = True

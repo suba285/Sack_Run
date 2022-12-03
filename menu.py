@@ -17,8 +17,8 @@ swidth = 480
 
 if monitor_width / 16 <= monitor_height / 9:
     fullscreen_scale = round(monitor_width / swidth)
-    swidth = monitor_width / fullscreen_scale
-    sheight = swidth / 16 * 9
+    swidth = round(monitor_width / fullscreen_scale)
+    sheight = round(swidth / 16 * 9)
 
 
 class mainMenu:
@@ -169,7 +169,7 @@ class mainMenu:
                 particle[1] = random.randrange(1, self.logo_surface.get_height() - 2)
         menu_screen.blit(self.logo_surface, (0, self.logo_surface_y))
 
-        menu_screen.blit(self.logo, (self.logo_rect.x, self.sack_run_logo_y))
+        menu_screen.blit(self.logo, (self.logo_rect.x, int(self.sack_run_logo_y)))
         if self.author_txt_alpha > 0:
             menu_screen.blit(self.author_txt, (swidth / 2 - self.author_txt.get_width() / 2,
                                                sheight/2 + round(270 / 40 * sheight)))
@@ -198,7 +198,7 @@ class mainMenu:
 
         if self.opening_animation_counter > 200:
             if self.sack_run_logo_y > self.final_sack_run_logo_y:
-                self.sack_run_logo_y -= 1 * fps_adjust
+                self.sack_run_logo_y -= 1 / 270 * sheight * fps_adjust
 
         if self.opening_animation_counter > 180:
             if self.author_txt_alpha > 0:
@@ -215,7 +215,7 @@ class mainMenu:
         over4 = False
 
         if self.opening_animation_counter > 260:
-            self.sack_run_logo_y = 70 - math.sin(self.logo_pos_counter / 16) * 3
+            self.sack_run_logo_y = self.final_sack_run_logo_y - math.sin(self.logo_pos_counter / 16) * 3
 
         if self.opening_animation_counter > 230:
             # play button

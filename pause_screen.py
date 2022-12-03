@@ -13,8 +13,8 @@ swidth = 480
 
 if monitor_width / 16 <= monitor_height / 9:
     fullscreen_scale = round(monitor_width / swidth)
-    swidth = monitor_width / fullscreen_scale
-    sheight = swidth / 16 * 9
+    swidth = round(monitor_width / fullscreen_scale)
+    sheight = round(swidth / 16 * 9)
 
 tile_size = 32
 

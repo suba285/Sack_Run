@@ -24,8 +24,8 @@ swidth = 480
 
 if monitor_width / 16 <= monitor_height / 9:
     fullscreen_scale = round(monitor_width / swidth)
-    swidth = monitor_width / fullscreen_scale
-    sheight = swidth / 16 * 9
+    swidth = round(monitor_width / fullscreen_scale)
+    sheight = round(swidth / 16 * 9)
 
 level_dictionary = {
     "level1_1": level1_1,
@@ -70,16 +70,16 @@ level_pos_dictionary = {
     "level2_1": (5, -2),
     "level3_1": (5, -2),
     "level1_2": (2, -4),
-    "level2_2": (6, -5),
+    "level2_2": (5, -5),
     "level3_2": (2, -4),
     "level4_2": (2, -5),
-    "level5_2": (6, -7),
+    "level5_2": (5, -7),
     "level6_2": (4, 2),
-    "level7_2": (6, -19),
-    "level8_2": (6, -5),
+    "level7_2": (5, -19),
+    "level8_2": (5, -5),
     "level9_2": (5, -2),
-    "level1_3": (4, -4),
-    "level2_3": (-1, -5),
+    "level1_3": (3, -4),
+    "level2_3": (-2, -5),
     "level3_3": (4, -3),
     "level4_3": (2, -3)
 }
@@ -628,14 +628,6 @@ class Game:
         if self.mid_air_jump_trigger or self.speed_dash_trigger:
             self.gem_equipped = False
 
-        # menu button --------------------------------------------------------------------------------------------------
-        menu, game_button_over = self.home_button.draw_button(screen, False, mouse_adjustment, events, False)
-
-        if menu and not self.menu_fadeout:
-            self.menu_fadeout = True
-            self.music_playing = False
-            fadeout = True
-
         # popup window -------------------------------------------------------------------------------------------------
         ok_over = False
 
@@ -749,6 +741,8 @@ class Game:
 
         if ok_over:
             game_button_over = True
+        else:
+            game_button_over = False
 
         # new level transition -----------------------------------------------------------------------------------------
         self.player.draw_transition(fps_adjust)
@@ -767,6 +761,6 @@ class Game:
             play_music = True
 
         # returns
-        return level_count, menu, play_card_pull_sound, play_lock_sound, play_bear_trap_cling_sound,\
+        return level_count, play_card_pull_sound, play_lock_sound, play_bear_trap_cling_sound,\
             play_healing_sound, game_button_over, play_paper_sound, play_music,\
             fadeout, popup_lvl_completed_press
