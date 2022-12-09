@@ -81,7 +81,7 @@ level_pos_dictionary = {
     "level1_3": (3, -4),
     "level2_3": (-2, -5),
     "level3_3": (4, -3),
-    "level4_3": (2, -3)
+    "level4_3": (3, -3)
 }
 
 level_card_dictionary = {
@@ -352,6 +352,9 @@ class Game:
         self.change_music = True
         self.change_music_counter = 0
 
+        self.opening_scene = False
+        self.opening_scene_counter = 5 * 60
+
         # initiating classes -------------------------------------------------------------------------------------------
         self.world = World(world_data, self.game_screen, slow_computer, bg_data,
                            settings_counters, world_count)
@@ -452,11 +455,15 @@ class Game:
 
         self.controls = controls
 
+        if not (level_count == 1 and world_count == 1):
+            self.opening_scene_counter = 0
+
         # sounds
         play_card_pull_sound = False
         play_healing_sound = False
         play_paper_sound = False
         play_lock_sound = False
+        play_bear_trap_cling_sound = False
 
         play_music = False
 
@@ -471,6 +478,9 @@ class Game:
 
         if game_counter > 0:
             self.level_duration_counter += 0.04 * fps_adjust
+
+        if game_counter <= 0:
+            self.move = False
 
         # setting tutorial on or off
         if world_count == 1:
@@ -512,7 +522,6 @@ class Game:
                                                             self.speed_dash_trigger,
                                                             self.left_border,
                                                             self.right_border,
-                                                            game_counter,
                                                             self.move,
                                                             self.world.shockwave_mushroom_list,
                                                             events,
@@ -534,7 +543,7 @@ class Game:
         self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
                                     self.camera_move_x, self.camera_move_y)
         self.world.draw_bush(self.game_screen)
-        self.world.draw_tree(self.game_screen)
+        self.world.draw_bg_decoration(self.game_screen)
 
         # drawing the  player ------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)
@@ -578,17 +587,17 @@ class Game:
         self.set_lava_harm = self.world.draw_set_lava(self.game_screen, sack_rect)
         self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
 
-        self.world.draw_shockwave_mushrooms(self.game_screen, fps_adjust)
-
         self.world.draw_green_mushrooms(self.game_screen, sack_rect)
         self.world.draw_tile_list(self.game_screen)
 
         self.trap_harm, play_bear_trap_cling_sound = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 
         self.world.draw_foliage(self.game_screen)
-        self.bee_harm = self.world.draw_and_manage_beehive(self.game_screen, sack_rect, fps_adjust, self.camera_move_x,
+        self.bee_harm = self.world.draw_and_manage_beehive(self.game_screen, sack_rect, fps_adjust,
+                                                           self.camera_move_x,
                                                            self.camera_move_y, self.health,
                                                            self.player_moved)
+        self.world.draw_shockwave_mushrooms(self.game_screen, fps_adjust)
         self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y)
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------

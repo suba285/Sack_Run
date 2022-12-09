@@ -170,6 +170,7 @@ class LevelSelection:
         if new_world_unlocked:
             self.new_world_animation_counter = self.new_world_animation_stage0
             self.lock_animation_counter = 0
+            self.new_world_circle_radius = 0
             self.new_world_dim_surf.set_alpha(self.new_world_dim_surf_max_alpha)
             self.new_world_dim_surf_alpha = self.new_world_dim_surf_max_alpha
             self.world_count += 1

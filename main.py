@@ -771,6 +771,12 @@ while run:
             else:
                 draw_hitbox = True
 
+            try:
+                with open('data/settings_configuration.json', 'w') as json_file:
+                    json.dump(settings_counters, json_file)
+            except FileNotFoundError:
+                settings_not_saved_error = True
+
             pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
     if slow_computer:
@@ -810,7 +816,6 @@ while run:
                 wiwidth = window_geometry[0]
                 wiheight = wiwidth / 16 * 9
             if height_window_space == monitor_height and width_window_space == monitor_width:
-                print('helo')
                 settings_counters['resolution'] = 4
                 settings_menu.update_settings_counters(settings_counters, controls)
 

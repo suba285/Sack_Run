@@ -904,7 +904,7 @@ class SettingsMenu:
                                                         self.button_start_y + 7 + self.gap * 4))
             if not joystick_connected:
                 self.control_screen.blit(self.keyboard_base, (swidth / 2 - self.keyboard_base.get_width() / 2,
-                                                              175))
+                                                              (175 / 270 * sheight)))
                 self.control_screen.blit(self.keyboard_overlays[f'walk{self.walk_counter}'],
                                          (swidth / 2 - self.keyboard_base.get_width() / 2, (175 / 270 * sheight)))
                 self.control_screen.blit(self.keyboard_overlays[f'jump{self.jump_counter}'],

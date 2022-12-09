@@ -396,7 +396,7 @@ class Player:
 
     def update_pos_animation(self, screen, tile_list, next_level_list, level_count, harm_in, fps_adjust,
                              mid_air_jump_trigger, speed_dash_trigger,
-                             left_border, right_border, game_counter,
+                             left_border, right_border,
                              move, shockwave_mush_list, events, gem_equipped, joysticks):
 
         dx = 0
@@ -432,10 +432,7 @@ class Player:
         # borders
         self.left_border = left_border
         self.right_border = right_border
-        if level_count == 8:
-            top_border = 80
-        else:
-            top_border = 50
+        top_border = 50 / 270 * sheight
 
         harm = False
 
@@ -591,10 +588,12 @@ class Player:
                     self.speed_dash_activated = False
                     # player direction
                     self.direction = 1
+            else:
+                self.teleport_count = 0
 
         # movement and animation ---------------------------------------------------------------------------------------
         if self.new_level_cooldown >= 30 and not self.dead and self.teleport_count < 20\
-                and not (self.col_types['right'] or self.col_types['left']) and game_counter >= 0 and move:
+                and not (self.col_types['right'] or self.col_types['left']) and move:
             # player control
             self.transition = False
             if self.player_jump and not self.jumped:
@@ -894,7 +893,7 @@ class Player:
         # updating player coordinates ----------------------------------------------------------------------------------
         self.camera_movement_x = round(-self.vel_x * fps_adjust)
         dx = 0
-        if self.sack_rect.y > 180 and dy * fps_adjust > 0:
+        if self.sack_rect.y > (180 / 270 * sheight) and dy * fps_adjust > 0:
             self.camera_falling_assist = True
         if self.sack_rect.y < sheight / 2:
             self.camera_falling_assist = False

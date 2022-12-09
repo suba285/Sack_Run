@@ -106,7 +106,7 @@ class World:
         self.spitting_plant_list_right = []
         self.spitting_plant_list_up = []
         self.log_list = []
-        self.tree_list = []
+        self.bg_decoration_list = []
         self.wheat_list = []
         self.gem_list = []
         self.shockwave_mushroom_list = []
@@ -354,6 +354,10 @@ class World:
         self.molten_lava = pygame.Surface((tile_size, tile_size - 7)).convert()
         self.molten_lava.fill((66, 3, 3))
 
+        # greenhouse ---------------------------------------------------------------------------------------------------
+        self.greenhouse = img_loader('data/images/greenhouse.PNG', tile_size * 3, tile_size * 2)
+        self.greenhouse_glazing = img_loader('data/images/greenhouse_glazing.PNG', tile_size * 3, tile_size * 2)
+
         # guidance arrows and keys -------------------------------------------------------------------------------------
         self.white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
         self.white_arrow_down = pygame.transform.flip(self.white_arrow_up, False, True)
@@ -386,7 +390,7 @@ class World:
         self.spitting_plant_list_right = []
         self.spitting_plant_list_up = []
         self.log_list = []
-        self.tree_list = []
+        self.bg_decoration_list = []
         self.wheat_list = []
         self.gem_list = []
         self.shockwave_mushroom_list = []
@@ -431,7 +435,7 @@ class World:
         # 19 - fake bee hive
         # 20 - portal
         # 21 - dirt tile rocks
-        # 22 - dirt tile two side edge
+        # 22 - greenhouse
         # 23 - bear trap
         # 24 - platform
         # 25 - wobbly mushrooms
@@ -537,6 +541,14 @@ class World:
                     tile = (img, img_rectangle)
                     self.tile_pos_list.append([img_rectangle.x, img_rectangle.y])
                     self.tile_list.append(tile)
+                if tile == 22:
+                    # greenhouse
+                    img = self.greenhouse
+                    img_rect = img.get_rect()
+                    img_rect.x = column_count * tile_size
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect)
+                    self.bg_decoration_list.append(tile)
                 if tile == 23:
                     # bear trap
                     img = self.bear_trap_shut_img
@@ -738,7 +750,7 @@ class World:
                     img_rect.x = column_count * tile_size
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
-                    self.tree_list.append(tile)
+                    self.bg_decoration_list.append(tile)
                 if tile == 42:
                     # tree
                     img = self.tree
@@ -746,7 +758,7 @@ class World:
                     img_rect.x = column_count * tile_size
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
-                    self.tree_list.append(tile)
+                    self.bg_decoration_list.append(tile)
                 if tile == 43:
                     # short flowers together
                     img = self.short_flowers_together
@@ -865,7 +877,7 @@ class World:
         self.list_of_lists = [self.tile_list, self.decoration_list, self.slope_list, self.set_lava_list,
                               self.portal_list, self.bee_hive_list, self.bush_list, self.bg_tile_list,
                               self.spitting_plant_list_up, self.spitting_plant_list_left,
-                              self.spitting_plant_list_right, self.tree_list,
+                              self.spitting_plant_list_right, self.bg_decoration_list,
                               self.log_list, self.gem_list, self.shockwave_mushroom_list]
 
         return self.level_length, self.level_height
@@ -880,7 +892,7 @@ class World:
 
     def draw_foliage(self, screen):
         for tile in self.decoration_list:
-            if - tile_size * 2 < tile[1][0] < swidth:
+            if - tile_size < tile[1][0] < swidth:
                 if - tile_size * 2 < tile[1][1] < sheight:
                     screen.blit(tile[0], tile[1])
 
@@ -915,7 +927,7 @@ class World:
     def draw_tile_list(self, screen):
         for tile in self.tile_list:
             if - tile_size < tile[1][0] < swidth:
-                if - tile_size * 3 < tile[1][1] < sheight:
+                if - tile_size < tile[1][1] < sheight:
                     screen.blit(tile[0], tile[1])
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -991,7 +1003,7 @@ class World:
             if tile[1].colliderect(sack_rect):
                 set_lava_harm = True
             if - tile_size < tile[1][0] < swidth:
-                if - tile_size * 2 < tile[1][1] < sheight:
+                if - tile_size < tile[1][1] < sheight:
                     screen.blit(tile[0], (tile[1][0] + tile[2], tile[1][1]))
         return set_lava_harm
 
@@ -1317,10 +1329,10 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_tree(self, screen):
-        for tile in self.tree_list:
-            if - tile_size * 2 < tile[1][0] < swidth:
-                if - tile_size * 2 < tile[1][1] < sheight:
+    def draw_bg_decoration(self, screen):
+        for tile in self.bg_decoration_list:
+            if - tile_size * 3 < tile[1][0] < swidth:
+                if - tile_size * 3 < tile[1][1] < sheight:
                     screen.blit(tile[0], tile[1])
 
     # ------------------------------------------------------------------------------------------------------------------

@@ -120,7 +120,7 @@ class eqManager:
         self.full_back_card.blit(self.card_back_img, (0, 0))
 
         self.target_x = swidth / 2 - self.full_mid_air_jump_card.get_width() / 2
-        self.target_y = sheight - 4.5 * tile_size
+        self.target_y = sheight - (4.5 * tile_size) / 270 * sheight
         self.card_frame_movement_x = 0
         self.card_frame_movement_y = (self.target_y - (sheight - tile_size * 2)) / -9
 
