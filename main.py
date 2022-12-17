@@ -21,20 +21,9 @@ monitor_height = global_monitor_height
 screen_width = global_screen_width
 screen_height = global_screen_height
 
-
-sheight = 270
-swidth = 480
 wiheight = sheight
 wiwidth = swidth
-tile_size = 32
-
-if monitor_width / 16 <= monitor_height / 9:
-    fullscreen_scale = round(monitor_width / swidth)
-    swidth = round(monitor_width / fullscreen_scale)
-    sheight = round(swidth / 16 * 9)
-
-wiheight = sheight
-wiwidth = swidth
+tile_size = global_tile_size
 
 
 clock = pygame.time.Clock()
@@ -369,6 +358,41 @@ def load_game(local_world_data, local_bg_data, local_world_count, local_joystick
     global main_game, game_loaded
     main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
                      settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+                     settings_counters, local_joystick_connected)
+
     game_loaded = True
 
 
