@@ -368,7 +368,6 @@ class World:
         # text ---------------------------------------------------------------------------------------------------------
         eq_full_text = Text()
         self.eq_full_txt = eq_full_text.make_text(['eq is full, bin cards to free up space'])
-        self.blit_eq_full = False
 
     def create_world(self, start_x, start_y, data, bg_data):
 
@@ -944,67 +943,67 @@ class World:
         self.portal_counter += 1*fps_adjust
         self.portal_part_counter += 1*fps_adjust
         for tile in self.portal_list:
-            portal_y_offset = math.sin((1 / 15) * self.portal_counter) * 2
+            if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                portal_y_offset = math.sin((1 / 15) * self.portal_counter) * 2
 
-            tile[3].fill((1, 1, 1))
-            for star in tile[4]:
-                star[0][0] -= (camera_move_x * star[1])
-                star[0][1] -= (camera_move_y * star[1])
-                if star[0][0] > tile_size:
-                    star[0][0] = 0
-                    star[0][1] = random.randrange(0, int(tile_size * 1.5 - 1))
-                if star[0][0] < 0:
-                    star[0][0] = tile_size
-                    star[0][1] = random.randrange(0, int(tile_size * 1.5 - 1))
-                if star[0][1] > tile_size * 1.5:
-                    star[0][1] = 0
-                    star[0][0] = random.randrange(0, tile_size - 1)
-                if star[0][1] < 0:
-                    star[0][1] = tile_size
-                    star[0][0] = random.randrange(0, tile_size - 1)
-                tile[3].set_at((int(star[0][0]), int(star[0][1])), star[2])
+                tile[3].fill((1, 1, 1))
+                for star in tile[4]:
+                    star[0][0] -= (camera_move_x * star[1])
+                    star[0][1] -= (camera_move_y * star[1])
+                    if star[0][0] > tile_size:
+                        star[0][0] = 0
+                        star[0][1] = random.randrange(0, int(tile_size * 1.5 - 1))
+                    if star[0][0] < 0:
+                        star[0][0] = tile_size
+                        star[0][1] = random.randrange(0, int(tile_size * 1.5 - 1))
+                    if star[0][1] > tile_size * 1.5:
+                        star[0][1] = 0
+                        star[0][0] = random.randrange(0, tile_size - 1)
+                    if star[0][1] < 0:
+                        star[0][1] = tile_size
+                        star[0][0] = random.randrange(0, tile_size - 1)
+                    tile[3].set_at((int(star[0][0]), int(star[0][1])), star[2])
 
-            tile[2].fill((0, 0, 0))
-            tile[2].blit(self.portal, (0, 8 + portal_y_offset))
-            if self.portal_part_counter > 5:
-                self.portal_part_counter = 0
-                # max radius, radius, radius achieved, pos
-                part_vars = [6, 0, False, (int(random.randrange(8, tile_size - 8)),
-                                           int(random.randrange(13, tile_size + 4)))]
-                self.portal_part_list.append(part_vars)
-            for part in self.portal_part_list:
-                if part[2]:
-                    part[1] -= 0.15 * fps_adjust
-                else:
-                    part[1] += 0.15 * fps_adjust
-                if part[1] >= part[0]:
-                    part[2] = True
-                if part[1] < 0:
-                    self.portal_part_list.remove(part)
-                pygame.draw.circle(tile[2], (0, 0, 255), part[3], part[1], 0)
+                tile[2].fill((0, 0, 0))
+                tile[2].blit(self.portal, (0, 8 + portal_y_offset))
+                if self.portal_part_counter > 5:
+                    self.portal_part_counter = 0
+                    # max radius, radius, radius achieved, pos
+                    part_vars = [6, 0, False, (int(random.randrange(8, tile_size - 8)),
+                                               int(random.randrange(13, tile_size + 4)))]
+                    self.portal_part_list.append(part_vars)
+                for part in self.portal_part_list:
+                    if part[2]:
+                        part[1] -= 0.15 * fps_adjust
+                    else:
+                        part[1] += 0.15 * fps_adjust
+                    if part[1] >= part[0]:
+                        part[2] = True
+                    if part[1] < 0:
+                        self.portal_part_list.remove(part)
+                    pygame.draw.circle(tile[2], (0, 0, 255), part[3], part[1], 0)
 
-            tile[3].blit(tile[2], (0, 0))
+                tile[3].blit(tile[2], (0, 0))
 
-            portal_mask = pygame.mask.from_surface(tile[3])
-            portal_outline = pygame.mask.Mask.outline(portal_mask)
-            for pixel in portal_outline:
-                tile[3].set_at(pixel, (255, 255, 255))
+                portal_mask = pygame.mask.from_surface(tile[3])
+                portal_outline = pygame.mask.Mask.outline(portal_mask)
+                for pixel in portal_outline:
+                    tile[3].set_at(pixel, (255, 255, 255))
 
-            screen.blit(tile[3], (tile[1][0], tile[1][1] - 16))
+                screen.blit(tile[3], (tile[1][0], tile[1][1] - 16))
 
-            if level_count == 1:
-                screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
+                if level_count == 1:
+                    screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
 
     # ------------------------------------------------------------------------------------------------------------------
 
     def draw_set_lava(self, screen, sack_rect):
         set_lava_harm = False
         for tile in self.set_lava_list:
-            if tile[1].colliderect(sack_rect):
-                set_lava_harm = True
-            if - tile_size < tile[1][0] < swidth:
-                if - tile_size < tile[1][1] < sheight:
-                    screen.blit(tile[0], (tile[1][0] + tile[2], tile[1][1]))
+            if -tile_size < tile[1][0] < swidth:
+                if tile[1].colliderect(sack_rect):
+                    set_lava_harm = True
+                screen.blit(tile[0], (tile[1][0] + tile[2], tile[1][1]))
         return set_lava_harm
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -1061,51 +1060,52 @@ class World:
             self.gem_flicker_counter = 0
 
         for tile in self.gem_list:
-            tile[4].fill((0, 0, 0))
+            if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                tile[4].fill((0, 0, 0))
 
-            tile[6] -= 1 * fps_adjust
+                tile[6] -= 1 * fps_adjust
 
-            tile[4].blit(tile[0], (0, 0))
-            pygame.draw.line(tile[4], (255, 255, 255),
-                             (16, -10 + self.gem_flicker_counter), (0, self.gem_flicker_counter), 3)
-            tile[4].blit(self.gem_mask_surf, (0, 0))
-            img = tile[4]
+                tile[4].blit(tile[0], (0, 0))
+                pygame.draw.line(tile[4], (255, 255, 255),
+                                 (16, -10 + self.gem_flicker_counter), (0, self.gem_flicker_counter), 3)
+                tile[4].blit(self.gem_mask_surf, (0, 0))
+                img = tile[4]
 
-            if tile[1].colliderect(sack_rect) and not tile[3] and tile[6] < 0:
-                tile[3] = True
-                gem_equipped = True
+                if tile[1].colliderect(sack_rect) and not tile[3] and tile[6] < 0:
+                    tile[3] = True
+                    gem_equipped = True
 
-            scale = 1
-            circle_animation_finished = False
-            if tile[3]:
-                scale = (15 - abs(tile[2])) / 8
-                tile[2] -= 1.5 * fps_adjust
-                if scale > 0:
-                    img = pygame.transform.scale(tile[0], (16 * scale, 16 * scale))
-                circle_animation_finished = tile[5].draw_circle_animation((tile[1][0] + 8, tile[1][1] + 8),
-                                                                          screen, fps_adjust)
+                scale = 1
+                circle_animation_finished = False
+                if tile[3]:
+                    scale = (15 - abs(tile[2])) / 8
+                    tile[2] -= 1.5 * fps_adjust
+                    if scale > 0:
+                        img = pygame.transform.scale(tile[0], (16 * scale, 16 * scale))
+                    circle_animation_finished = tile[5].draw_circle_animation((tile[1][0] + 8, tile[1][1] + 8),
+                                                                              screen, fps_adjust)
 
-            if circle_animation_finished:
-                tile[6] = 60 * 3
-                tile[2] = 7
-                tile[3] = False
-                tile[5] = CircleAnimation()
+                if circle_animation_finished:
+                    tile[6] = 60 * 3
+                    tile[2] = 7
+                    tile[3] = False
+                    tile[5] = CircleAnimation()
 
-            gem_y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
-            if scale > 0 > tile[6]:
-                if tile[6] > -10:
-                    shake_offset_x = random.choice([-2, 0, 2])
-                    shake_offset_y = random.choice([-2, 0, 2])
-                else:
-                    shake_offset_x = 0
-                    shake_offset_y = 0
+                gem_y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
+                if scale > 0 > tile[6]:
+                    if tile[6] > -10:
+                        shake_offset_x = random.choice([-2, 0, 2])
+                        shake_offset_y = random.choice([-2, 0, 2])
+                    else:
+                        shake_offset_x = 0
+                        shake_offset_y = 0
 
-                screen.blit(img,
-                            (tile[1][0] + (8 - img.get_width() / 2) + shake_offset_x,
-                             tile[1][1] + gem_y_offset + (8 - img.get_height() / 2) + shake_offset_y))
-            elif tile[6] >= 0:
-                screen.blit(self.gem_outline_surface, (tile[1][0] + (8 - img.get_width() / 2),
-                            tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
+                    screen.blit(img,
+                                (tile[1][0] + (8 - img.get_width() / 2) + shake_offset_x,
+                                 tile[1][1] + gem_y_offset + (8 - img.get_height() / 2) + shake_offset_y))
+                elif tile[6] >= 0:
+                    screen.blit(self.gem_outline_surface, (tile[1][0] + (8 - img.get_width() / 2),
+                                tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
 
         return gem_equipped
 
@@ -1120,12 +1120,13 @@ class World:
 
     def draw_green_mushrooms(self, screen, sack_rect):
         for tile in self.grn_mushroom_list:
-            for num in range(1, 4):
-                y = tile[num][1]
-                if sack_rect.colliderect(tile[num]):
-                    y += 3
-                screen.blit(self.green_mushroom, (tile[num][0], y))
-            screen.blit(self.short_grass, tile[0])
+            if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                for num in range(1, 4):
+                    y = tile[num][1]
+                    if sack_rect.colliderect(tile[num]):
+                        y += 3
+                    screen.blit(self.green_mushroom, (tile[num][0], y))
+                screen.blit(self.short_grass, tile[0])
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -1140,7 +1141,8 @@ class World:
                 self.bee_counter = 4
             self.bee_release_counter = 0
         for tile in self.bee_hive_list:
-            screen.blit(self.bee_hive, tile[1])
+            if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                screen.blit(self.bee_hive, tile[1])
             if self.bee_counter > 0:
                 for i in range(self.bee_counter - 1):
                     if i <= 4:
@@ -1159,40 +1161,41 @@ class World:
     def draw_shockwave_mushrooms(self, screen, fps_adjust):
         self.shockwave_center_list = []
         for mushroom in self.shockwave_mushroom_list:
-            squash = 0
-            trigger = False
-            mushroom[3] -= 1 * fps_adjust
-            mushroom[2] -= 1 * fps_adjust
-            if mushroom[3] < 0:
-                mushroom[3] = 0
+            if -tile_size < mushroom[1][0] < swidth and -tile_size < mushroom[1][1] < sheight:
+                squash = 0
+                trigger = False
+                mushroom[3] -= 1 * fps_adjust
+                mushroom[2] -= 1 * fps_adjust
+                if mushroom[3] < 0:
+                    mushroom[3] = 0
 
-            if mushroom[2] > 12:
-                squash = 2
-            elif mushroom[2] > 9:
-                squash = 4
-            elif mushroom[2] > 6:
-                squash = 6
-            elif mushroom[2] > 3:
-                squash = 4
-            elif mushroom[2] > 0:
-                squash = 2
-                trigger = True
+                if mushroom[2] > 12:
+                    squash = 2
+                elif mushroom[2] > 9:
+                    squash = 4
+                elif mushroom[2] > 6:
+                    squash = 6
+                elif mushroom[2] > 3:
+                    squash = 4
+                elif mushroom[2] > 0:
+                    squash = 2
+                    trigger = True
 
-            if squash > 0:
-                img = pygame.transform.scale(self.shockwave_mushroom, (tile_size + squash, tile_size / 2 - squash))
-            else:
-                img = self.shockwave_mushroom
+                if squash > 0:
+                    img = pygame.transform.scale(self.shockwave_mushroom, (tile_size + squash, tile_size / 2 - squash))
+                else:
+                    img = self.shockwave_mushroom
 
-            if mushroom[3] != 0 and mushroom[2] < 0:
-                img = self.shockwave_mushroom_dark
+                if mushroom[3] != 0 and mushroom[2] < 0:
+                    img = self.shockwave_mushroom_dark
 
-            shockwave_center = (mushroom[1][0] + tile_size / 2, mushroom[1][1] + 10)
-            radius = mushroom[4].update_shockwave((shockwave_center[0], shockwave_center[1]),
-                                                  fps_adjust, trigger)
+                shockwave_center = (mushroom[1][0] + tile_size / 2, mushroom[1][1] + 10)
+                radius = mushroom[4].update_shockwave((shockwave_center[0], shockwave_center[1]),
+                                                      fps_adjust, trigger)
 
-            self.shockwave_center_list.append((shockwave_center[0], shockwave_center[1], radius))
+                self.shockwave_center_list.append((shockwave_center[0], shockwave_center[1], radius))
 
-            screen.blit(img, (mushroom[1][0] - squash / 2, mushroom[1][1] + squash))
+                screen.blit(img, (mushroom[1][0] - squash / 2, mushroom[1][1] + squash))
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -1221,8 +1224,6 @@ class World:
             elif self.spitting_counter_left >= 15:
                 self.spitting_plant_img_left = self.spitting_plant1l
 
-            screen.blit(self.spitting_plant_img_left, tile[1])
-
             for i in range(self.spit_counter_left):
                 harm = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
                                               tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
@@ -1230,7 +1231,8 @@ class World:
                 if harm:
                     return harm
 
-            screen.blit(self.spitting_plant_img_left, tile[1])
+            if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                screen.blit(self.spitting_plant_img_left, tile[1])
         return harm
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -1251,8 +1253,6 @@ class World:
             elif self.spitting_counter_right >= 15:
                 self.spitting_plant_img_right = self.spitting_plant1r
 
-            screen.blit(self.spitting_plant_img_right, tile[1])
-
             for i in range(self.spit_counter_right):
                 harm = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
                                               tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
@@ -1260,7 +1260,8 @@ class World:
                 if harm:
                     return harm
 
-            screen.blit(self.spitting_plant_img_right, tile[1])
+            if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                screen.blit(self.spitting_plant_img_right, tile[1])
         return harm
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -1281,8 +1282,6 @@ class World:
             elif self.spitting_counter_up >= 15:
                 self.spitting_plant_img_up = self.spitting_plant_up1
 
-            screen.blit(self.spitting_plant_img_up, tile[1])
-
             for i in range(self.spit_counter_up):
                 harm = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
                                               tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
@@ -1290,7 +1289,8 @@ class World:
                 if harm:
                     return harm
 
-            screen.blit(self.spitting_plant_img_up, tile[1])
+            if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                screen.blit(self.spitting_plant_img_up, tile[1])
         return harm
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -1298,25 +1298,26 @@ class World:
     def draw_log(self, screen, fps_adjust, camera_move_x, camera_move_y):
         self.log_counter += 1*fps_adjust
         for tile in self.log_list:
-            img = tile[0]
-            if self.log_counter >= 15:
-                if self.wood_num != 1:
-                    self.wood_num = random.randrange(1, 4)
-                if self.wood_num != 1:
-                    self.log_counter = 0
-                if self.wood_num == 1:
-                    img = self.log1
-                    if self.log_counter >= 20:
-                        self.wood_num = 0
+            if -tile_size * 2 < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                img = tile[0]
+                if self.log_counter >= 15:
+                    if self.wood_num != 1:
+                        self.wood_num = random.randrange(1, 4)
+                    if self.wood_num != 1:
                         self.log_counter = 0
-                        # loading wood particles
-                        for i in range(5):
-                            self.wood_particles.append([[tile[1][0] + tile_size + tile_size/3,
-                                                        tile[1][1] + tile_size/3],
-                                                        [(random.randint(0, 40) / 10) - 2,
-                                                        (random.randint(0, 20) / 10) - 1],
-                                                        random.randint(2, 3)])
-            screen.blit(img, tile[1])
+                    if self.wood_num == 1:
+                        img = self.log1
+                        if self.log_counter >= 20:
+                            self.wood_num = 0
+                            self.log_counter = 0
+                            # loading wood particles
+                            for i in range(5):
+                                self.wood_particles.append([[tile[1][0] + tile_size + tile_size/3,
+                                                            tile[1][1] + tile_size/3],
+                                                            [(random.randint(0, 40) / 10) - 2,
+                                                            (random.randint(0, 20) / 10) - 1],
+                                                            random.randint(2, 3)])
+                screen.blit(img, tile[1])
         # updating wood particles
         if self.wood_particles:
             for part in self.wood_particles:
@@ -1339,11 +1340,12 @@ class World:
 
     def draw_wheat(self, screen, sack_rect):
         for list_of_wheat in self.wheat_list:
-            for wheat_pos in list_of_wheat:
-                y = wheat_pos[1]
-                if wheat_pos.colliderect(sack_rect.x - 4, sack_rect.y, sack_rect.width + 8, sack_rect.height):
-                    y += 6
-                screen.blit(self.wheat, (wheat_pos[0], y))
+            if -tile_size < list_of_wheat[0][0] < swidth and -tile_size < list_of_wheat[0][1] < sheight:
+                for wheat_pos in list_of_wheat:
+                    y = wheat_pos[1]
+                    if wheat_pos.colliderect(sack_rect.x - 4, sack_rect.y, sack_rect.width + 8, sack_rect.height):
+                        y += 6
+                    screen.blit(self.wheat, (wheat_pos[0], y))
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -1363,7 +1365,3 @@ class World:
             x = center_x - dot_x
             y = center_y - dot_y - dot_radius
             pygame.draw.circle(screen, (150, 0, 0), (x, y), dot_radius)
-
-    def draw_eq_full(self, screen):
-        if self.blit_eq_full:
-            screen.blit(self.eq_full_txt, (swidth / 2 - self.eq_full_txt.get_width() / 2, sheight / 3))

@@ -9,6 +9,12 @@ pygame.joystick.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
 joysticks = {}
 
+# pygame events --------------------------------------------------------------------------------------------------------
+allowed_events = [pygame.KEYDOWN, pygame.KEYUP, pygame.MOUSEBUTTONUP, pygame.MOUSEBUTTONDOWN, pygame.JOYAXISMOTION,
+                  pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED,
+                  pygame.VIDEORESIZE]
+pygame.event.set_allowed(allowed_events)
+
 # basic game variables -------------------------------------------------------------------------------------------------
 monitor_width = global_monitor_width
 monitor_height = global_monitor_height
@@ -113,11 +119,14 @@ else:
     height_window_space = wiheight
     width_window_space = wiwidth
 
+scale = wiwidth / swidth
+
 settings_counters['resolution'] = resolution_counter
 recommended_res_counter = resolution_counter
 
 # screens (surfaces)
 window = pygame.display.set_mode(display_geometry, flag, pygame.HWACCEL)
+window.fill((0, 0, 0))
 screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
 screen.set_alpha(0)
 screen_alpha = 0
@@ -132,7 +141,6 @@ pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUS
 pygame.display.set_caption('sack run')
 
 background_sky_colour = (100, 63, 102)
-window.fill((0, 0, 0))
 
 # external file imports ------------------------------------------------------------------------------------------------
 from levels import *
@@ -145,6 +153,7 @@ from pause_screen import PauseScreen
 from world_selection import LevelSelection
 from game import level_dictionary, level_bg_dictionary
 from settings import SettingsMenu
+from image_loader import img_loader
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -210,6 +219,8 @@ game_y = swidth
 
 new_world_unlocked = False
 
+level_restart_procedure = False
+
 if settings_counters['hitbox'] == 1:
     draw_hitbox = False
 else:
@@ -238,10 +249,23 @@ user_quit1 = False
 user_quit2 = False
 
 # loading message ------------------------------------------------------------------------------------------------------
-loading_text = Text().make_text(['Loading...'])
-loading_bg = popup_bg_generator((loading_text.get_width() + 20, loading_text.get_height() + 16))
-loading_bg.blit(loading_text, (loading_bg.get_width() / 2 - loading_text.get_width() / 2,
-                               loading_bg.get_height() / 2 - loading_text.get_height() / 2))
+loading_text = Text().make_text(['Loading'])
+loading_bg = popup_bg_generator((loading_text.get_width() + 12, loading_text.get_height() + 30))
+loading_text_x = loading_bg.get_width() / 2 - loading_text.get_width() / 2
+loading_text_y = loading_bg.get_height() / 2 - loading_text.get_height() / 2 - 5
+loading_bg.blit(loading_text, (loading_text_x, loading_text_y))
+
+loading_animation = {}
+index_counter = 0
+for file in range(-13, 13):
+    loading_animation[index_counter] = img_loader(f'data/images/loading_animation/frame{abs(file)}.PNG',
+                                                  16, 8)
+    index_counter += 1
+loading_erase_surf = pygame.Surface((16, 8))
+loading_erase_surf.fill((79, 70, 81))
+loading_anim_x = loading_bg.get_width() / 2 - 8
+loading_anim_y = loading_text_y + 15
+loading_counter = 0
 
 screen_dim = pygame.Surface((swidth, sheight))
 screen_dim.set_alpha(80)
@@ -280,10 +304,6 @@ music_volumes = {
 
 pygame.mixer.music.load('data/sounds/game_song1.wav')
 pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
-
-
-def play_sound(sound_name):
-    sounds[sound_name].play()
 
 
 # sound locks
@@ -520,10 +540,11 @@ while run:
                 play_paper_sound,\
                 play_music_trigger,\
                 fadeout_music,\
-                lvl_selection_press = main_game.game(screen, level_count, slow_computer, fps_adjust,
+                lvl_selection_press = main_game.game(screen, level_count, fps_adjust,
                                                      draw_hitbox, mouse_adjustment, events,
-                                                     game_counter, world_count, controls, joystick_configured,
-                                                     controller_calibration, joysticks)
+                                                     game_counter, world_count, controls,
+                                                     controller_calibration, joysticks, level_restart_procedure)
+            level_restart_procedure = False
         else:
             menu_press = False
             lvl_selection_press = False
@@ -538,6 +559,7 @@ while run:
             paused = True
             run_level_selection = False
             fadeout_music = True
+            pause_menu.joystick_counter = 0
 
         # changing the displayed screens
         if lvl_selection_press:
@@ -583,8 +605,9 @@ while run:
             button_sound_trigger1,\
             resume,\
             lvl_select,\
-            settings = pause_menu.draw_pause_screen(mouse_adjustment, paused_events,
-                                                    joysticks, controls['configuration'])
+            settings,\
+            restart_level = pause_menu.draw_pause_screen(mouse_adjustment, paused_events,
+                                                    joysticks, controls['configuration'], fps_adjust)
 
         if lvl_select:
             run_game = False
@@ -606,6 +629,9 @@ while run:
             except FileNotFoundError:
                 pass
 
+        if restart_level:
+            resume = True
+
         if resume:
             run_menu = False
             run_game = True
@@ -614,6 +640,8 @@ while run:
             play_music = True
             load_music = True
             main_game.update_controller_type(controls['configuration'], settings_counters)
+            if restart_level:
+                level_restart_procedure = True
 
         if settings:
             run_menu = False
@@ -669,7 +697,13 @@ while run:
             proceed_with_transition = True
 
         if loading:
+            loading_counter += 0.4 * fps_adjust
+            if loading_counter > len(loading_animation) - 1:
+                loading_counter = 0
             level_selection_screen.blit(screen_dim, (0, 0))
+            loading_bg.blit(loading_erase_surf, (loading_anim_x, loading_anim_y))
+            loading_frame = loading_animation[round(loading_counter)]
+            loading_bg.blit(loading_frame, (loading_anim_x, loading_anim_y))
             level_selection_screen.blit(loading_bg,
                                         (swidth / 2 - loading_bg.get_width() / 2,
                                          sheight / 2 - loading_bg.get_height() / 2))
@@ -824,7 +858,6 @@ while run:
             joystick = pygame.joystick.Joystick(event.device_index)
             joysticks[0] = joystick
             joystick_connected = True
-            joysticks[0].rumble(0.5, 0.5, 500)
             joystick_name = str(joystick.get_name())
             if joystick_name in controllers:
                 controller_connected_counter = 90
@@ -875,12 +908,14 @@ while run:
         if event.type == pygame.JOYBUTTONDOWN and not controller_calibration:
             if event.button == controls['configuration'][1] or event.button == controls['configuration'][2]:
                 joystick_over_card = True
+            # game pause
             if event.button == controls['configuration'][3] and run_game:
                 run_menu = False
                 run_game = False
                 paused = True
                 run_level_selection = False
                 fadeout_music = True
+                pause_menu.joystick_counter = 0
 
     if user_quit1 and user_quit2:
         run = False
@@ -936,7 +971,7 @@ while run:
     # music
     if play_background_music:
         if not world_completed_sound_played:
-            if (world_count == 1 and level_count == 3) or (world_count == 2 and level_count == 9):
+            if (world_count == 1 and level_count == 3) or (world_count == 2 and level_count == 9) and run_game:
                 sounds['world_completed'].play()
                 world_completed_sound_played = True
 

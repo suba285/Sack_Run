@@ -311,7 +311,7 @@ class Game:
         self.spit_harm_right = False
         self.spit_harm_up = False
         self.set_lava_harm = False
-        self.hot_lava_harm = True
+        self.hot_lava_harm = False
 
         self.health = 2
         self.harm = False
@@ -450,8 +450,9 @@ class Game:
         return world_data_level_checker, bg_data
 
 # THE GAME =============================================================================================================
-    def game(self, screen, level_count, slow_computer, fps_adjust, draw_hitbox, mouse_adjustment, events,
-             game_counter, world_count, controls, joystick_connected, joystick_calibration, joysticks):
+    def game(self, screen, level_count, fps_adjust, draw_hitbox, mouse_adjustment, events,
+             game_counter, world_count, controls, joystick_calibration, joysticks,
+             restart_level_procedure):
 
         self.controls = controls
 
@@ -463,7 +464,11 @@ class Game:
         play_healing_sound = False
         play_paper_sound = False
         play_lock_sound = False
-        play_bear_trap_cling_sound = False
+
+        if joysticks:
+            joystick_connected = True
+        else:
+            joystick_connected = False
 
         play_music = False
 
@@ -526,24 +531,26 @@ class Game:
                                                             self.world.shockwave_mushroom_list,
                                                             events,
                                                             self.gem_equipped,
-                                                            joysticks
+                                                            joysticks,
+                                                            restart_level_procedure
                                                             )
 
         # updating solid tile positions --------------------------------------------------------------------------------
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
 
         # blitting tiles and images in the background ------------------------------------------------------------------
-        if world_count in [1, 2]:
+        if world_count in [1, 2, 4]:
             self.game_screen.fill(self.sky_background_colour)
         else:
             self.game_screen.fill(self.cave_background_colour)
         self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, sack_direction)
         self.world.draw_bg_tile_list(self.game_screen)
-        self.world.draw_log(self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
         self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
                                     self.camera_move_x, self.camera_move_y)
-        self.world.draw_bush(self.game_screen)
         self.world.draw_bg_decoration(self.game_screen)
+        if world_count < 3:
+            self.world.draw_log(self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
+            self.world.draw_bush(self.game_screen)
 
         # drawing the  player ------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)
@@ -556,12 +563,14 @@ class Game:
         self.left_border += self.camera_move_x
 
         # drawing and updating other tiles and objects in the game -----------------------------------------------------
-        self.spit_harm_left = self.world.draw_spitting_plant_left(self.game_screen, fps_adjust, self.camera_move_x,
+        if world_count < 3:
+            self.spit_harm_left = self.world.draw_spitting_plant_left(self.game_screen, fps_adjust, self.camera_move_x,
+                                                                      self.camera_move_y, sack_rect, self.health)
+            self.spit_harm_right = self.world.draw_spitting_plant_right(self.game_screen, fps_adjust,
+                                                                        self.camera_move_x,
+                                                                        self.camera_move_y, sack_rect, self.health)
+            self.spit_harm_up = self.world.draw_spitting_plant_up(self.game_screen, fps_adjust, self.camera_move_x,
                                                                   self.camera_move_y, sack_rect, self.health)
-        self.spit_harm_right = self.world.draw_spitting_plant_right(self.game_screen, fps_adjust, self.camera_move_x,
-                                                                    self.camera_move_y, sack_rect, self.health)
-        self.spit_harm_up = self.world.draw_spitting_plant_up(self.game_screen, fps_adjust, self.camera_move_x,
-                                                              self.camera_move_y, sack_rect, self.health)
 
         # updating the world data if new level -------------------------------------------------------------------------
         if self.level_check < level_count or restart_level:
@@ -569,7 +578,7 @@ class Game:
             self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data)
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
-            self.particles = Particles(particle_num, slow_computer)
+            self.particles = Particles(particle_num, fps_adjust)
             self.blit_card_instructions = False
             self.level_display = LevelDisplay(level_count)
             self.gem_equipped = False
@@ -581,23 +590,25 @@ class Game:
                 self.level_duration_counter = 0
 
         # --------------------------------------------------------------------------------------------------------------
+        if world_count == 3:
+            self.set_lava_harm = self.world.draw_set_lava(self.game_screen, sack_rect)
+            self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
 
-        self.world.draw_wheat(self.game_screen, sack_rect)
+        if world_count < 3:
+            self.world.draw_wheat(self.game_screen, sack_rect)
+            self.world.draw_green_mushrooms(self.game_screen, sack_rect)
+            self.world.draw_foliage(self.game_screen)
 
-        self.set_lava_harm = self.world.draw_set_lava(self.game_screen, sack_rect)
-        self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
-
-        self.world.draw_green_mushrooms(self.game_screen, sack_rect)
         self.world.draw_tile_list(self.game_screen)
 
-        self.trap_harm, play_bear_trap_cling_sound = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
+        if world_count < 3:
+            self.bee_harm = self.world.draw_and_manage_beehive(self.game_screen, sack_rect, fps_adjust,
+                                                               self.camera_move_x,
+                                                               self.camera_move_y, self.health,
+                                                               self.player_moved)
+            self.world.draw_shockwave_mushrooms(self.game_screen, fps_adjust)
 
-        self.world.draw_foliage(self.game_screen)
-        self.bee_harm = self.world.draw_and_manage_beehive(self.game_screen, sack_rect, fps_adjust,
-                                                           self.camera_move_x,
-                                                           self.camera_move_y, self.health,
-                                                           self.player_moved)
-        self.world.draw_shockwave_mushrooms(self.game_screen, fps_adjust)
+        self.trap_harm, play_bear_trap_cling_sound = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
         self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y)
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------
@@ -609,11 +620,7 @@ class Game:
         # respawn instructions -----------------------------------------------------------------------------------------
         self.player.blit_respawn_instructions(screen, fps_adjust, joystick_connected, self.settings_counters)
 
-        # eq full message ----------------------------------------------------------------------------------------------
-        self.world.draw_eq_full(screen)
-
         # updating player health and blitting health bar ---------------------------------------------------------------
-        self.player.update_health()
         self.world.draw_portal_compass(sack_rect, screen)
 
         if restart_level:

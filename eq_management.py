@@ -399,7 +399,7 @@ class eqManager:
         if joy_bumper_pressed:
             self.joystick_over_counter = self.joystick_card_over_time
 
-        if self.joystick_over_counter >= 0 and not self.card_info and move:
+        if self.joystick_over_counter >= 0 and not self.card_info and move and joysticks:
             if self.joystick_counter == 0:
                 joystick_over0 = True
             if self.joystick_counter == 1:

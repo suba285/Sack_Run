@@ -9,7 +9,9 @@ from setuptools import setup
 
 APP = ['main.py']
 DATA_FILES = [('', ['data'])]
-OPTIONS = {}
+OPTIONS = {
+    'iconfile':'data/images/Sack_Run_icon.PNG'
+}
 
 setup(
     app=APP,

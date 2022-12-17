@@ -391,13 +391,12 @@ class Player:
         # 3 - y position
 
         # class initiations --------------------------------------------------------------------------------------------
-        self.hey_particle1 = HeyParticle(self.hey_part1, self.hey_part2, self.hey_part3, self.sack_rect)
         self.circle_transition = CircleTransition(screen)
 
     def update_pos_animation(self, screen, tile_list, next_level_list, level_count, harm_in, fps_adjust,
                              mid_air_jump_trigger, speed_dash_trigger,
                              left_border, right_border,
-                             move, shockwave_mush_list, events, gem_equipped, joysticks):
+                             move, shockwave_mush_list, events, gem_equipped, joysticks, restart_level_procedure):
 
         dx = 0
         dy = 0
@@ -548,6 +547,8 @@ class Player:
             self.harmed = True
             self.speed_dash = False
             self.speed_dash_activated = False
+            gem_equipped = False
+            self.mid_air_jump = False
             self.screen_shake_counter = 10
             self.vel_x_r = 0
             self.vel_x_l = 0
@@ -747,7 +748,8 @@ class Player:
                         self.vel_x_r = self.speed_dash_speed * self.speed_dash_direction
 
         # respawn at the beginning of the level and transition
-        if self.player_jump and self.dead and self.dead_counter >= 36 and not self.restart_trigger:
+        if (self.player_jump and self.dead and self.dead_counter >= 36 and not self.restart_trigger)\
+                or restart_level_procedure:
             self.restart_trigger = True
             self.single_fadeout = True
             self.teleport_count = 0
@@ -886,10 +888,6 @@ class Player:
             self.sack_rect.top = 0
             dy = 0
 
-        # updating hey particles ---------------------------------------------------------------------------------------
-        self.hey_particle1.update_particle(self.sack_rect, fps_adjust, self.new_level,
-                                           self.camera_movement_x, self.camera_movement_y)
-
         # updating player coordinates ----------------------------------------------------------------------------------
         self.camera_movement_x = round(-self.vel_x * fps_adjust)
         dx = 0
@@ -922,13 +920,6 @@ class Player:
                self.camera_movement_x, self.camera_movement_y,\
                self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list,\
                gem_equipped, screen_shake
-
-# UPDATING PLAYER SPRITE HEALTH ========================================================================================
-    def update_health(self):
-        if self.dead:
-            self.health = 0
-            if self.mid_air_jump:
-                self.mid_air_jump_counter = 1000
 
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================
     def blit_player(self, screen, draw_hitbox, fps_adjust):
@@ -1030,8 +1021,6 @@ class Player:
 
         if self.dead:
             self.blit_plr = death_animation_counter(self, fps_adjust)
-
-        if self.dead:
             self.sack_img = self.sack_silhouette
 
         # drawing player onto the screen
@@ -1040,9 +1029,6 @@ class Player:
 
         if draw_hitbox:
             pygame.draw.rect(screen, (255, 255, 255), self.sack_rect, 1)
-
-        # hey particles
-        self.hey_particle1.blit_particle(screen)
 
         # drawing teleportation particles onto the screen
         if not self.dead and self.teleport_count > 0:
