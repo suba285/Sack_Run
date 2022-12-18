@@ -1060,52 +1060,51 @@ class World:
             self.gem_flicker_counter = 0
 
         for tile in self.gem_list:
-            if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
-                tile[4].fill((0, 0, 0))
+            tile[4].fill((0, 0, 0))
 
-                tile[6] -= 1 * fps_adjust
+            tile[6] -= 1 * fps_adjust
 
-                tile[4].blit(tile[0], (0, 0))
-                pygame.draw.line(tile[4], (255, 255, 255),
-                                 (16, -10 + self.gem_flicker_counter), (0, self.gem_flicker_counter), 3)
-                tile[4].blit(self.gem_mask_surf, (0, 0))
-                img = tile[4]
+            tile[4].blit(tile[0], (0, 0))
+            pygame.draw.line(tile[4], (255, 255, 255),
+                             (16, -10 + self.gem_flicker_counter), (0, self.gem_flicker_counter), 3)
+            tile[4].blit(self.gem_mask_surf, (0, 0))
+            img = tile[4]
 
-                if tile[1].colliderect(sack_rect) and not tile[3] and tile[6] < 0:
-                    tile[3] = True
-                    gem_equipped = True
+            if tile[1].colliderect(sack_rect) and not tile[3] and tile[6] < 0:
+                tile[3] = True
+                gem_equipped = True
 
-                scale = 1
-                circle_animation_finished = False
-                if tile[3]:
-                    scale = (15 - abs(tile[2])) / 8
-                    tile[2] -= 1.5 * fps_adjust
-                    if scale > 0:
-                        img = pygame.transform.scale(tile[0], (16 * scale, 16 * scale))
-                    circle_animation_finished = tile[5].draw_circle_animation((tile[1][0] + 8, tile[1][1] + 8),
-                                                                              screen, fps_adjust)
+            scale = 1
+            circle_animation_finished = False
+            if tile[3]:
+                scale = (15 - abs(tile[2])) / 8
+                tile[2] -= 1.5 * fps_adjust
+                if scale > 0:
+                    img = pygame.transform.scale(tile[0], (16 * scale, 16 * scale))
+                circle_animation_finished = tile[5].draw_circle_animation((tile[1][0] + 8, tile[1][1] + 8),
+                                                                          screen, fps_adjust)
 
-                if circle_animation_finished:
-                    tile[6] = 60 * 3
-                    tile[2] = 7
-                    tile[3] = False
-                    tile[5] = CircleAnimation()
+            if circle_animation_finished:
+                tile[6] = 60 * 3
+                tile[2] = 7
+                tile[3] = False
+                tile[5] = CircleAnimation()
 
-                gem_y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
-                if scale > 0 > tile[6]:
-                    if tile[6] > -10:
-                        shake_offset_x = random.choice([-2, 0, 2])
-                        shake_offset_y = random.choice([-2, 0, 2])
-                    else:
-                        shake_offset_x = 0
-                        shake_offset_y = 0
+            gem_y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
+            if scale > 0 > tile[6]:
+                if tile[6] > -10:
+                    shake_offset_x = random.choice([-2, 0, 2])
+                    shake_offset_y = random.choice([-2, 0, 2])
+                else:
+                    shake_offset_x = 0
+                    shake_offset_y = 0
 
-                    screen.blit(img,
-                                (tile[1][0] + (8 - img.get_width() / 2) + shake_offset_x,
-                                 tile[1][1] + gem_y_offset + (8 - img.get_height() / 2) + shake_offset_y))
-                elif tile[6] >= 0:
-                    screen.blit(self.gem_outline_surface, (tile[1][0] + (8 - img.get_width() / 2),
-                                tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
+                screen.blit(img,
+                            (tile[1][0] + (8 - img.get_width() / 2) + shake_offset_x,
+                             tile[1][1] + gem_y_offset + (8 - img.get_height() / 2) + shake_offset_y))
+            elif tile[6] >= 0:
+                screen.blit(self.gem_outline_surface, (tile[1][0] + (8 - img.get_width() / 2),
+                            tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
 
         return gem_equipped
 

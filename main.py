@@ -358,41 +358,6 @@ def load_game(local_world_data, local_bg_data, local_world_count, local_joystick
     global main_game, game_loaded
     main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
                      settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
-                     settings_counters, local_joystick_connected)
-
     game_loaded = True
 
 
@@ -876,6 +841,11 @@ while run:
             if height_window_space == monitor_height and width_window_space == monitor_width:
                 settings_counters['resolution'] = 4
                 settings_menu.update_settings_counters(settings_counters, controls)
+                try:
+                    with open('data/settings_configuration.json', 'w') as json_file:
+                        json.dump(settings_counters, json_file)
+                except FileNotFoundError:
+                    settings_not_saved_error = True
 
         if event.type == pygame.JOYDEVICEADDED:
             pygame.mouse.set_visible(False)

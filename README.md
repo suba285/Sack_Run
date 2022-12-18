@@ -2,14 +2,19 @@
 
 A platformer game made with python and pygame.
 
-Nowhere near completion...
+Nearing completion.
 
-controls:
- - movement (a, d) or (<-, ->)
- - interactions (x)
- - shockwave (z)
- - cards (mouse, q)
- 
+---
+KEYBOARD CONTROLS:
+ - movement (a, d, space), customizable to some extent
+ - cards (mouse left, mouse right)
+
+
+JOYSTICK CONTROLS:
+ - movement (left stick or d-pad, A/cross button)
+ - cards (bumpers, X/square button, B/circle button)
+---
+
 To run the game you'll need to install python 3 and pygame.
 
 Then run the main.py file.
