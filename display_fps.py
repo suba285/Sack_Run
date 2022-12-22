@@ -1,4 +1,4 @@
-import pygame
+
 from screen_info import global_monitor_height, global_monitor_width
 
 monitor_width = global_monitor_width

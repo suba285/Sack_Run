@@ -208,6 +208,11 @@ game_y = swidth
 
 new_world_unlocked = False
 
+world_completed = False
+world_completed_transition_counter = 0
+world_completed_trans_surf = pygame.Surface((swidth, sheight))
+world_completed_trans_surf.fill((0, 0, 0))
+
 level_restart_procedure = False
 
 if settings_counters['hitbox'] == 1:
@@ -519,7 +524,7 @@ while run:
             play = False
 
         run_menu = False
-        if pygame.WINDOWMAXIMIZED not in events:
+        if pygame.WINDOWMAXIMIZED not in events and not world_completed:
             level_count,\
                 play_card_pull_sound,\
                 play_lock_sound,\
@@ -529,14 +534,21 @@ while run:
                 play_paper_sound,\
                 play_music_trigger,\
                 fadeout_music,\
-                lvl_selection_press = main_game.game(screen, level_count, fps_adjust,
-                                                     draw_hitbox, mouse_adjustment, events,
-                                                     game_counter, world_count, controls,
-                                                     controller_calibration, joysticks, level_restart_procedure)
+                lvl_selection_press,\
+                world_completed = main_game.game(screen, level_count, fps_adjust,
+                                                 draw_hitbox, mouse_adjustment, events,
+                                                 game_counter, world_count, controls,
+                                                 controller_calibration, joysticks, level_restart_procedure)
             level_restart_procedure = False
         else:
             menu_press = False
             lvl_selection_press = False
+
+        if world_completed:
+            lvl_selection_press = main_game.world_completed_screen(screen, world_count, events, fps_adjust, joysticks)
+            world_completed_transition_counter = 255
+            if lvl_selection_press:
+                events = []
 
         if play_music_trigger:
             play_music = True
@@ -645,6 +657,7 @@ while run:
 
     # world selection --------------------------------------------------------------------------------------------------
     if run_level_selection:
+        world_completed_transition_counter -= 10 * fps_adjust
         if reload_world_status:
             try:
                 with open('data/unlocked_worlds.json', 'r') as json_file:
@@ -683,6 +696,7 @@ while run:
                 play = True
                 load_music = True
                 game_loaded = False
+                world_completed = False
             proceed_with_transition = True
 
         if loading:
@@ -696,6 +710,10 @@ while run:
             level_selection_screen.blit(loading_bg,
                                         (swidth / 2 - loading_bg.get_width() / 2,
                                          sheight / 2 - loading_bg.get_height() / 2))
+
+        if world_completed_transition_counter > 0:
+            world_completed_trans_surf.set_alpha(world_completed_transition_counter)
+            level_selection_screen.blit(world_completed_trans_surf, (0, 0))
 
         if play:
             if not slow_computer:

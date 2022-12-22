@@ -89,6 +89,13 @@ level_card_dictionary = {
     "level1_3": "speed_dash"
 }
 
+world_ending_levels = {
+    1: 3,
+    2: 9,
+    3: 7,
+    4: 5
+}
+
 
 class LevelDisplay:
     def __init__(self, level_count):
@@ -138,7 +145,6 @@ class Game:
         self.sky_background_colour = (100, 63, 102)
 
         # loading in images --------------------------------------------------------------------------------------------
-
         home_button_img = img_loader('data/images/button_pause.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_press = img_loader('data/images/button_pause_press.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_down = img_loader('data/images/button_pause_down.PNG', tile_size * 0.75, tile_size * 0.75)
@@ -146,6 +152,12 @@ class Game:
         ok_button_img = img_loader('data/images/button_ok.PNG', tile_size, tile_size * 0.75)
         ok_button_press = img_loader('data/images/button_ok_press.PNG', tile_size, tile_size * 0.75)
         ok_button_down = img_loader('data/images/button_ok_down.PNG', tile_size, tile_size * 0.75)
+
+        self.a_button_img = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
+        self.cross_button_img = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
+
+        self.space_button_img = img_loader('data/images/buttons/key_space.PNG', tile_size, tile_size / 2)
+        self.space_button_press = img_loader('data/images/buttons/key_space_press.PNG', tile_size, tile_size / 2)
 
         # buttons ------------------------------------------------------------------------------------------------------
         self.home_button = Button(swidth - tile_size + (tile_size - home_button_down.get_width()) / 2, 3,
@@ -293,9 +305,35 @@ class Game:
                 self.eq_power_list = json.load(json_file)
 
         except FileNotFoundError:
-            if world_count == 2:
-                self.eq_power_list = ["mid-air_jump"]
             self.eq_power_list = []
+            if world_count >= 2:
+                self.eq_power_list = ["mid-air_jump"]
+            if world_count >= 3:
+                self.eq_power_list = ["mid-air_jump", "speed_dash"]
+
+        # world completed screen variables -----------------------------------------------------------------------------
+        self.world_completed_texts = {
+            1: Text().make_text(['Seems like you got the hang of it!']),
+            2: Text().make_text(['The farm is now behind you, further challenges lay ahead']),
+            3: Text().make_text(['Fresh air, finally... No more damp caves']),
+            4: Text().make_text(["That is the game, Thanks for playing!"])
+        }
+
+        self.congrats_text_animation = {}
+        for frame in range(0, 65):
+            self.congrats_text_animation[frame] = img_loader(f'data/images/congrats_text_animation/text{frame + 1}.PNG',
+                                                             tile_size * 4, tile_size * 2)
+
+        for element in self.world_completed_texts:
+            self.world_completed_texts[element].set_alpha(0)
+
+        self.world_completed = False
+
+        self.world_completed_btn_count = 0
+
+        self.world_completed_text_alpha = 0
+        self.world_completed_text_anim_count = 0
+        self.fade_counter = 255
 
         # variables ----------------------------------------------------------------------------------------------------
         self.level_check = 1
@@ -406,6 +444,7 @@ class Game:
 
         return press
 
+    # updates the controller type during gameplay if one calibrates their controller mid-game
     def update_controller_type(self, joystick_controls, settings_counters):
         configuration_counter = joystick_controls[4]
         self.settings_counters = settings_counters
@@ -438,16 +477,83 @@ class Game:
         if world_count == 2 and level_count == 6:
             self.bee_info_popup = True
 
-        world_data_level_checker = level_dictionary[f'level{level_count}_{world_count}']
-        bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
-        pos = level_pos_dictionary[f'level{level_count}_{world_count}']
-        self.start_x = pos[0]
-        self.start_y = pos[1]
+        if level_count != world_ending_levels[world_count]:
+            world_data_level_checker = level_dictionary[f'level{level_count}_{world_count}']
+            bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
+            pos = level_pos_dictionary[f'level{level_count}_{world_count}']
+            self.start_x = pos[0]
+            self.start_y = pos[1]
 
-        self.left_border = self.start_x * 32
-        self.right_border = self.left_border + self.level_length * 32
+            self.left_border = self.start_x * 32
+            self.right_border = self.left_border + self.level_length * 32
+        else:
+            world_data_level_checker = []
+            bg_data = []
+            self.world_completed = True
 
         return world_data_level_checker, bg_data
+
+# WORLD COMPLETED ======================================================================================================
+    def world_completed_screen(self, screen, world_count, events, fps_adjust, joysticks):
+        screen.fill((0, 0, 0))
+
+        menu_press = False
+        end_screen = False
+
+        self.world_completed_text_anim_count += 0.5 * fps_adjust
+
+        if self.fade_counter == 255 > self.world_completed_text_alpha:
+            self.world_completed_text_alpha += 6 * fps_adjust
+            if self.world_completed_text_alpha > 255:
+                self.world_completed_text_alpha = 255
+
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == self.controls['jump']:
+                    menu_press = True
+            if event.type == pygame.JOYBUTTONDOWN:
+                if event.button == 0:
+                    menu_press = True
+
+        text = self.world_completed_texts[world_count]
+        if 0 <= self.world_completed_text_alpha <= 255:
+            text.set_alpha(self.world_completed_text_alpha)
+
+        if joysticks:
+            if self.controller_type == 'xbox':
+                btn_img = self.a_button_img
+            else:
+                btn_img = self.cross_button_img
+        else:
+            self.world_completed_btn_count += 1 * fps_adjust
+            if self.world_completed_btn_count > 50:
+                btn_img = self.space_button_press
+                if self.world_completed_btn_count > 60:
+                    self.world_completed_btn_count = 0
+            else:
+                btn_img = self.space_button_img
+
+        if menu_press or 255 > self.fade_counter > 0:
+            self.fade_counter -= 20 * fps_adjust
+            self.world_completed_text_alpha = self.fade_counter
+
+        if self.world_completed_text_anim_count > len(self.congrats_text_animation) - 1:
+            self.world_completed_text_anim_count = len(self.congrats_text_animation) - 1
+
+        congrats_text = self.congrats_text_animation[round(self.world_completed_text_anim_count)]
+
+        if self.fade_counter < 255:
+            congrats_text.set_alpha(self.world_completed_text_alpha)
+
+        screen.blit(text, (swidth / 2 - text.get_width() / 2, sheight / 2 - text.get_height() / 2 + 10))
+        screen.blit(congrats_text, (swidth / 2 - tile_size * 2, sheight / 2 - 60))
+        if self.fade_counter == 255:
+            screen.blit(btn_img, (swidth / 2 - btn_img.get_width() / 2, sheight / 2 - text.get_height() / 2 + 35))
+
+        if self.fade_counter <= 0:
+            end_screen = True
+
+        return end_screen
 
 # THE GAME =============================================================================================================
     def game(self, screen, level_count, fps_adjust, draw_hitbox, mouse_adjustment, events,
@@ -779,4 +885,4 @@ class Game:
         # returns
         return level_count, play_card_pull_sound, play_lock_sound, play_bear_trap_cling_sound,\
             play_healing_sound, game_button_over, play_paper_sound, play_music,\
-            fadeout, popup_lvl_completed_press
+            fadeout, popup_lvl_completed_press, self.world_completed

@@ -755,6 +755,10 @@ class Player:
             self.teleport_count = 0
             self.circle_transition = CircleTransition(screen)
             self.init_flash = False
+            self.mid_air_jump = False
+            self.speed_dash = False
+            self.speed_dash_activated = False
+
             counter = 0
             for letter in self.respawn_text:
                 letter[1] = counter
