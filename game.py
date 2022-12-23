@@ -320,7 +320,7 @@ class Game:
         }
 
         self.congrats_text_animation = {}
-        for frame in range(0, 65):
+        for frame in range(0, 87):
             self.congrats_text_animation[frame] = img_loader(f'data/images/congrats_text_animation/text{frame + 1}.PNG',
                                                              tile_size * 4, tile_size * 2)
 
