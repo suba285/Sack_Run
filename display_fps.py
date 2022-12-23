@@ -1,4 +1,4 @@
-
+import pygame
 from screen_info import global_monitor_height, global_monitor_width
 
 monitor_width = global_monitor_width
@@ -13,57 +13,29 @@ if monitor_width / 16 <= monitor_height / 9:
     sheight = round(swidth / 16 * 9)
 
 
-def display_frames_per_second(screen, fps, num_list):
-    string_fps = str(fps)
-    number = list(string_fps)
-    iteration = 0
+class FpsDisplay:
+    def __init__(self):
+        self.number_images = {}
+        for num in range(0, 10):
+            img = pygame.image.load(f'data/font/fps_digits/digit{num}.PNG')
+            img.set_colorkey((255, 255, 255))
+            self.number_images[str(num)] = pygame.transform.scale(img, (3, 5))
 
-    num0 = num_list[0]
-    num1 = num_list[1]
-    num2 = num_list[2]
-    num3 = num_list[3]
-    num4 = num_list[4]
-    num5 = num_list[5]
-    num6 = num_list[6]
-    num7 = num_list[7]
-    num8 = num_list[8]
-    num9 = num_list[9]
+        self.gap = 1
+        self.digit_width = 3
+        digit_height = 5
+        self.fps_y = sheight - 5 - digit_height
+        self.fps_x = swidth - (self.gap + self.digit_width * 2 + 5)
 
-    output1 = num0
-    output2 = num0
+    def draw_fps(self, current_fps: int, screen):
+        fps_string = str(current_fps)
+        x_offset = 0
+        for digit in fps_string:
+            img = self.number_images[digit]
+            screen.blit(img, (self.fps_x + x_offset, self.fps_y))
+            x_offset += self.gap + self.digit_width
 
-    for digit in number:
-        if digit == "0":
-            image = num0
-        elif digit == "1":
-            image = num1
-        elif digit == "2":
-            image = num2
-        elif digit == "3":
-            image = num3
-        elif digit == "4":
-            image = num4
-        elif digit == "5":
-            image = num5
-        elif digit == "6":
-            image = num6
-        elif digit == "7":
-            image = num7
-        elif digit == "8":
-            image = num8
-        elif digit == "9":
-            image = num9
-        else:
-            image = num0
 
-        if iteration == 0:
-            output1 = image
-        elif iteration == 1:
-            output2 = image
 
-        iteration += 1
-
-    screen.blit(output1, (swidth - 20, sheight - 20))
-    screen.blit(output2, (swidth - 15, sheight - 20))
 
 

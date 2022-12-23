@@ -135,7 +135,7 @@ background_sky_colour = (100, 63, 102)
 from levels import *
 from game import Game
 from menu import mainMenu
-from display_fps import display_frames_per_second
+from display_fps import FpsDisplay
 from font_manager import Text
 from popup_bg_generator import popup_bg_generator
 from pause_screen import PauseScreen
@@ -354,6 +354,8 @@ pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
 settings_menu = SettingsMenu(controls, settings_counters, resolutions, recommended_res_counter)
 
+fps_display = FpsDisplay()
+
 # function for loading the game as a separate thread
 game_loaded = False
 loading = False
@@ -365,15 +367,6 @@ def load_game(local_world_data, local_bg_data, local_world_count, local_joystick
                      settings_counters, local_joystick_connected)
     game_loaded = True
 
-
-# loading number images ------------------------------------------------------------------------------------------------
-display_numbers = []
-
-for num in range(10):
-    number_raw = pygame.image.load(f"data/images/numbers/number_{num}.PNG").convert()
-    number_raw.set_colorkey((255, 255, 255))
-    number = pygame.transform.scale(number_raw, (tile_size/4, tile_size/4))
-    display_numbers.append(number)
 
 # TEXT -----------------------------------------------------------------------------------------------------------------
 
@@ -445,7 +438,7 @@ while run:
         fps_adjust = 3
     last_time = time.time()
     last_fps_adjust = fps_adjust
-    display_fps = round(real_fps)
+    fps_int = int(real_fps)
 
     clock.tick(60)
 
@@ -826,8 +819,7 @@ while run:
         fps = 60
 
     # displaying fps ---------------------------------------------------------------------------------------------------
-    if draw_fps_counter:
-        display_frames_per_second(screen, display_fps, display_numbers)
+    fps_display.draw_fps(fps_int, screen)
 
     # game event handling ----------------------------------------------------------------------------------------------
     for event in events:
