@@ -462,9 +462,9 @@ while run:
         else:
             menu_events = []
         controller_not_configured_counter -= 1 * fps_adjust
-        level_selection, slow_computer, button_sound_trigger1,\
+        level_selection, button_sound_trigger1,\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
-                                                             slow_computer, mouse_adjustment, menu_events, fps_adjust,
+                                                             mouse_adjustment, menu_events, fps_adjust,
                                                              controls['configuration'], joysticks)
 
         # settings not saved error
@@ -476,10 +476,6 @@ while run:
 
         # changing the displayed screens
         if level_selection and (joystick_configured or not joystick_connected):
-            if not slow_computer:
-                fps = 60
-            else:
-                fps = 30
             game_counter = default_game_counter
             run_game = False
             run_menu = False
@@ -512,8 +508,6 @@ while run:
         game_paused = False
         if play:
             world_completed_sound_played = False
-            if real_fps < 30:
-                slow_computer = True
             play = False
 
         run_menu = False
@@ -591,7 +585,7 @@ while run:
     # pause ------------------------------------------------------------------------------------------------------------
     if paused:
         game_paused = True
-        if joystick_configured or not joystick_connected:
+        if joystick_configured or not joystick_connected or controller_calibration:
             paused_events = events
         else:
             paused_events = []
@@ -659,7 +653,7 @@ while run:
             except FileNotFoundError:
                 world_status_loading_error = True
                 level_select.world_status = [True, False, False, False]
-        if joystick_configured or not joystick_connected:
+        if joystick_configured or not joystick_connected or controller_calibration:
             lvl_selection_events = events
         else:
             lvl_selection_events = []
@@ -709,10 +703,6 @@ while run:
             level_selection_screen.blit(world_completed_trans_surf, (0, 0))
 
         if play:
-            if not slow_computer:
-                fps = 60
-            else:
-                fps = 30
             game_counter = default_game_counter
             run_menu = False
             run_game = True
@@ -729,6 +719,10 @@ while run:
 
     # settings ---------------------------------------------------------------------------------------------------------
     if run_settings:
+        if controller_calibration:
+            settings_events = []
+        else:
+            settings_events = events
         menu,\
             controls,\
             button_sound_trigger1,\
@@ -737,7 +731,7 @@ while run:
             current_resolution,\
             adjust_resolution,\
             settings_counters,\
-            calibrated_press = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, events,
+            calibrated_press = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, settings_events,
                                                                 fps_adjust, joystick_connected, joysticks)
 
         if performance_counter == 1:
@@ -813,11 +807,6 @@ while run:
 
             pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
-    if slow_computer:
-        fps = 30
-    else:
-        fps = 60
-
     # displaying fps ---------------------------------------------------------------------------------------------------
     fps_display.draw_fps(fps_int, screen)
 
@@ -873,8 +862,7 @@ while run:
                 settings_menu.update_settings_counters(settings_counters, controls)
                 joystick_configured = False
                 controller_popup = controller_connected_popup
-                if not run_settings:
-                    controller_calibration = True
+                controller_calibration = True
 
             try:
                 if joystick.get_name() not in controllers:

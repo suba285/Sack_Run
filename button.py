@@ -78,8 +78,8 @@ class Button:
 
         screen.blit(self.image, self.image_rect)
         if self.joystick_over_button and not self.button_down and not card:
-            if 255 >= self.joystick_over_counter > 0:
-                self.outline1_surf.set_alpha(self.joystick_over_counter * 51)
+            if 255 >= self.joystick_over_counter * 40 > 0:
+                self.outline1_surf.set_alpha(self.joystick_over_counter * 40)
             screen.blit(self.outline1_surf, self.image_rect)
 
         return action, self.cursor_over

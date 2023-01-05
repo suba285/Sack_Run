@@ -248,18 +248,35 @@ class Game:
 
         self.bee_banner = img_loader('data/images/banner_shockwave.PNG', 200, 100)
 
-        self.bee_banner_final_y = sheight / 2 - 52
-        self.bee_banner_y_counter = sheight - self.bee_banner_final_y
+        self.banner_final_y = sheight / 2 - 52
+        self.bee_banner_y_counter = sheight - self.banner_final_y
         self.bee_banner_y = sheight
         self.bee_banner_x = swidth / 2 - 100
 
-        bee_bg_center = self.bees_popup.get_width() / 2
+        banner_center = self.bees_popup.get_width() / 2
 
         self.ok_bee_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
                                  sheight / 2 + self.bees_popup.get_height() / 2 - tile_size * 0.75 - 3,
                                  ok_button_img, ok_button_press, ok_button_down)
 
-        self.bees_popup.blit(bees_txt, (bee_bg_center - bees_txt.get_width() / 2, 6))
+        self.bees_popup.blit(bees_txt, (banner_center - bees_txt.get_width() / 2, 6))
+
+        # dash popup window
+        dash_txt = Text().make_text(['DASH CHAIN'])
+
+        self.dash_popup = popup_bg_generator((220, 150))
+
+        self.dash_banner = img_loader('data/images/banner_dash.PNG', 200, 100)
+
+        self.dash_banner_y_counter = sheight - self.banner_final_y
+        self.dash_banner_y = sheight
+        self.dash_banner_x = swidth / 2 - 100
+
+        self.ok_dash_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
+                                  sheight / 2 + self.dash_popup.get_height() / 2 - tile_size * 0.75 - 3,
+                                  ok_button_img, ok_button_press, ok_button_down)
+
+        self.dash_popup.blit(dash_txt, (banner_center - dash_txt.get_width() / 2, 6))
 
         # new card popup window
         new_card_txt = Text().make_text(['NEW CARD UNLOCKED'])
@@ -373,6 +390,8 @@ class Game:
         self.lvl_completed_popup = False
         self.bee_info_popup = False
         self.bee_info_popup_done = False
+        self.dash_info_popup = False
+        self.dash_info_popup_done = False
         self.new_card_animation = False
 
         self.blit_card_instructions = False
@@ -398,7 +417,7 @@ class Game:
                            settings_counters, world_count)
         self.world.create_world(self.start_x, self.start_y, world_data, bg_data)
         self.player = Player(self.game_screen, self.controls, self.settings_counters, world_count)
-        self.particles = Particles(particle_num, slow_computer)
+        self.particles = Particles(particle_num)
         self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
         self.level_display = LevelDisplay(1)
         cont_width = self.controls_popup.get_width() / 2
@@ -476,6 +495,9 @@ class Game:
 
         if world_count == 2 and level_count == 6:
             self.bee_info_popup = True
+
+        if world_count == 3 and level_count == 4:
+            self.dash_info_popup = True
 
         if level_count != world_ending_levels[world_count]:
             world_data_level_checker = level_dictionary[f'level{level_count}_{world_count}']
@@ -649,7 +671,7 @@ class Game:
             self.game_screen.fill(self.sky_background_colour)
         else:
             self.game_screen.fill(self.cave_background_colour)
-        self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, sack_direction)
+        self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust)
         self.world.draw_bg_tile_list(self.game_screen)
         self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
                                     self.camera_move_x, self.camera_move_y)
@@ -684,7 +706,7 @@ class Game:
             self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data)
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
-            self.particles = Particles(particle_num, fps_adjust)
+            self.particles = Particles(particle_num)
             self.blit_card_instructions = False
             self.level_display = LevelDisplay(level_count)
             self.gem_equipped = False
@@ -715,7 +737,7 @@ class Game:
             self.world.draw_shockwave_mushrooms(self.game_screen, fps_adjust)
 
         self.trap_harm, play_bear_trap_cling_sound = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
-        self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y)
+        self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust)
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------
         if screen_shake:
@@ -826,7 +848,7 @@ class Game:
                 self.bee_banner_y_counter -= 15 * fps_adjust
                 if self.bee_banner_y_counter < 0:
                     self.bee_banner_y_counter = 0
-                self.bee_banner_y = self.bee_banner_final_y + self.bee_banner_y_counter
+                self.bee_banner_y = self.banner_final_y + self.bee_banner_y_counter
                 if self.bee_banner_y_counter == 0:
                     y_offset = math.cos(self.level_duration_counter * 2) * 2
                 else:
@@ -835,6 +857,24 @@ class Game:
             if popup_bees_press:
                 self.bee_info_popup = False
                 self.bee_info_popup_done = True
+
+        # dash info popup
+        elif self.dash_info_popup and not self.dash_info_popup_done:
+            popup_dash_press = Game.popup_window(self, self.dash_popup, screen, self.ok_dash_btn,
+                                                 mouse_adjustment, events, joystick_over)
+            if self.level_duration_counter > 1.45:
+                self.dash_banner_y_counter -= 15 * fps_adjust
+                if self.dash_banner_y_counter < 0:
+                    self.dash_banner_y_counter = 0
+                self.dash_banner_y = self.banner_final_y + self.dash_banner_y_counter
+                if self.dash_banner_y_counter == 0:
+                    y_offset = math.cos(self.level_duration_counter * 2) * 2
+                else:
+                    y_offset = 0
+                screen.blit(self.dash_banner, (self.dash_banner_x, self.dash_banner_y + y_offset))
+            if popup_dash_press:
+                self.dash_info_popup = False
+                self.dash_info_popup_done = True
 
         # new card popup and card animation
         elif self.new_card_animation:

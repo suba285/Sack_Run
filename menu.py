@@ -97,7 +97,7 @@ class mainMenu:
                                self.settings_button_down)
 
 # UPDATING AND DRAWING MENU ============================================================================================
-    def menu(self, menu_screen, slow_computer, mouse_adjustement, events, fps_adjust, joystick_controls, joysticks):
+    def menu(self, menu_screen, mouse_adjustement, events, fps_adjust, joystick_controls, joysticks):
 
         menu_screen.blit(self.menu_background, (0, 0))
 
@@ -237,4 +237,4 @@ class mainMenu:
         if joystick_sound:
             end_over1 = True
 
-        return play, slow_computer, end_over1, end_over2, settings
+        return play, end_over1, end_over2, settings

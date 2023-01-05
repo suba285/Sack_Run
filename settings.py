@@ -39,6 +39,7 @@ class SettingsMenu:
         self.arrow_button_outline = pygame.mask.Mask.outline(self.arrow_button_mask)
         self.arrow_button_outline_surf = pygame.Surface((button_size, button_size))
         self.arrow_button_outline_surf.set_colorkey((0, 0, 0))
+        self.arrow_button_outline_alpha = 255
         for pixel in self.arrow_button_outline:
             self.arrow_button_outline_surf.set_at((pixel[0], pixel[1]), (255, 255, 255))
 
@@ -106,6 +107,12 @@ class SettingsMenu:
         self.visual_screen = pygame.Surface((swidth, (220 / 270 * sheight)))
         self.sound_screen = pygame.Surface((swidth, (220 / 270 * sheight)))
 
+        self.dim_surf = pygame.Surface((swidth, sheight))
+        self.dim_surf.fill((0, 0, 0))
+        self.dim_surf_target_alpha = 140
+        self.dim_surf_alpha = 0
+        self.dim_surf.set_alpha(self.dim_surf_alpha)
+
         # dictionaries -------------------------------------------------------------------------------------------------
         self.nums_to_btns = {
             'left1': pygame.K_a,
@@ -125,7 +132,7 @@ class SettingsMenu:
 
         # text generation ----------------------------------------------------------------------------------------------
         self.controls_txt = Text().make_text(['CONTROL'])
-        self.visual_txt = Text().make_text(['VISUAL'])
+        self.visual_txt = Text().make_text(['MAIN'])
         self.sound_txt = Text().make_text(['SOUND'])
         self.controls_txt_vague = self.controls_txt.copy()
         self.controls_txt_vague.set_alpha(180)
@@ -520,6 +527,13 @@ class SettingsMenu:
         if self.choose_different_btn_counter > 0:
             self.choose_different_btn_counter -= 1 * fps_adjust
 
+        if self.dim_surf_alpha <= self.dim_surf_target_alpha:
+            self.dim_surf_alpha += 20 * fps_adjust
+        if self.dim_surf_alpha < self.dim_surf_target_alpha:
+            self.dim_surf.set_alpha(self.dim_surf_alpha)
+        if self.dim_surf_alpha > self.dim_surf_target_alpha:
+            self.dim_surf.set_alpha(self.dim_surf_target_alpha)
+
         if self.controller_calibration_step_counter == 0 and joysticks:
             axes = joysticks[0].get_numaxes()
             if axes == 0:
@@ -559,6 +573,8 @@ class SettingsMenu:
                     self.controller_configuration = []
                     self.controller_taken_btns = [1]
                     calibrated = False
+                    self.dim_surf_alpha = 0
+                    self.dim_surf.set_alpha(self.dim_surf_alpha)
 
             if event.type == pygame.JOYDEVICEREMOVED:
                 self.controller_calibration = False
@@ -569,6 +585,8 @@ class SettingsMenu:
                 self.controller_configuration = []
                 self.controller_taken_btns = [1]
                 calibrated = False
+                self.dim_surf_alpha = 0
+                self.dim_surf.set_alpha(self.dim_surf_alpha)
 
             if self.controller_calibration_step_counter == 4:
                 if event.type == pygame.JOYAXISMOTION and event.axis == self.controller_configuration[0][0]:
@@ -592,6 +610,8 @@ class SettingsMenu:
             self.controller_configuration = []
             self.controller_taken_btns = [1]
             calibration_done = True
+            self.dim_surf_alpha = 0
+            self.dim_surf.set_alpha(self.dim_surf_alpha)
             calibrated = True
 
         if self.controller_calibration_step_counter == 0:
@@ -668,6 +688,7 @@ class SettingsMenu:
             popup.blit(self.cancel_surface, (popup.get_width() / 2 - self.cancel_surface.get_width() / 2,
                                              popup.get_height() - 25))
 
+        local_screen.blit(self.dim_surf, (0, 0))
         local_screen.blit(popup, (swidth / 2 - popup.get_width() / 2, sheight / 2 - popup.get_height() / 2))
 
         if self.choose_different_btn_counter > 0 and 0 < self.controller_calibration_step_counter < 4:
@@ -696,6 +717,8 @@ class SettingsMenu:
 
         joystick_tab_left = False
         joystick_tab_right = False
+
+        prev_joystick_counter = self.joystick_counter
 
         if not self.controller_calibration:
             for event in events:
@@ -867,6 +890,14 @@ class SettingsMenu:
 
         self.keyboard_highlight_counter += 1 * fps_adjust
         self.no_controller_counter -= 1 * fps_adjust
+
+        if prev_joystick_counter != self.joystick_counter:
+            self.arrow_button_outline_alpha = 0
+            prev_joystick_counter = self.joystick_counter
+
+        if self.arrow_button_outline_alpha * 40 < 255:
+            self.arrow_button_outline_alpha += 1
+            self.arrow_button_outline_surf.set_alpha(self.arrow_button_outline_alpha * 40)
 
         # drawing and updating the menu/back button --------------------------------------------------------------------
         menu_press, over = self.menu_btn.draw_button(settings_screen, False, mouse_adjustment, events, joystick_over0)
@@ -1267,21 +1298,6 @@ class SettingsMenu:
         # setting screen transition ------------------------------------------------------------------------------------
         self.screen_alpha_counter += 16 * fps_adjust
 
-        # calibration window -------------------------------------------------------------------------------------------
-        if self.controller_calibration:
-            configuration, done, configured = SettingsMenu.controller_calibration_func(self,
-                                                                                       settings_screen, events,
-                                                                                       fps_adjust, True, joysticks)
-            if done and configured:
-                calibrated = True
-                self.nums_to_btns['configuration'] = configuration
-
-        # no controller detected popup
-        if self.no_controller_counter > 0:
-            settings_screen.blit(self.no_controller_popup,
-                                 (swidth / 2 - self.no_controller_popup.get_width() / 2,
-                                  sheight / 2 - self.no_controller_popup.get_height() / 2))
-
         # managing the section buttons ---------------------------------------------------------------------------------
         x = 0
         button_width = 0
@@ -1347,6 +1363,22 @@ class SettingsMenu:
             self.draw_control_screen = True
             self.draw_visual_screen = True
             self.draw_sound_screen = False
+
+        # calibration window -------------------------------------------------------------------------------------------
+        if self.controller_calibration:
+            configuration, done, configured = SettingsMenu.controller_calibration_func(self,
+                                                                                       settings_screen, events,
+                                                                                       fps_adjust, True, joysticks)
+            if done and configured:
+                calibrated = True
+                self.nums_to_btns['configuration'] = configuration
+
+        # no controller detected popup
+        if self.no_controller_counter > 0:
+            settings_screen.blit(self.no_controller_popup,
+                                 (swidth / 2 - self.no_controller_popup.get_width() / 2,
+                                  sheight / 2 - self.no_controller_popup.get_height() / 2))
+        # --------------------------------------------------------------------------------------------------------------
 
         if over or over1 or over3 or over5 or over7:
             final_over1 = True
