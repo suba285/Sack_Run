@@ -23,6 +23,8 @@ class PauseScreen:
     def __init__(self, pause_screen):
         self.pause_screen = pause_screen
 
+        text = Text()
+
         self.joystick_counter = 0
         self.joystick_moved = False
         self.hat_y_pressed = False
@@ -54,10 +56,9 @@ class PauseScreen:
         self.reset_button_press = img_loader('data/images/button_reset_press.PNG', tile_size * 1.5, tile_size * 0.75)
         self.reset_button_down = img_loader('data/images/button_reset_down.PNG', tile_size * 1.5, tile_size * 0.75)
 
-        paused_text = Text()
-        self.paused_txt = paused_text.make_text(['paused'])
+        self.paused_txt = text.make_text(['paused'])
 
-        self.restart_lvl_txt = Text().make_text(['restart level'])
+        self.restart_lvl_txt = text.make_text(['restart level'])
         self.restart_lvl_txt_alpha = 0
         self.restart_lvl_txt.set_alpha(0)
 

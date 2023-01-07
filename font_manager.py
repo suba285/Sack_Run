@@ -103,6 +103,13 @@ class Text:
         }
 
     def make_text(self, text):
+        self.ready_characters = []
+        self.num_of_lines = 0
+        self.num_of_chars = 0
+        self.char_x = 0
+        self.char_y = 0
+        self.longest_line = 0
+
         for line in text:
             chars = list(line)
             self.num_of_chars = 0

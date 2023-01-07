@@ -147,6 +147,8 @@ def magic_animation(self, screen, counter, particle_x):
 
 class Player:
     def __init__(self, screen, controls, settings_counters, world_count):
+        text = Text()
+
         # player sprite assets -----------------------------------------------------------------------------------------
         self.sack = img_loader('data/images/sack_animations/sack.PNG', player_size_x, player_size_y)
         self.sack_idle1 = {
@@ -213,6 +215,7 @@ class Player:
         self.vel_x_r = 0
         self.vel_x = 0
         self.jumped = False
+        self.jump_adder = 0
         self.sack_offset = 0
         self.squash_counter_x = 10
         self.squash_counter_y = 10
@@ -233,13 +236,13 @@ class Player:
 
         # respawn instruction images and variables ---------------------------------------------------------------------
         self.respawn_text = []
-        self.respawn_text.append([Text().make_text(['R']), 0])
-        self.respawn_text.append([Text().make_text(['E']), -2])
-        self.respawn_text.append([Text().make_text(['S']), -4])
-        self.respawn_text.append([Text().make_text(['P']), -6])
-        self.respawn_text.append([Text().make_text(['A']), -8])
-        self.respawn_text.append([Text().make_text(['W']), -10])
-        self.respawn_text.append([Text().make_text(['N']), -12])
+        self.respawn_text.append([text.make_text(['R']), 0])
+        self.respawn_text.append([text.make_text(['E']), -2])
+        self.respawn_text.append([text.make_text(['S']), -4])
+        self.respawn_text.append([text.make_text(['P']), -6])
+        self.respawn_text.append([text.make_text(['A']), -8])
+        self.respawn_text.append([text.make_text(['W']), -10])
+        self.respawn_text.append([text.make_text(['N']), -12])
 
         self.a_button = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
         self.cross_button = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
@@ -599,11 +602,20 @@ class Player:
                     if self.mid_air_jump and not (self.on_ground_counter > 0 and not self.airborn):
                         self.mid_air_jump_counter += 1
                         self.screen_shake_counter = 10
-                    self.vel_y = -10
+                    if self.mid_air_jump:
+                        self.vel_y = -10.5
+                    else:
+                        self.vel_y = -8.1
+                    self.jump_adder = 0
                     self.jumped = True
-                    self.player_jump = False
                     self.animate_walk = False
                     self.airborn = True
+            if not self.mid_air_jump:
+                if self.player_jump and self.jumped and self.jump_adder < 1.3:
+                    self.jump_adder += 0.16 * fps_adjust
+                    self.vel_y -= 0.37
+                if self.jump_adder >= 1.3:
+                    self.player_jump = False
 
             if not self.player_jump:
                 self.jumped = False
@@ -630,7 +642,7 @@ class Player:
                 self.sack_offset = 0
                 if self.vel_y < -9:
                     self.sack_img = self.sack_jump[1]
-                elif self.vel_y < -7:
+                elif self.vel_y < -6.5:
                     self.sack_img = self.sack_jump[2]
                 elif self.vel_y < -5:
                     self.sack_img = self.sack_jump[3]
@@ -785,7 +797,7 @@ class Player:
                     else:
                         grav_speed = 0
                 else:
-                    grav_speed = 0.6
+                    grav_speed = 0.65
                 self.vel_y += grav_speed * fps_adjust
                 if self.vel_y > 8:
                     self.vel_y = 8
@@ -868,7 +880,7 @@ class Player:
                 mushroom[2] = 12
                 mushroom[3] = 60
                 dy = 0
-                self.vel_y = -7
+                self.vel_y = -7.2
 
         # next level position
         if self.new_level:

@@ -185,6 +185,8 @@ default_game_counter = -3
 game_counter = default_game_counter
 
 # variables ------------------------------------------------------------------------------------------------------------
+text = Text()
+
 if settings_counters['performance'] == 1:
     slow_computer = False
 else:
@@ -245,7 +247,7 @@ user_quit1 = False
 user_quit2 = False
 
 # loading message ------------------------------------------------------------------------------------------------------
-loading_text = Text().make_text(['Loading'])
+loading_text = text.make_text(['Loading'])
 loading_bg = popup_bg_generator((loading_text.get_width() + 12, loading_text.get_height() + 30))
 loading_text_x = loading_bg.get_width() / 2 - loading_text.get_width() / 2
 loading_text_y = loading_bg.get_height() / 2 - loading_text.get_height() / 2 - 5
@@ -374,16 +376,16 @@ def load_game(local_world_data, local_bg_data, local_world_count, local_joystick
 
 # error variables and error messages
 settings_not_saved_error_counter = 300
-settings_not_saved_error_txt = Text().make_text(['error while saving settings configuration'])
-settings_not_loaded_error_txt = Text().make_text(['error while loading settings configuration'])
+settings_not_saved_error_txt = text.make_text(['error while saving settings configuration'])
+settings_not_loaded_error_txt = text.make_text(['error while loading settings configuration'])
 # controller connections
-controller_not_configured_txt = Text().make_text(['Controller not configured [settings]'])
+controller_not_configured_txt = text.make_text(['Controller not configured [settings]'])
 controller_not_configured_popup = popup_bg_generator((controller_not_configured_txt.get_width() + 10, 15))
 controller_not_configured_popup.blit(controller_not_configured_txt, (7, 7))
 controller_not_configured_counter = 0
 
-controller_connected_txt = Text().make_text(['Controller connected'])
-controller_disconnected_txt = Text().make_text(['Controller disconnected'])
+controller_connected_txt = text.make_text(['Controller connected'])
+controller_disconnected_txt = text.make_text(['Controller disconnected'])
 controller_connected_popup = popup_bg_generator((controller_connected_txt.get_width() + 10, 15))
 controller_disconnected_popup = popup_bg_generator((controller_disconnected_txt.get_width() + 10, 15))
 controller_connected_popup.blit(controller_connected_txt, (7, 7))
@@ -537,7 +539,7 @@ while run:
             lvl_selection_press = False
 
         if world_completed:
-            lvl_selection_press = main_game.world_completed_screen(screen, world_count, events, fps_adjust, joysticks,
+            lvl_selection_press = main_game.world_completed_screen(screen, events, fps_adjust, joysticks,
                                                                    controller_calibration)
             world_completed_transition_counter = 255
             if lvl_selection_press:

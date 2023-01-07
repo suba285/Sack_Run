@@ -23,6 +23,8 @@ if monitor_width / 16 <= monitor_height / 9:
 
 class LevelSelection:
     def __init__(self, world_count):
+        text = Text()
+
         button_size = tile_size * 0.75
 
         try:
@@ -72,23 +74,23 @@ class LevelSelection:
             self.lock_animation[file - 1] = img_loader(f'data/images/lock_animation/lock{file}.PNG',
                                                        tile_size, tile_size)
 
-        tutorial_txt = Text().make_text(["The Beginning"])
+        tutorial_txt = text.make_text(["The Beginning"])
 
-        tutorial_description = Text().make_text(["An introduction to the game"])
+        tutorial_description = text.make_text(["An introduction to the game"])
 
-        world1_txt = Text().make_text(["Climbton Farm"])
+        world1_txt = text.make_text(["Climbton Farm"])
 
-        world1_description = Text().make_text(["A run through the farm where bees are kept"])
+        world1_description = text.make_text(["A run through the farm where bees are kept"])
 
-        world2_txt = Text().make_text(["Sizzle Caves"])
+        world2_txt = text.make_text(["Sizzle Caves"])
 
-        world2_description = Text().make_text(["Lava caves beneath the farm, numerous sightings of bats"])
+        world2_description = text.make_text(["Lava caves beneath the farm, numerous sightings of bats"])
 
-        world3_txt = Text().make_text(["'Home' Run"])
+        world3_txt = text.make_text(["'Home' Run"])
 
-        world3_description = Text().make_text(["A barn obstacle course"])
+        world3_description = text.make_text(["A barn obstacle course"])
 
-        self.world_locked_txt = Text().make_text(['LEVEL LOCKED'])
+        self.world_locked_txt = text.make_text(['LEVEL LOCKED'])
 
         self.descriptions = {
             0: tutorial_description,

@@ -23,6 +23,8 @@ if monitor_width / 16 <= monitor_height / 9:
 
 class mainMenu:
     def __init__(self):
+        text = Text()
+
         # images -------------------------------------------------------------------------------------------------------
         self.play_button = img_loader('data/images/button_play2.PNG', tile_size, tile_size * 0.75)
         self.play_button_press = img_loader('data/images/button_play2_press.PNG', tile_size, tile_size * 0.75)
@@ -41,12 +43,12 @@ class mainMenu:
         self.logo_rect.x = swidth / 2 - self.logo.get_width() / 2
         self.logo_rect.y = round(sheight * 0.26)
 
-        self.quit_txt = Text().make_text([' Quit (ctrl + Q)'])
+        self.quit_txt = text.make_text([' Quit (ctrl + Q)'])
         self.quit_txt_y = round(sheight * 0.85)
         self.quit_txt.set_alpha(180)
         self.quit_txt_alpha = 0
 
-        self.author_txt = Text().make_text(['Made by Suba'])
+        self.author_txt = text.make_text(['Made by Suba'])
         self.author_txt_alpha = 255
 
         self.screen_alpha = 0

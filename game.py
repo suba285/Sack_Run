@@ -119,11 +119,11 @@ class Gradient:
 
 
 class Dialogue:
-    def __init__(self, input_text):
+    def __init__(self, input_text, text):
         self.text_letters = []
         self.text_pixel_len = 0
         for letter in input_text:
-            img = Text().make_text([letter])
+            img = text.make_text([letter])
             self.text_pixel_len += img.get_width()
             self.text_letters.append(img)
 
@@ -176,6 +176,8 @@ class Game:
         self.cave_background_colour = (35, 29, 39)
         self.sky_background_colour = (100, 63, 102)
 
+        text = Text()
+
         # loading in images --------------------------------------------------------------------------------------------
         home_button_img = img_loader('data/images/button_pause.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_press = img_loader('data/images/button_pause_press.PNG', tile_size * 0.75, tile_size * 0.75)
@@ -195,7 +197,9 @@ class Game:
         self.home_button = Button(swidth - tile_size + (tile_size - home_button_down.get_width()) / 2, 3,
                                   home_button_img, home_button_press, home_button_down)
 
-        # POPUP WINDOWS ------------------------------------------------------------------------------------------------
+        # POPUP WINDOWS ================================================================================================
+
+        # controls popup window
         if world_count == 1:
             self.popup_window_controls = True
         else:
@@ -222,31 +226,40 @@ class Game:
             self.controller_type = 'other'
             jump_btn = 'A or cross'
 
-        # controls popup window
-        controls_txt = Text().make_text(['CONTROLS'])
-        if not joystick_connected:
-            walking_controls_txt = Text().make_text([f"walking: {self.nums_to_text[f'walk{walk_counter}']}"])
-            jumping_controls_txt = Text().make_text([f"jumping: {self.nums_to_text[f'jump{jump_counter}']}"])
-            card_controls_txt = Text().make_text(['cards: mouse'])
-        else:
-            walking_controls_txt = Text().make_text(['walking: Left stick or D-pad'])
-            jumping_controls_txt = Text().make_text([f'jumping: {jump_btn} button'])
-            card_controls_txt = Text().make_text(['cards: RB and LB'])
-        tip1_txt = Text().make_text(['Follow the compass in the top-left corner,'])
-        tip1_2_txt = Text().make_text(['it will lead you to portals.'])
-        tip2_txt = Text().make_text(['Use cards to gain special abilities.'])
-        tip3_txt = Text().make_text(['Collect gems to use cards.'])
+        controls_text = {}
 
-        self.controls_popup_text_surface = pygame.Surface((tip1_txt.get_width() + 6, 180)).convert_alpha()
-        self.controls_popup_text_space = pygame.Surface((tip1_txt.get_width() + 6, 115)).convert_alpha()
+        if world_count == 1:
+            controls_text[1] = text.make_text(['CONTROLS'])
+            if not joystick_connected:
+                controls_text[2] = text.make_text([f"walking: {self.nums_to_text[f'walk{walk_counter}']}"])
+                controls_text[3] = text.make_text([f"jumping: {self.nums_to_text[f'jump{jump_counter}']}"])
+                controls_text[4] = text.make_text(['cards: mouse'])
+            else:
+                controls_text[2] = text.make_text(['walking: Left stick or D-pad'])
+                controls_text[3] = text.make_text([f'jumping: {jump_btn} button'])
+                controls_text[4] = text.make_text(['cards: RB and LB'])
+
+            instructions = {
+                1: text.make_text(['Follow the compass in the top-left corner,']),
+                2: text.make_text(['it will lead you to portals.']),
+                3: text.make_text(['Use cards to gain special abilities.']),
+                4: text.make_text(['Collect gems to use cards.'])
+            }
+            instruction_width = instructions[1].get_width()
+        else:
+            instructions = {}
+            instruction_width = 1
+
+        self.controls_popup_text_surface = pygame.Surface((instruction_width + 6, 180)).convert_alpha()
+        self.controls_popup_text_space = pygame.Surface((instruction_width + 6, 115)).convert_alpha()
         self.popup_bg_colour = img_loader('data/images/popup_bg.PNG', self.controls_popup_text_space.get_width(),
-                                     self.controls_popup_text_space.get_width())
+                                          self.controls_popup_text_space.get_width())
         self.controls_popup_text_space.blit(self.popup_bg_colour, (0, 0))
         self.controls_popup_text_surface.set_colorkey((0, 0, 0))
 
-        self.controls_popup_gradient = Gradient(tip1_txt.get_width() + 10, 15, (1, 101))
+        self.controls_popup_gradient = Gradient(instruction_width + 10, 15, (1, 101))
 
-        self.controls_popup = popup_bg_generator((tip1_txt.get_width() + 6, 140))
+        self.controls_popup = popup_bg_generator((instruction_width + 6, 140))
         self.clean_popup = self.controls_popup
         cont_bg_center = self.controls_popup.get_width() / 2
 
@@ -254,31 +267,37 @@ class Game:
                                       sheight / 2 + self.controls_popup.get_height() / 2 - tile_size * 0.75 - 3,
                                       ok_button_img, ok_button_press, ok_button_down)
 
-        self.controls_popup_text_surface.blit(controls_txt, (cont_bg_center - controls_txt.get_width() / 2, 6))
-        self.controls_popup_text_surface.blit(walking_controls_txt,
-                                 (cont_bg_center - walking_controls_txt.get_width() / 2, 30))
-        self.controls_popup_text_surface.blit(jumping_controls_txt,
-                                 (cont_bg_center - jumping_controls_txt.get_width() / 2, 45))
-        self.controls_popup_text_surface.blit(card_controls_txt,
-                                              (cont_bg_center - card_controls_txt.get_width() / 2, 60))
+        if world_count == 1:
+            self.controls_popup_text_surface.blit(controls_text[1],
+                                                  (cont_bg_center - controls_text[1].get_width() / 2, 6))
+            self.controls_popup_text_surface.blit(controls_text[2],
+                                                  (cont_bg_center - controls_text[2].get_width() / 2, 30))
+            self.controls_popup_text_surface.blit(controls_text[3],
+                                                  (cont_bg_center - controls_text[3].get_width() / 2, 45))
+            self.controls_popup_text_surface.blit(controls_text[4],
+                                                  (cont_bg_center - controls_text[4].get_width() / 2, 60))
 
-        self.controls_popup_text_surface.blit(tip1_txt, (cont_bg_center - tip1_txt.get_width() / 2, 90))
-        self.controls_popup_text_surface.blit(tip1_2_txt, (cont_bg_center - tip1_2_txt.get_width() / 2, 105))
-        self.controls_popup_text_surface.blit(tip2_txt, (cont_bg_center - tip2_txt.get_width() / 2, 120))
-        self.controls_popup_text_surface.blit(tip3_txt, (cont_bg_center - tip3_txt.get_width() / 2, 135))
+            self.controls_popup_text_surface.blit(instructions[1],
+                                                  (cont_bg_center - instructions[1].get_width() / 2, 90))
+            self.controls_popup_text_surface.blit(instructions[2],
+                                                  (cont_bg_center - instructions[2].get_width() / 2, 105))
+            self.controls_popup_text_surface.blit(instructions[3],
+                                                  (cont_bg_center - instructions[3].get_width() / 2, 120))
+            self.controls_popup_text_surface.blit(instructions[4],
+                                                  (cont_bg_center - instructions[4].get_width() / 2, 135))
 
-        self.controls_popup_text_space.blit(self.controls_popup_text_surface, (0, 0))
-        self.controls_popup.blit(self.controls_popup_text_space, (2, 1))
+            self.controls_popup_text_space.blit(self.controls_popup_text_surface, (0, 0))
+            self.controls_popup.blit(self.controls_popup_text_space, (2, 1))
 
-        self.controls_popup.blit(ok_button_down, (cont_bg_center - ok_button_img.get_width() / 2,
-                                                  self.controls_popup.get_height() - tile_size * 0.75 - 3))
+            self.controls_popup.blit(ok_button_down, (cont_bg_center - ok_button_img.get_width() / 2,
+                                                      self.controls_popup.get_height() - tile_size * 0.75 - 3))
+
+        # INSTRUCTION POPUPS -------------------------------------------------------------------------------------------
+        popup = popup_bg_generator((220, 150))
+        self.banners = {}
 
         # bees popup window
-        bees_txt = Text().make_text(['BEEWARE!'])
-
-        self.bees_popup = popup_bg_generator((220, 150))
-
-        self.bee_banner = img_loader('data/images/banner_shockwave.PNG', 200, 100)
+        self.bees_popup = popup.copy()
 
         self.banner_final_y = sheight / 2 - 52
         self.bee_banner_y_counter = sheight - self.banner_final_y
@@ -290,15 +309,13 @@ class Game:
         self.ok_bee_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
                                  sheight / 2 + self.bees_popup.get_height() / 2 - tile_size * 0.75 - 3,
                                  ok_button_img, ok_button_press, ok_button_down)
-
-        self.bees_popup.blit(bees_txt, (banner_center - bees_txt.get_width() / 2, 6))
+        if world_count == 2:
+            self.banners['bee'] = img_loader('data/images/banner_shockwave.PNG', 200, 100)
+            bees_txt = text.make_text(['BEEWARE!'])
+            self.bees_popup.blit(bees_txt, (banner_center - bees_txt.get_width() / 2, 6))
 
         # dash popup window
-        dash_txt = Text().make_text(['DASH CHAIN'])
-
-        self.dash_popup = popup_bg_generator((220, 150))
-
-        self.dash_banner = img_loader('data/images/banner_dash.PNG', 200, 100)
+        self.dash_popup = popup.copy()
 
         self.dash_banner_y_counter = sheight - self.banner_final_y
         self.dash_banner_y = sheight
@@ -307,11 +324,13 @@ class Game:
         self.ok_dash_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
                                   sheight / 2 + self.dash_popup.get_height() / 2 - tile_size * 0.75 - 3,
                                   ok_button_img, ok_button_press, ok_button_down)
+        if world_count == 3:
+            self.banners['dash'] = img_loader('data/images/banner_dash.PNG', 200, 100)
+            dash_txt = text.make_text(['DASH CHAIN'])
+            self.dash_popup.blit(dash_txt, (banner_center - dash_txt.get_width() / 2, 6))
 
-        self.dash_popup.blit(dash_txt, (banner_center - dash_txt.get_width() / 2, 6))
-
-        # new card popup window
-        new_card_txt = Text().make_text(['NEW CARD UNLOCKED'])
+        # NEW CARD POPUP -----------------------------------------------------------------------------------------------
+        new_card_txt = text.make_text(['NEW CARD UNLOCKED'])
 
         self.new_card_popup = popup_bg_generator((180, 130))
         self.ok_new_card_button = Button(swidth / 2 - ok_button_img.get_width() / 2,
@@ -323,28 +342,6 @@ class Game:
         self.new_card_popup.blit(ok_button_down,
                                  (self.new_card_popup.get_width() / 2 - ok_button_img.get_width() / 2,
                                   self.new_card_popup.get_height() - tile_size * 0.75 - 3))
-
-        # level completed popup window
-        worlds_nums = {
-            1: "the tutorial",
-            2: "world 1",
-            3: "world 2"
-        }
-        congrats_txt = Text().make_text(['CONGRATS!'])
-        tut_completed_txt = Text().make_text([f"You've completed {worlds_nums[world_count]}."])
-
-        self.level_completed_popup = popup_bg_generator((tut_completed_txt.get_width() + 8, 80))
-        tut_comp_center = self.level_completed_popup.get_width() / 2
-
-        self.lvl_selection_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
-                                        sheight / 2 + self.level_completed_popup.get_height() / 2 - tile_size * 0.75 - 3,
-                                        ok_button_img, ok_button_press, ok_button_down)
-
-        self.level_completed_popup.blit(congrats_txt, (tut_comp_center - congrats_txt.get_width() / 2, 6))
-        self.level_completed_popup.blit(tut_completed_txt, (tut_comp_center - tut_completed_txt.get_width() / 2, 26))
-        self.level_completed_popup.blit(ok_button_down,
-                                        (self.level_completed_popup.get_width() / 2 - ok_button_img.get_width() / 2 + 1,
-                                         self.level_completed_popup.get_height() - tile_size * 0.75 - 3))
 
         # lists --------------------------------------------------------------------------------------------------------
         self.eq_power_list = []
@@ -362,19 +359,20 @@ class Game:
 
         # world completed screen variables -----------------------------------------------------------------------------
         self.world_completed_texts = {
-            1: Text().make_text(['Seems like you got the hang of it!']),
-            2: Text().make_text(['The farm is now behind you, further challenges lay ahead']),
-            3: Text().make_text(['Fresh air, finally... No more damp caves']),
-            4: Text().make_text(["That is the game, Thanks for playing!"])
+            1: 'Seems like you got the hang of it!',
+            2: 'The farm is now behind you, further challenges lay ahead',
+            3: 'Fresh air, finally... No more damp caves',
+            4: "That is the game, Thanks for playing!"
         }
+
+        self.world_completed_text = text.make_text([self.world_completed_texts[world_count]])
 
         self.congrats_text_animation = {}
         for frame in range(0, 87):
             self.congrats_text_animation[frame] = img_loader(f'data/images/congrats_text_animation/text{frame + 1}.PNG',
                                                              tile_size * 4, tile_size * 2)
 
-        for element in self.world_completed_texts:
-            self.world_completed_texts[element].set_alpha(0)
+        self.world_completed_text.set_alpha(0)
 
         self.world_completed = False
 
@@ -389,31 +387,29 @@ class Game:
         self.opening_scene_done = False
         self.opening_scene_end_count = 10
         self.opening_scene_step_counter = 1
-        self.opening_scene_steps = {
-            1: '120',
-            2: 'press',
-            3: 'press',
-            4: 'press'
-        }
 
         self.sack_position = (swidth / 2 - 18 / 2, sheight / 2 - 28 / 2)
 
-        self.opening_scene_step_controller = {
-            1: 'animation',
-            2: Dialogue('Welcome to the world!'),
-            3: Dialogue('Your purpose in life:'),
-            4: Dialogue('become bread.'),
-            5: Dialogue('It may not sound glamorous, I know, but it is what it is.'),
-            6: Dialogue('All you need to do is get to the mill.'),
-            7: Dialogue("It may sound easy, but it's a long way full of traps and enemies."),
-            8: Dialogue('Good luck!'),
-            9: 'end'
-        }
+        if world_count == 1:
+            self.opening_scene_step_controller = {
+                1: 'animation',
+                2: Dialogue('Welcome to the world!', text),
+                3: Dialogue('Your purpose in life:', text),
+                4: Dialogue('become bread.', text),
+                5: Dialogue('It may not sound glamorous, I know, but it is what it is.', text),
+                6: Dialogue('All you need to do is get to the mill.', text),
+                7: Dialogue("It may sound easy, but it's a long way full of traps and enemies.", text),
+                8: Dialogue('Good luck!', text),
+                9: 'end'
+            }
+        else:
+            self.opening_scene_step_controller = {}
 
         self.sack_birth_animation = {}
-        for frame in range(1, 22):
-            img = img_loader(f'data/images/sack_birth_animation/sack{frame}.PNG', 20, 32)
-            self.sack_birth_animation[frame - 1] = img
+        if world_count == 1:
+            for frame in range(1, 22):
+                img = img_loader(f'data/images/sack_birth_animation/sack{frame}.PNG', 20, 32)
+                self.sack_birth_animation[frame - 1] = img
 
         self.sack_anim_counter = -20
         self.animation_done = False
@@ -581,7 +577,7 @@ class Game:
         return world_data_level_checker, bg_data
 
 # WORLD COMPLETED ======================================================================================================
-    def world_completed_screen(self, screen, world_count, events, fps_adjust, joysticks, joystick_calibration):
+    def world_completed_screen(self, screen, events, fps_adjust, joysticks, joystick_calibration):
         screen.fill((0, 0, 0))
 
         menu_press = False
@@ -605,7 +601,7 @@ class Game:
                 if event.button == 0:
                     menu_press = True
 
-        text = self.world_completed_texts[world_count]
+        text = self.world_completed_text
         if 0 <= self.world_completed_text_alpha <= 255:
             text.set_alpha(self.world_completed_text_alpha)
 
@@ -953,7 +949,7 @@ class Game:
                     y_offset = math.cos(self.level_duration_counter * 2) * 2
                 else:
                     y_offset = 0
-                screen.blit(self.bee_banner, (self.bee_banner_x, self.bee_banner_y + y_offset))
+                screen.blit(self.banners['bee'], (self.bee_banner_x, self.bee_banner_y + y_offset))
             if popup_bees_press:
                 self.bee_info_popup = False
                 self.bee_info_popup_done = True
@@ -971,7 +967,7 @@ class Game:
                     y_offset = math.cos(self.level_duration_counter * 2) * 2
                 else:
                     y_offset = 0
-                screen.blit(self.dash_banner, (self.dash_banner_x, self.dash_banner_y + y_offset))
+                screen.blit(self.banners['dash'], (self.dash_banner_x, self.dash_banner_y + y_offset))
             if popup_dash_press:
                 self.dash_info_popup = False
                 self.dash_info_popup_done = True

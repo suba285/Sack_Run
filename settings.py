@@ -24,6 +24,8 @@ if monitor_width / 16 <= monitor_height / 9:
 
 class SettingsMenu:
     def __init__(self, controls, settings_counters, resolutions, recommended_res_counter):
+        text = Text()
+
         # image loading ------------------------------------------------------------------------------------------------
         self.menu_background = img_loader('data/images/menu_background.PNG', swidth, sheight)
 
@@ -131,9 +133,9 @@ class SettingsMenu:
         self.resolutions = resolutions
 
         # text generation ----------------------------------------------------------------------------------------------
-        self.controls_txt = Text().make_text(['CONTROL'])
-        self.visual_txt = Text().make_text(['MAIN'])
-        self.sound_txt = Text().make_text(['SOUND'])
+        self.controls_txt = text.make_text(['CONTROL'])
+        self.visual_txt = text.make_text(['MAIN'])
+        self.sound_txt = text.make_text(['SOUND'])
         self.controls_txt_vague = self.controls_txt.copy()
         self.controls_txt_vague.set_alpha(180)
         self.visual_txt_vague = self.visual_txt.copy()
@@ -141,49 +143,49 @@ class SettingsMenu:
         self.sound_txt_vague = self.sound_txt.copy()
         self.sound_txt_vague.set_alpha(180)
 
-        self.on_conf = Text().make_text(['on'])
-        self.off_conf = Text().make_text(['off'])
+        self.on_conf = text.make_text(['on'])
+        self.off_conf = text.make_text(['off'])
 
         # control settings
-        self.walking_txt = Text().make_text(['keyboard walking:'])
-        self.jumping_txt = Text().make_text(['keyboard jumping:'])
-        self.rumble_txt = Text().make_text(['controller rumble:'])
-        self.configuration_txt = Text().make_text(['controller calibration:'])
-        self.move_conf1 = Text().make_text(['A and D keys'])
-        self.move_conf2 = Text().make_text(['arrow keys'])
-        self.jump_conf1 = Text().make_text(['space bar'])
-        self.jump_conf2 = Text().make_text(['W key'])
-        self.jump_conf3 = Text().make_text(['up key'])
-        self.config_conf1 = Text().make_text(['Xbox'])
-        self.config_conf2 = Text().make_text(['PS4'])
-        self.config_conf3 = Text().make_text(["other"])
-        self.rumble_conf1 = Text().make_text(['on'])
-        self.rumble_conf2 = Text().make_text(['off'])
+        self.walking_txt = text.make_text(['keyboard walking:'])
+        self.jumping_txt = text.make_text(['keyboard jumping:'])
+        self.rumble_txt = text.make_text(['controller rumble:'])
+        self.configuration_txt = text.make_text(['controller calibration:'])
+        self.move_conf1 = text.make_text(['A and D keys'])
+        self.move_conf2 = text.make_text(['arrow keys'])
+        self.jump_conf1 = text.make_text(['space bar'])
+        self.jump_conf2 = text.make_text(['W key'])
+        self.jump_conf3 = text.make_text(['up key'])
+        self.config_conf1 = text.make_text(['Xbox'])
+        self.config_conf2 = text.make_text(['PS4'])
+        self.config_conf3 = text.make_text(["other"])
+        self.rumble_conf1 = text.make_text(['on'])
+        self.rumble_conf2 = text.make_text(['off'])
 
         # visual settings
-        self.resolution_txt = Text().make_text(['window size:'])
-        self.performance_txt = Text().make_text(['performance:'])
-        self.res_conf1 = Text().make_text([f'{int(swidth*2)} x {int(sheight*2)}'])
-        self.res_conf2 = Text().make_text([f'{int(swidth*3)} x {int(sheight*3)}'])
-        self.res_conf3 = Text().make_text([f'{int(swidth*4)} x {int(sheight*4)}'])
-        self.res_conf4 = Text().make_text(['FULLSCREEN'])
-        self.perf_conf1 = Text().make_text(['Normal'])
-        self.perf_conf2 = Text().make_text(['Fast'])
-        self.resolution_message1 = Text().make_text(['This window size is recommended for'])
-        self.resolution_message2 = Text().make_text(['your screen resolution.'])
-        self.resolution_message3 = Text().make_text(['A bit too big, innit?'])
-        self.perf_message1 = Text().make_text(["Use 'fast' mode only if your computer"])
-        self.perf_message2 = Text().make_text(["is an utter potato."])
-        self.hitbox_txt = Text().make_text(['show hitbox:'])
+        self.resolution_txt = text.make_text(['window size:'])
+        self.performance_txt = text.make_text(['performance:'])
+        self.res_conf1 = text.make_text([f'{int(swidth*2)} x {int(sheight*2)}'])
+        self.res_conf2 = text.make_text([f'{int(swidth*3)} x {int(sheight*3)}'])
+        self.res_conf3 = text.make_text([f'{int(swidth*4)} x {int(sheight*4)}'])
+        self.res_conf4 = text.make_text(['FULLSCREEN'])
+        self.perf_conf1 = text.make_text(['Normal'])
+        self.perf_conf2 = text.make_text(['Fast'])
+        self.resolution_message1 = text.make_text(['This window size is recommended for'])
+        self.resolution_message2 = text.make_text(['your screen resolution.'])
+        self.resolution_message3 = text.make_text(['A bit too big, innit?'])
+        self.perf_message1 = text.make_text(["Use 'fast' mode only if your computer"])
+        self.perf_message2 = text.make_text(["is an utter potato."])
+        self.hitbox_txt = text.make_text(['show hitbox:'])
         self.hitbox_conf1 = self.off_conf
         self.hitbox_conf2 = self.on_conf
 
         # sound settings
-        self.volume_txt = Text().make_text(['music volume:'])
+        self.volume_txt = text.make_text(['music volume:'])
         self.volume_conf1 = self.off_conf
-        self.volume_conf2 = Text().make_text(['normal'])
-        self.volume_conf3 = Text().make_text(['deafening'])
-        self.sound_effects_txt = Text().make_text(['sound effects:'])
+        self.volume_conf2 = text.make_text(['normal'])
+        self.volume_conf3 = text.make_text(['deafening'])
+        self.sound_effects_txt = text.make_text(['sound effects:'])
         self.sounds_conf1 = self.off_conf
         self.sounds_conf2 = self.on_conf
 
@@ -365,12 +367,12 @@ class SettingsMenu:
         self.controller_conf_popup2 = popup_bg_generator((200, 100))
         self.controller_conf_popup3 = popup_bg_generator((200, 100))
         self.controller_conf_popup4 = popup_bg_generator((200, 100))
-        self.controller_conf_title = Text().make_text(['CONTROLLER CALIBRATION'])
-        self.controller_conf_cal0 = Text().make_text(['move the left stick as shown below'])
-        self.controller_conf_cal1 = Text().make_text(['press the LB button (left bumper)'])
-        self.controller_conf_cal2 = Text().make_text(['press the RB button (right bumper)'])
-        self.controller_conf_cal3 = Text().make_text(['press the options button (pause)'])
-        self.controller_conf_cal4 = Text().make_text(['choose your button naming'])
+        self.controller_conf_title = text.make_text(['CONTROLLER CALIBRATION'])
+        self.controller_conf_cal0 = text.make_text(['move the left stick as shown below'])
+        self.controller_conf_cal1 = text.make_text(['press the LB button (left bumper)'])
+        self.controller_conf_cal2 = text.make_text(['press the RB button (right bumper)'])
+        self.controller_conf_cal3 = text.make_text(['press the options button (pause)'])
+        self.controller_conf_cal4 = text.make_text(['choose your button naming'])
         button_rb = img_loader('data/images/buttons/button_rb.PNG', tile_size / 2, tile_size / 2)
         button_lb = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
         self.button_rb = button_rb
@@ -440,8 +442,8 @@ class SettingsMenu:
             '2_2': button_rb_press
         }
 
-        or_text = Text().make_text(['or'])
-        cancel_text = Text().make_text(['cancel'])
+        or_text = text.make_text(['or'])
+        cancel_text = text.make_text(['cancel'])
         self.cancel_surface = pygame.Surface((tile_size + or_text.get_width() + cancel_text.get_width() + 4, tile_size / 2))
         self.cancel_surface.set_colorkey((0, 0, 0))
         x = 0
@@ -488,14 +490,14 @@ class SettingsMenu:
         self.choose_different_btn_counter = 0
         self.btn_names_counter = 1
 
-        self.choose_different_btn_txt = Text().make_text(['this button is already assigned'])
+        self.choose_different_btn_txt = text.make_text(['this button is already assigned'])
         self.choose_different_btn_surf = pygame.Surface((self.choose_different_btn_txt.get_width(), 30))
         self.choose_different_btn_surf.fill((78, 69, 80))
         self.choose_different_btn_surf.blit(self.choose_different_btn_txt,
                                             (0, 10))
 
         # no controller detected popup window
-        self.no_controller_txt = Text().make_text(['no controller connected'])
+        self.no_controller_txt = text.make_text(['no controller connected'])
         self.no_controller_popup = popup_bg_generator((self.no_controller_txt.get_width() + 10, 15))
         self.no_controller_popup.blit(self.no_controller_txt, (7, 7))
         self.no_controller_counter = 0

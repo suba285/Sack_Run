@@ -24,6 +24,8 @@ card_tile_size = 2 * tile_size
 
 class eqManager:
     def __init__(self, eq_list, eq_controls, walk_counter):
+        text = Text()
+
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
 
@@ -94,15 +96,15 @@ class eqManager:
         self.dark_surface.fill((0, 0, 0))
         self.dark_surface.set_alpha(0)
 
-        mid_air_jump_title = Text().make_text(['MID-AIR JUMP'])
-        mid_air_jump_info1 = Text().make_text(['Jump without touching the ground.'])
-        mid_air_jump_info2 = Text().make_text(['You can only jump while falling.'])
-        mid_air_jump_info3 = Text().make_text(['Lasts for 3 jumps.'])
+        mid_air_jump_title = text.make_text(['MID-AIR JUMP'])
+        mid_air_jump_info1 = text.make_text(['Jump without touching the ground.'])
+        mid_air_jump_info2 = text.make_text(['You can only jump while falling.'])
+        mid_air_jump_info3 = text.make_text(['Lasts for 3 jumps.'])
 
-        speed_dash_title = Text().make_text(['SPEED DASH'])
-        speed_dash_info1 = Text().make_text(['When activated, move to dash.'])
-        speed_dash_info2 = Text().make_text(['You can dash left or right.'])
-        speed_dash_info3 = Text().make_text(['Jump to stop.'])
+        speed_dash_title = text.make_text(['SPEED DASH'])
+        speed_dash_info1 = text.make_text(['When activated, move to dash.'])
+        speed_dash_info2 = text.make_text(['You can dash left or right.'])
+        speed_dash_info3 = text.make_text(['Jump to stop.'])
 
         self.full_mid_air_jump_card = pygame.Surface((2 * tile_size, 3 * tile_size))
         self.full_mid_air_jump_card.set_colorkey((0, 0, 0))
@@ -154,15 +156,15 @@ class eqManager:
         self.button_rb_press = img_loader('data/images/buttons/button_rb_press.PNG', tile_size / 2, tile_size / 2)
         self.button_lb = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
         self.button_lb_press = img_loader('data/images/buttons/button_lb_press.PNG', tile_size / 2, tile_size / 2)
-        self.use_text_caps = Text().make_text(['USE'])
-        self.use_text = Text().make_text(['use'])
-        self.info_text_caps = Text().make_text(['INFO'])
-        self.info_text = Text().make_text(['info'])
+        self.use_text_caps = text.make_text(['USE'])
+        self.use_text = text.make_text(['use'])
+        self.info_text_caps = text.make_text(['INFO'])
+        self.info_text = text.make_text(['info'])
 
         controller_btn_width = self.x_btn.get_width()
         controller_btn_height = self.x_btn.get_height()
 
-        or_txt = Text().make_text(['or'])
+        or_txt = text.make_text(['or'])
         or_width = or_txt.get_width()
 
         self.two_btn_surface1 = pygame.Surface((controller_btn_width * 2 + or_width + 1, controller_btn_height))
@@ -205,7 +207,7 @@ class eqManager:
 
         self.arrow_bob_counter = 0
 
-        self.no_gem_text = Text().make_text(['Collect gems to use cards'])
+        self.no_gem_text = text.make_text(['Collect gems to use cards'])
         self.no_gem_counter = 0
         self.default_no_gem_counter = 100
 
