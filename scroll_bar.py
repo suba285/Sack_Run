@@ -63,7 +63,7 @@ class ScrollBar:
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 self.scroll_button_clicked = False
             if event.type == pygame.MOUSEWHEEL and event.y != 0:
-                self.scroll_value = self.scroll_speed * event.y
+                self.scroll_value = self.scroll_speed * -event.y
             if event.type == pygame.JOYAXISMOTION and event.axis == joystick_controls[0][1]:
                 self.scroll_value = self.scroll_speed * event.value
                 self.scrolling = True

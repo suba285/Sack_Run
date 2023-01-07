@@ -208,6 +208,8 @@ game_y = swidth
 
 new_world_unlocked = False
 
+opening_scene = True
+
 world_completed = False
 world_completed_transition_counter = 0
 world_completed_trans_surf = pygame.Surface((swidth, sheight))
@@ -510,8 +512,11 @@ while run:
             world_completed_sound_played = False
             play = False
 
+        if not (world_count == 1 and level_count == 1):
+            opening_scene = False
+
         run_menu = False
-        if pygame.WINDOWMAXIMIZED not in events and not world_completed:
+        if pygame.WINDOWMAXIMIZED not in events and not world_completed and not opening_scene:
             level_count,\
                 play_card_pull_sound,\
                 play_lock_sound,\
@@ -532,10 +537,16 @@ while run:
             lvl_selection_press = False
 
         if world_completed:
-            lvl_selection_press = main_game.world_completed_screen(screen, world_count, events, fps_adjust, joysticks)
+            lvl_selection_press = main_game.world_completed_screen(screen, world_count, events, fps_adjust, joysticks,
+                                                                   controller_calibration)
             world_completed_transition_counter = 255
             if lvl_selection_press:
                 events = []
+
+        if opening_scene:
+            opening_scene_done = main_game.opening_cutscene(screen, fps_adjust, events, controller_calibration)
+            if opening_scene_done:
+                opening_scene = False
 
         if play_music_trigger:
             play_music = True
@@ -671,6 +682,7 @@ while run:
                 level_count = level_counters[world_count - 1]
             else:
                 level_count = 1
+            opening_scene = True
             world_data = level_dictionary[f'level{level_count}_{world_count}']
             bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
             threading.Thread(target=load_game, args=[world_data, bg_data, world_count, joystick_connected]).start()

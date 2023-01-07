@@ -66,7 +66,7 @@ level_bg_dictionary = {
 }
 
 level_pos_dictionary = {
-    "level1_1": (4, -2),
+    "level1_1": (4, -3),
     "level2_1": (5, -2),
     "level3_1": (5, -2),
     "level1_2": (2, -4),
@@ -97,19 +97,6 @@ world_ending_levels = {
 }
 
 
-class LevelDisplay:
-    def __init__(self, level_count):
-        level_text = Text()
-        self.text = level_text.make_text([f"Level {level_count}"])
-
-    def draw_level_number(self, screen, game_counter):
-        if game_counter < 0:
-            local_offset = game_counter * 20
-        else:
-            local_offset = 0
-        screen.blit(self.text, (swidth / 2 - self.text.get_width() / 2, 10 + local_offset))
-
-
 class Gradient:
     def __init__(self, width, height, position):
         self.step = 255 / height
@@ -129,6 +116,51 @@ class Gradient:
             self.stripe.blit(self.colour_image, (0, self.y))
             self.y += 1
             screen.blit(self.stripe, (self.position[0], self.position[1] + self.y))
+
+
+class Dialogue:
+    def __init__(self, input_text):
+        self.text_letters = []
+        self.text_pixel_len = 0
+        for letter in input_text:
+            img = Text().make_text([letter])
+            self.text_pixel_len += img.get_width()
+            self.text_letters.append(img)
+
+        self.down_arrow = img_loader('data/images/dialogue_arrow.PNG', 5, 3)
+
+        self.frame_counter = 0
+        self.letter_counter = -1
+        self.letter_write_duration = 2
+        self.done = False
+
+        self.btn_press = False
+
+        self.arrow_bob_counter = 0
+
+    def display_dialogue(self, dialogue_surf, fps_adjust):
+        self.frame_counter += 1 * fps_adjust
+        self.arrow_bob_counter += 1 * fps_adjust
+        if self.frame_counter > self.letter_write_duration:
+            self.letter_counter += 1
+            self.frame_counter = 0
+        if self.btn_press:
+            self.btn_press = False
+            self.letter_counter = len(self.text_letters) - 1
+        if self.letter_counter > len(self.text_letters) - 1:
+            self.letter_counter = len(self.text_letters) - 1
+            self.done = True
+        if self.letter_counter >= 0:
+            x = round(swidth / 2) - self.text_pixel_len / 2
+            for letter in range(0, self.letter_counter + 1):
+                img = self.text_letters[letter]
+                dialogue_surf.blit(img, (x, 10))
+                x += img.get_width()
+        if self.done:
+            arrow_y = dialogue_surf.get_height() - 5 + math.sin((1 / 10) * self.arrow_bob_counter) * 2
+            dialogue_surf.blit(self.down_arrow, (swidth / 2 - 3, arrow_y))
+
+        return self.done
 
 
 class Game:
@@ -352,6 +384,43 @@ class Game:
         self.world_completed_text_anim_count = 0
         self.fade_counter = 255
 
+        # opening scene variables --------------------------------------------------------------------------------------
+        self.opening_scene = False
+        self.opening_scene_done = False
+        self.opening_scene_end_count = 10
+        self.opening_scene_step_counter = 1
+        self.opening_scene_steps = {
+            1: '120',
+            2: 'press',
+            3: 'press',
+            4: 'press'
+        }
+
+        self.sack_position = (swidth / 2 - 18 / 2, sheight / 2 - 28 / 2)
+
+        self.opening_scene_step_controller = {
+            1: 'animation',
+            2: Dialogue('Welcome to the world!'),
+            3: Dialogue('Your purpose in life:'),
+            4: Dialogue('become bread.'),
+            5: Dialogue('It may not sound glamorous, I know, but it is what it is.'),
+            6: Dialogue('All you need to do is get to the mill.'),
+            7: Dialogue("It may sound easy, but it's a long way full of traps and enemies."),
+            8: Dialogue('Good luck!'),
+            9: 'end'
+        }
+
+        self.sack_birth_animation = {}
+        for frame in range(1, 22):
+            img = img_loader(f'data/images/sack_birth_animation/sack{frame}.PNG', 20, 32)
+            self.sack_birth_animation[frame - 1] = img
+
+        self.sack_anim_counter = -20
+        self.animation_done = False
+
+        self.dialogue_surface = pygame.Surface((swidth, 32))
+        self.dialogue_surface.fill((0, 0, 0))
+
         # variables ----------------------------------------------------------------------------------------------------
         self.level_check = 1
 
@@ -409,9 +478,6 @@ class Game:
         self.change_music = True
         self.change_music_counter = 0
 
-        self.opening_scene = False
-        self.opening_scene_counter = 5 * 60
-
         # initiating classes -------------------------------------------------------------------------------------------
         self.world = World(world_data, self.game_screen, slow_computer, bg_data,
                            settings_counters, world_count)
@@ -419,7 +485,6 @@ class Game:
         self.player = Player(self.game_screen, self.controls, self.settings_counters, world_count)
         self.particles = Particles(particle_num)
         self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
-        self.level_display = LevelDisplay(1)
         cont_width = self.controls_popup.get_width() / 2
         cont_height = self.controls_popup.get_height() / 2
         self.controls_popup_scrollbar = ScrollBar(self.controls_popup.get_height() - 4,
@@ -516,11 +581,14 @@ class Game:
         return world_data_level_checker, bg_data
 
 # WORLD COMPLETED ======================================================================================================
-    def world_completed_screen(self, screen, world_count, events, fps_adjust, joysticks):
+    def world_completed_screen(self, screen, world_count, events, fps_adjust, joysticks, joystick_calibration):
         screen.fill((0, 0, 0))
 
         menu_press = False
         end_screen = False
+
+        if joystick_calibration:
+            events = []
 
         self.world_completed_text_anim_count += 0.5 * fps_adjust
 
@@ -577,15 +645,72 @@ class Game:
 
         return end_screen
 
+    def opening_cutscene(self, screen, fps_adjust, events, joystick_calibration):
+        screen.fill((0, 0, 0))
+        self.dialogue_surface.fill((0, 0, 0))
+
+        if joystick_calibration:
+            events = []
+
+        final_step = False
+
+        dialogue_done = False
+        dialogue = False
+
+        press = False
+
+        scene_step_type = self.opening_scene_step_controller[self.opening_scene_step_counter]
+        if type(scene_step_type) == str:
+            if scene_step_type == 'animation':
+                self.sack_anim_counter += 0.2 * fps_adjust
+            elif scene_step_type == 'end':
+                final_step = True
+        else:
+            dialogue_done = scene_step_type.display_dialogue(self.dialogue_surface, fps_adjust)
+            dialogue = True
+
+        for event in events:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                press = True
+            if event.type == pygame.JOYBUTTONDOWN and event.button == 0:
+                press = True
+
+        if dialogue_done and dialogue and not final_step and press:
+            self.opening_scene_step_counter += 1
+
+        if not dialogue_done and press and dialogue:
+            scene_step_type.btn_press = True
+
+        if final_step:
+            self.opening_scene_end_count -= 1 * fps_adjust
+            if self.opening_scene_end_count <= 0:
+                self.opening_scene = False
+                self.opening_scene_done = True
+
+        if self.opening_scene_step_counter > len(self.opening_scene_step_controller):
+            self.opening_scene_step_counter = len(self.opening_scene_step_controller)
+
+        if self.sack_anim_counter > 20:
+            self.sack_anim_counter = 20
+            if not self.animation_done:
+                self.animation_done = True
+                self.opening_scene_step_counter += 1
+        anim_counter = round(self.sack_anim_counter)
+        if anim_counter < 0:
+            anim_counter = 0
+
+        screen.blit(self.sack_birth_animation[anim_counter], self.sack_position)
+
+        screen.blit(self.dialogue_surface, (0, 10))
+
+        return self.opening_scene_done
+
 # THE GAME =============================================================================================================
     def game(self, screen, level_count, fps_adjust, draw_hitbox, mouse_adjustment, events,
              game_counter, world_count, controls, joystick_calibration, joysticks,
              restart_level_procedure):
 
         self.controls = controls
-
-        if not (level_count == 1 and world_count == 1):
-            self.opening_scene_counter = 0
 
         # sounds
         play_card_pull_sound = False
@@ -708,7 +833,6 @@ class Game:
             self.right_border = self.left_border + self.level_length * 32
             self.particles = Particles(particle_num)
             self.blit_card_instructions = False
-            self.level_display = LevelDisplay(level_count)
             self.gem_equipped = False
             self.portal_surface_x = self.world.portal_position[0] + tile_size / 2 - swidth / 2
             self.portal_surface_y = self.world.portal_position[1] + tile_size / 2 - sheight / 2
@@ -783,14 +907,14 @@ class Game:
         # controls popup
         if self.popup_window_controls:
             self.move = False
-            if 0.25 > game_counter > 0:
-                scaling = game_counter
+            if 3 > self.level_duration_counter > 2.75:
+                scaling = self.level_duration_counter - 2.75
                 popup = pygame.transform.scale(self.controls_popup, (self.controls_popup.get_width() * scaling * 4,
                                                                      self.controls_popup.get_height() * scaling * 4))
             else:
                 popup = self.controls_popup
 
-            if game_counter >= 0.25:
+            if self.level_duration_counter > 3:
                 controls_popup_percentage = self.controls_popup_scrollbar.draw_scroll_bar(screen,
                                                                                           mouse_adjustment, events,
                                                                                           joysticks,
@@ -801,12 +925,12 @@ class Game:
                 popup.blit(self.controls_popup_text_space, (2, 1))
                 self.controls_popup_gradient.draw_gradient(popup)
 
-            if game_counter > 0:
+            if self.level_duration_counter > 2.75:
                 screen.blit(popup,
                             (swidth / 2 - popup.get_width() / 2,
                              sheight / 2 - popup.get_height() / 2))
 
-            if game_counter >= 0.25:
+            if self.level_duration_counter > 3:
                 popup_controls_press, ok_over = self.ok_controls_btn.draw_button(screen,
                                                                                  False, mouse_adjustment,
                                                                                  events, joystick_over)
@@ -815,30 +939,6 @@ class Game:
 
             if popup_controls_press:
                 self.popup_window_controls = False
-
-        # level completed popup
-        elif self.lvl_completed_popup:
-            self.move = False
-            if 1.7 > self.level_duration_counter > 1.45:
-                scaling = self.level_duration_counter - 1.45
-                popup = pygame.transform.scale(self.level_completed_popup,
-                                               (self.level_completed_popup.get_width() * scaling * 4,
-                                                self.level_completed_popup.get_height() * scaling * 4))
-            else:
-                popup = self.level_completed_popup
-
-            if self.level_duration_counter > 1.45:
-                screen.blit(popup,
-                            (swidth / 2 - popup.get_width() / 2,
-                             sheight / 2 - popup.get_height() / 2))
-
-            if self.level_duration_counter > 1.7:
-                popup_lvl_completed_press, ok_over = self.lvl_selection_btn.draw_button(screen,
-                                                                                        False,
-                                                                                        mouse_adjustment,
-                                                                                        events, joystick_over)
-            else:
-                popup_lvl_completed_press = False
 
         # bee info popup
         elif self.bee_info_popup and not self.bee_info_popup_done:

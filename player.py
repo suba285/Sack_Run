@@ -202,7 +202,7 @@ class Player:
         self.sack_rect.x = swidth / 2 - self.sack_rect.width / 2
         self.sack_rect.y = sheight / 2 - self.sack_rect.height / 2
 
-        self.player_speed = 2.41
+        self.player_speed = 2.2
         self.slide = 0.4
         self.default_on_ground_counter = 6
         self.on_ground_counter = self.default_on_ground_counter
@@ -268,14 +268,6 @@ class Player:
         self.speed_dash_landed = True
         self.speed_dash_direction = 1
         self.speed_dash_speed = 5
-        self.regeneration = False
-        self.regeneration_counter = 0
-        self.no_gravity = False
-        self.no_gravity_counter = 0
-        self.no_gravity_duration = 180
-        self.no_harm = False
-        self.no_harm_counter = 0
-        self.no_harm_duration = 300
 
         # animation variables ------------------------------------------------------------------------------------------
         self.animation_counter = 0
@@ -304,8 +296,6 @@ class Player:
         self.transition = False
         self.dead_counter = 0
         self.airborn = False
-        self.break_transition = False
-        self.transition_get_smaller = True
         self.lowest_tile = 0
         self.highest_tile = 264
         self.speed = 0
@@ -313,11 +303,9 @@ class Player:
         self.player_moved = False
         self.blit_plr = True
         self.harm_counter = 40
-        self.damage = False
-        self.damage_counter = 0
         self.harm_flash_counter = 0
         self.init_flash = False
-        self.first_power_jump = False
+        self.lowering_cooldown = 15
 
         self.screen_shake_counter = 0
 
@@ -401,8 +389,6 @@ class Player:
         dx = 0
         dy = 0
 
-        self.damage_counter -= 1
-
         self.animation_counter += 1 * fps_adjust
 
         self.screen_shake_counter -= 1 * fps_adjust
@@ -434,6 +420,9 @@ class Player:
         top_border = 50 / 270 * sheight
 
         harm = False
+
+        if self.world_count == 1 and level_count == 1 and self.lowering_cooldown == 15:
+            self.screen_shake_counter = 10
 
         if self.screen_shake_counter > 0:
             screen_shake = True
@@ -610,7 +599,7 @@ class Player:
                     if self.mid_air_jump and not (self.on_ground_counter > 0 and not self.airborn):
                         self.mid_air_jump_counter += 1
                         self.screen_shake_counter = 10
-                    self.vel_y = -11
+                    self.vel_y = -10
                     self.jumped = True
                     self.player_jump = False
                     self.animate_walk = False
@@ -786,10 +775,18 @@ class Player:
 
         # gravity ------------------------------------------------------------------------------------------------------
         if not self.speed_dash_activated:
-            if self.no_gravity or self.dead:
+            if self.dead:
                 self.vel_y = dy
             else:
-                self.vel_y += 0.6 * fps_adjust
+                if not move and self.world_count == 1 and level_count == 1:
+                    self.lowering_cooldown -= 1 * fps_adjust
+                    if self.lowering_cooldown <= 0:
+                        grav_speed = 0.1
+                    else:
+                        grav_speed = 0
+                else:
+                    grav_speed = 0.6
+                self.vel_y += grav_speed * fps_adjust
                 if self.vel_y > 8:
                     self.vel_y = 8
             dy = self.vel_y*fps_adjust
@@ -875,14 +872,14 @@ class Player:
 
         # next level position
         if self.new_level:
-            self.sack_rect.y = 264 / 2 - 16
+            self.sack_rect.y = sheight / 2 - self.sack_width / 2
             self.direction = 1
             self.new_level = False
 
         # ensuring the player sprite is always in the middle level of the screen
         self.sack_rect.x = swidth / 2 - self.sack_width / 2
         if not self.first_collision:
-            self.sack_rect.y = 132
+            self.sack_rect.y = sheight / 2 - self.sack_width / 2
 
         # preventing the player from falling out of the world
         if self.sack_rect.bottom > sheight:
@@ -1031,7 +1028,7 @@ class Player:
         if self.blit_plr:
             screen.blit(self.sack_img, (self.sack_rect.x - 1 - self.sack_offset, self.sack_rect.y - 4 + squash_offset))
 
-        if draw_hitbox:
+        if draw_hitbox and not self.dead:
             pygame.draw.rect(screen, (255, 255, 255), self.sack_rect, 1)
 
         # drawing teleportation particles onto the screen
