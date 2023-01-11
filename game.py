@@ -43,7 +43,8 @@ level_dictionary = {
     "level1_3": level1_3,
     "level2_3": level2_3,
     "level3_3": level3_3,
-    "level4_3": level4_3
+    "level4_3": level4_3,
+    "level5_3": level5_3
 }
 
 level_bg_dictionary = {
@@ -62,7 +63,8 @@ level_bg_dictionary = {
     "level1_3_bg": level1_3_bg,
     "level2_3_bg": level2_3_bg,
     "level3_3_bg": level3_3_bg,
-    "level4_3_bg": level4_3_bg
+    "level4_3_bg": level4_3_bg,
+    "level5_3_bg": level5_3_bg,
 }
 
 level_pos_dictionary = {
@@ -78,15 +80,16 @@ level_pos_dictionary = {
     "level7_2": (5, -19),
     "level8_2": (5, -5),
     "level9_2": (5, -2),
-    "level1_3": (3, -4),
-    "level2_3": (-2, -5),
-    "level3_3": (4, -3),
-    "level4_3": (3, -3)
+    "level1_3": (3, 2),
+    "level2_3": (3, -4),
+    "level3_3": (-2, -5),
+    "level4_3": (4, -3),
+    "level5_3": (3, -4)
 }
 
 level_card_dictionary = {
     "level2_1": "mid-air_jump",
-    "level1_3": "speed_dash"
+    "level2_3": "speed_dash"
 }
 
 world_ending_levels = {
@@ -398,8 +401,8 @@ class Game:
                 4: Dialogue('become bread.', text),
                 5: Dialogue('It may not sound glamorous, I know, but it is what it is.', text),
                 6: Dialogue('All you need to do is get to the mill.', text),
-                7: Dialogue("It may sound easy, but it's a long way full of traps and enemies.", text),
-                8: Dialogue('Good luck!', text),
+                7: Dialogue("You think that's easy? It's a long way full of traps and enemies.", text),
+                8: Dialogue('Good luck! :))', text),
                 9: 'end'
             }
         else:
@@ -477,7 +480,7 @@ class Game:
         # initiating classes -------------------------------------------------------------------------------------------
         self.world = World(world_data, self.game_screen, slow_computer, bg_data,
                            settings_counters, world_count)
-        self.world.create_world(self.start_x, self.start_y, world_data, bg_data)
+        self.world.create_world(self.start_x, self.start_y, world_data, bg_data, 1)
         self.player = Player(self.game_screen, self.controls, self.settings_counters, world_count)
         self.particles = Particles(particle_num)
         self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
@@ -557,7 +560,7 @@ class Game:
         if world_count == 2 and level_count == 6:
             self.bee_info_popup = True
 
-        if world_count == 3 and level_count == 4:
+        if world_count == 3 and level_count == 5:
             self.dash_info_popup = True
 
         if level_count != world_ending_levels[world_count]:
@@ -725,7 +728,7 @@ class Game:
 
         # new card animation
         if self.level_duration_counter == 0:
-            if (world_count == 1 and level_count == 2) or (world_count == 3 and level_count == 1):
+            if (world_count == 1 and level_count == 2) or (world_count == 3 and level_count == 2):
                 self.new_card_animation = True
         if self.new_card_animation:
             self.move = False
@@ -797,7 +800,7 @@ class Game:
         self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
                                     self.camera_move_x, self.camera_move_y)
         self.world.draw_bg_decoration(self.game_screen)
-        if world_count < 3:
+        if world_count < 3 or level_count == 1:
             self.world.draw_log(self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
             self.world.draw_bush(self.game_screen)
 
@@ -824,7 +827,7 @@ class Game:
         # updating the world data if new level -------------------------------------------------------------------------
         if self.level_check < level_count or restart_level:
             self.world_data, self.bg_data = Game.level_checker(self, level_count, world_count)
-            self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data)
+            self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data, level_count)
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
             self.particles = Particles(particle_num)
@@ -842,7 +845,7 @@ class Game:
             self.set_lava_harm = self.world.draw_set_lava(self.game_screen, sack_rect)
             self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
 
-        if world_count < 3:
+        if world_count < 3 or level_count == 1:
             self.world.draw_wheat(self.game_screen, sack_rect)
             self.world.draw_green_mushrooms(self.game_screen, sack_rect)
             self.world.draw_foliage(self.game_screen)

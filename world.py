@@ -369,7 +369,7 @@ class World:
         eq_full_text = Text()
         self.eq_full_txt = eq_full_text.make_text(['eq is full, bin cards to free up space'])
 
-    def create_world(self, start_x, start_y, data, bg_data):
+    def create_world(self, start_x, start_y, data, bg_data, level_count):
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.tile_list = []
@@ -468,9 +468,13 @@ class World:
             for tile in row:
                 if tile == 10:
                     # gem
+                    if level_count == 5 and self.world_count == 3:
+                        offset = tile_size / 2
+                    else:
+                        offset = 0
                     rect = self.gem.get_rect()
                     rect.x = column_count * tile_size + 8
-                    rect.y = row_count * tile_size + 8
+                    rect.y = row_count * tile_size + 8 + offset
                     shake_counter = 7
                     surface = pygame.surface.Surface((tile_size / 2, tile_size / 2))
                     surface.set_colorkey((0, 0, 0))

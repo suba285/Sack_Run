@@ -298,7 +298,7 @@ class Player:
         self.dead = False
         self.transition = False
         self.dead_counter = 0
-        self.airborn = False
+        self.airborn = True
         self.lowest_tile = 0
         self.highest_tile = 264
         self.speed = 0
@@ -603,7 +603,7 @@ class Player:
                         self.mid_air_jump_counter += 1
                         self.screen_shake_counter = 10
                     if self.mid_air_jump:
-                        self.vel_y = -10.5
+                        self.vel_y = -11
                     else:
                         self.vel_y = -8.1
                     self.jump_adder = 0
@@ -611,49 +611,14 @@ class Player:
                     self.animate_walk = False
                     self.airborn = True
             if not self.mid_air_jump:
-                if self.player_jump and self.jumped and self.jump_adder < 1.3:
+                if self.player_jump and self.jumped and self.jump_adder < 1.5:
                     self.jump_adder += 0.16 * fps_adjust
-                    self.vel_y -= 0.37
-                if self.jump_adder >= 1.3:
+                    self.vel_y -= 0.35
+                if self.jump_adder >= 1.5:
                     self.player_jump = False
 
             if not self.player_jump:
                 self.jumped = False
-                if not self.airborn and not self.walking:
-                    # idle animation
-                    self.sack_offset = 0
-                    if self.animation_counter > self.idle_animation_speed:
-                        self.idle_counter += 1
-                        self.animation_counter = 0
-                    if self.idle_counter <= self.idle_animation_lengths[self.idle_animation]:
-                        if self.idle_animation == 1:
-                            self.sack_img = self.sack_idle1[self.idle_counter]
-                        else:
-                            self.sack_img = self.sack_idle2[self.idle_counter]
-                    else:
-                        self.sack_img = self.sack
-                    if self.idle_counter > 15:
-                        self.idle_animation = random.randint(1, 2)
-                        self.idle_counter = 1
-                    if self.direction == -1:
-                        self.sack_img = pygame.transform.flip(self.sack_img, True, False)
-
-            if self.airborn and not self.speed_dash_activated:
-                self.sack_offset = 0
-                if self.vel_y < -9:
-                    self.sack_img = self.sack_jump[1]
-                elif self.vel_y < -6.5:
-                    self.sack_img = self.sack_jump[2]
-                elif self.vel_y < -5:
-                    self.sack_img = self.sack_jump[3]
-                elif -5 < self.vel_y < 3:
-                    self.sack_img = self.sack_jump[4]
-                elif self.vel_y < 5:
-                    self.sack_img = self.sack_jump[5]
-                else:
-                    self.sack_img = self.sack_jump[6]
-                if self.direction == -1:
-                    self.sack_img = pygame.transform.flip(self.sack_img, True, False)
 
             walking_left = False
             walking_right = False
@@ -748,6 +713,42 @@ class Player:
                     else:
                         self.vel_x_r = self.speed_dash_speed * self.speed_dash_direction
 
+        # jumping and idle animations
+        if self.airborn and not self.speed_dash_activated:
+            self.sack_offset = 0
+            if self.vel_y < -9:
+                self.sack_img = self.sack_jump[1]
+            elif self.vel_y < -6.5:
+                self.sack_img = self.sack_jump[2]
+            elif self.vel_y < -5:
+                self.sack_img = self.sack_jump[3]
+            elif -5 < self.vel_y < 3:
+                self.sack_img = self.sack_jump[4]
+            elif self.vel_y < 5:
+                self.sack_img = self.sack_jump[5]
+            else:
+                self.sack_img = self.sack_jump[6]
+            if self.direction == -1:
+                self.sack_img = pygame.transform.flip(self.sack_img, True, False)
+        if not self.airborn and not self.walking:
+            # idle animation
+            self.sack_offset = 0
+            if self.animation_counter > self.idle_animation_speed:
+                self.idle_counter += 1
+                self.animation_counter = 0
+            if self.idle_counter <= self.idle_animation_lengths[self.idle_animation]:
+                if self.idle_animation == 1:
+                    self.sack_img = self.sack_idle1[self.idle_counter]
+                else:
+                    self.sack_img = self.sack_idle2[self.idle_counter]
+            else:
+                self.sack_img = self.sack
+            if self.idle_counter > 15:
+                self.idle_animation = random.randint(1, 2)
+                self.idle_counter = 1
+            if self.direction == -1:
+                self.sack_img = pygame.transform.flip(self.sack_img, True, False)
+
         # respawn at the beginning of the level and transition
         if (self.player_jump and self.dead and self.dead_counter >= 36 and not self.restart_trigger)\
                 or restart_level_procedure:
@@ -793,7 +794,7 @@ class Player:
                 if not move and self.world_count == 1 and level_count == 1:
                     self.lowering_cooldown -= 1 * fps_adjust
                     if self.lowering_cooldown <= 0:
-                        grav_speed = 0.1
+                        grav_speed = 0.3
                     else:
                         grav_speed = 0
                 else:
@@ -802,6 +803,8 @@ class Player:
                 if self.vel_y > 8:
                     self.vel_y = 8
             dy = self.vel_y*fps_adjust
+        if dy > 3:
+            self.airborn = True
 
         # collision detection and position -----------------------------------------------------------------------------
         hit_list_x = []
