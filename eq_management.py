@@ -29,7 +29,7 @@ class eqManager:
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
 
-        self.eq_controls = eq_controls['configuration']
+        self.eq_controls = eq_controls
         self.card_delete_counter = walk_counter
 
         self.card_info = False
@@ -337,7 +337,7 @@ class eqManager:
 
         self.no_gem_counter -= 1 * fps_adjust
 
-        joy_bumper_pressed = False
+        bumper_key_pressed = False
         joystick_info_press = False
         joystick_use_press = False
         joystick_jump_press = False
@@ -362,23 +362,44 @@ class eqManager:
 
         if not joystick_calibration:
             for event in events:
-                if event.type == pygame.KEYDOWN:
-                    keydown = True
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    mousebuttondown = True
-                    if event.button == 3:
-                        mousebuttondown_right = True
-                if event.type == pygame.MOUSEBUTTONUP:
-                    mousebuttonup = True
+                if self.eq_controls['cards'] == 'mouse':
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        mousebuttondown = True
+                        if event.button == 3:
+                            mousebuttondown_right = True
+                    if event.type == pygame.MOUSEBUTTONUP:
+                        mousebuttonup = True
+                elif self.eq_controls['cards'] == 'keyboard':
+                    if event.type == pygame.KEYDOWN:
+                        if self.card_info:
+                            keydown = True
+                        if event.key == pygame.K_j:
+                            bumper_key_pressed = True
+                            self.joystick_counter -= 1
+                            if self.joystick_counter < 0:
+                                if card_num >= 0:
+                                    self.joystick_counter = card_num
+                        elif event.key == pygame.K_l:
+                            bumper_key_pressed = True
+                            self.joystick_counter += 1
+                            if self.joystick_counter > card_num >= 0:
+                                self.joystick_counter = 0
+                        elif event.key == pygame.K_k:
+                            joystick_use_press = True
+                        elif event.key == pygame.K_i:
+                            if not self.card_info:
+                                joystick_info_press = True
+                        else:
+                            keydown = True
                 if event.type == pygame.JOYBUTTONDOWN:
-                    if event.button == self.eq_controls[1]:
-                        joy_bumper_pressed = True
+                    if event.button == self.eq_controls['configuration'][1]:
+                        bumper_key_pressed = True
                         self.joystick_counter -= 1
                         if self.joystick_counter < 0:
                             if card_num >= 0:
                                 self.joystick_counter = card_num
-                    if event.button == self.eq_controls[2]:
-                        joy_bumper_pressed = True
+                    if event.button == self.eq_controls['configuration'][2]:
+                        bumper_key_pressed = True
                         self.joystick_counter += 1
                         if self.joystick_counter > card_num >= 0:
                             self.joystick_counter = 0
@@ -388,7 +409,7 @@ class eqManager:
                         joystick_use_press = True
                     if event.button == 0:
                         joystick_jump_press = True
-                    if (not joystick_info_press or self.card_info or joystick_jump_press) and not joy_bumper_pressed:
+                    if (not joystick_info_press or self.card_info or joystick_jump_press) and not bumper_key_pressed:
                         joystick_action = True
                 if event.type == pygame.JOYAXISMOTION and abs(event.value) > 0.3:
                     joystick_action = True
@@ -398,16 +419,16 @@ class eqManager:
             if hat_value[0] != 0:
                 joystick_action = True
 
-        if joy_bumper_pressed:
+        if bumper_key_pressed:
             self.joystick_over_counter = self.joystick_card_over_time
 
-        if self.joystick_over_counter >= 0 and not self.card_info and move and joysticks:
+        if self.joystick_over_counter > 0 and not self.card_info and move and self.eq_controls['cards'] == 'keyboard':
             if self.joystick_counter == 0:
                 joystick_over0 = True
             if self.joystick_counter == 1:
                 joystick_over1 = True
 
-        if not move or self.card_info:
+        if not move or self.card_info or self.eq_controls['cards'] == 'keyboard' or joysticks:
             mouse_adjustment = [0.0001, 0, 0]
 
         if self.card_info and mousebuttondown:
@@ -469,8 +490,8 @@ class eqManager:
             over = True
             self.card_checked = True
 
-        if joystick_action:
-            self.joystick_over_counter = -1
+        if joystick_action or keydown:
+            self.joystick_over_counter = 0
 
         if gem_equipped and not self.animate_card_jump and not self.card_jump_animation_done:
             self.animate_card_jump = True

@@ -149,18 +149,15 @@ class SettingsMenu:
         # control settings
         self.walking_txt = text.make_text(['keyboard walking:'])
         self.jumping_txt = text.make_text(['keyboard jumping:'])
-        self.rumble_txt = text.make_text(['controller rumble:'])
+        self.rumble_txt = text.make_text(['keyboard cards:'])
         self.configuration_txt = text.make_text(['controller calibration:'])
         self.move_conf1 = text.make_text(['A and D keys'])
         self.move_conf2 = text.make_text(['arrow keys'])
         self.jump_conf1 = text.make_text(['space bar'])
         self.jump_conf2 = text.make_text(['W key'])
         self.jump_conf3 = text.make_text(['up key'])
-        self.config_conf1 = text.make_text(['Xbox'])
-        self.config_conf2 = text.make_text(['PS4'])
-        self.config_conf3 = text.make_text(["other"])
-        self.rumble_conf1 = text.make_text(['on'])
-        self.rumble_conf2 = text.make_text(['off'])
+        self.rumble_conf1 = text.make_text(['mouse'])
+        self.rumble_conf2 = text.make_text(['J K L keys'])
 
         # visual settings
         self.resolution_txt = text.make_text(['window size:'])
@@ -171,11 +168,6 @@ class SettingsMenu:
         self.res_conf4 = text.make_text(['FULLSCREEN'])
         self.perf_conf1 = text.make_text(['Normal'])
         self.perf_conf2 = text.make_text(['Fast'])
-        self.resolution_message1 = text.make_text(['This window size is recommended for'])
-        self.resolution_message2 = text.make_text(['your screen resolution.'])
-        self.resolution_message3 = text.make_text(['A bit too big, innit?'])
-        self.perf_message1 = text.make_text(["Use 'fast' mode only if your computer"])
-        self.perf_message2 = text.make_text(["is an utter potato."])
         self.hitbox_txt = text.make_text(['show hitbox:'])
         self.hitbox_conf1 = self.off_conf
         self.hitbox_conf2 = self.on_conf
@@ -192,7 +184,7 @@ class SettingsMenu:
         # counters -----------------------------------------------------------------------------------------------------
         self.walk_counter = settings_counters['walking']
         self.jump_counter = settings_counters['jumping']
-        self.rumble_counter = settings_counters['rumble']
+        self.cards_counter = settings_counters['cards']
         self.configuration_counter = settings_counters['configuration']
 
         self.resolution_counter = settings_counters['resolution']
@@ -506,7 +498,7 @@ class SettingsMenu:
         self.settings_counters = settings_counters
         self.walk_counter = settings_counters['walking']
         self.jump_counter = settings_counters['jumping']
-        self.rumble_counter = settings_counters['rumble']
+        self.cards_counter = settings_counters['cards']
         self.configuration_counter = settings_counters['configuration']
 
         self.resolution_counter = settings_counters['resolution']
@@ -921,7 +913,7 @@ class SettingsMenu:
             else:
                 jump_text = self.jump_conf3
 
-            if self.rumble_counter == 1:
+            if self.cards_counter == 1:
                 rumble_text = self.rumble_conf1
             else:
                 rumble_text = self.rumble_conf2
@@ -988,7 +980,7 @@ class SettingsMenu:
                 if joystick_over_3:
                     self.control_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x, self.control_row2_y))
 
-            if self.rumble_counter > 1:
+            if self.cards_counter > 1:
                 rumble_left_press, over5 = self.rumble_btn_left.draw_button(self.control_screen,
                                                                             False, mouse_adjustment, events,
                                                                             joystick_over2)
@@ -997,7 +989,7 @@ class SettingsMenu:
                 if joystick_over2:
                     self.control_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x, self.control_row3_y))
 
-            if self.rumble_counter < 2:
+            if self.cards_counter < 2:
                 rumble_right_press, over6 = self.rumble_btn_right.draw_button(self.control_screen,
                                                                               False, mouse_adjustment, events,
                                                                               joystick_over_2)
@@ -1065,10 +1057,10 @@ class SettingsMenu:
         if jumping_right_press and self.jump_counter < 3:
             self.jump_counter += 1
 
-        if rumble_left_press and self.rumble_counter > 1:
-            self.rumble_counter -= 1
-        if rumble_right_press and self.rumble_counter < 2:
-            self.rumble_counter += 1
+        if rumble_left_press and self.cards_counter > 1:
+            self.cards_counter -= 1
+        if rumble_right_press and self.cards_counter < 2:
+            self.cards_counter += 1
 
         if config_left_press and self.configuration_counter > 1:
             self.configuration_counter -= 1
@@ -1081,7 +1073,7 @@ class SettingsMenu:
             self.controls['right'] = self.nums_to_btns[f'right{self.walk_counter}']
             self.controls['jump'] = self.nums_to_btns[f'jump{self.jump_counter}']
             self.controls['configuration'] = self.nums_to_btns['configuration']
-            self.controls['rumble'] = self.nums_to_btns[f'rumble{self.rumble_counter}']
+            self.controls['rumble'] = self.nums_to_btns[f'rumble{self.cards_counter}']
 
         # VISUAL SETTINGS SCREEN =======================================================================================
         text_titles_y = round(40 / 270 * sheight)
@@ -1396,7 +1388,7 @@ class SettingsMenu:
 
         self.settings_counters['walking'] = self.walk_counter
         self.settings_counters['jumping'] = self.jump_counter
-        self.settings_counters['rumble'] = self.rumble_counter
+        self.settings_counters['cards'] = self.cards_counter
         self.settings_counters['configuration'] = self.configuration_counter
         self.settings_counters['resolution'] = self.resolution_counter
         self.settings_counters['performance'] = self.performance_counter

@@ -28,9 +28,9 @@ if monitor_width / 16 <= monitor_height / 9:
 # it's functions draw the tiles and manage the interactive tiles of the game
 
 
-def img_rect_pos(img, col_count, row_count):
+def img_rect_pos(img, col_count, row_count, offset):
     rect = img.get_rect()
-    rect.x = col_count * tile_size
+    rect.x = col_count * tile_size - offset
     rect.y = row_count * tile_size
     tile = [img, rect]
     return tile
@@ -415,7 +415,6 @@ class World:
         self.gem_particles = []
 
         # assigning tiles to corresponding coordinates by the level map ------------------------------------------------
-        row_count = start_y
         self.level_height = 0
 
         self.data = data
@@ -462,6 +461,9 @@ class World:
 
         lava_start = []
 
+        pov_offset = (480 - swidth) / 2
+
+        row_count = start_y
         for row in self.data:
             column_count = start_x
             self.level_length = 0
@@ -473,7 +475,7 @@ class World:
                     else:
                         offset = 0
                     rect = self.gem.get_rect()
-                    rect.x = column_count * tile_size + 8
+                    rect.x = column_count * tile_size + 8 - pov_offset
                     rect.y = row_count * tile_size + 8 + offset
                     shake_counter = 7
                     surface = pygame.surface.Surface((tile_size / 2, tile_size / 2))
@@ -485,13 +487,13 @@ class World:
                     self.gem_list.append(tile)
                 if tile == 11:
                     # dirt
-                    tile = img_rect_pos(self.dirt_tile, column_count, row_count)
+                    tile = img_rect_pos(self.dirt_tile, column_count, row_count, pov_offset)
                     self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                     self.tile_list.append(tile)
                 if tile == 12:
                     # stone
-                    tile = img_rect_pos(self.stone_tile, column_count, row_count)
+                    tile = img_rect_pos(self.stone_tile, column_count, row_count, pov_offset)
                     self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                     self.tile_list.append(tile)
@@ -502,14 +504,14 @@ class World:
                     for num in range(8):
                         rect = self.wheat.get_rect()
                         rect.y = (row_count * tile_size) + random.randrange(0, 6)
-                        rect.x = (column_count * tile_size) + wheat_spacer * num
+                        rect.x = (column_count * tile_size) + wheat_spacer * num - pov_offset
                         local_list.append(rect)
                     self.wheat_list.append(local_list)
                 if tile == 19:
                     # fake bee hive
                     img = self.bee_hive
                     img_rect = self.bee_hive.get_rect()
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size + tile_size / 2
                     tile = (img, img_rect)
                     self.decoration_list.append(tile)
@@ -518,7 +520,7 @@ class World:
                     img1 = pygame.transform.scale(self.portal, (tile_size, tile_size))
                     img1.set_colorkey((0, 0, 0))
                     img1_rectangle = img1.get_rect()
-                    img1_rectangle.x = column_count * tile_size
+                    img1_rectangle.x = column_count * tile_size - pov_offset
                     img1_rectangle.y = row_count * tile_size
                     star_surface = pygame.Surface((tile_size, tile_size * 1.5)).convert()
                     star_surface.fill((1, 1, 1))
@@ -539,7 +541,7 @@ class World:
                     # stone dirt
                     img = self.dirt_tile_rocks
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     tile = (img, img_rectangle)
                     self.tile_pos_list.append([img_rectangle.x, img_rectangle.y])
@@ -548,7 +550,7 @@ class World:
                     # greenhouse
                     img = self.greenhouse
                     img_rect = img.get_rect()
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.bg_decoration_list.append(tile)
@@ -557,7 +559,7 @@ class World:
                     img = self.bear_trap_shut_img
                     img2 = pygame.transform.scale(img, (8, tile_size / 4))
                     img_rectangle = img2.get_rect()
-                    img_rectangle.x = (column_count * tile_size) + 12
+                    img_rectangle.x = (column_count * tile_size) + 12 - pov_offset
                     img_rectangle.y = (row_count * tile_size) + 24
                     tile = (img, img_rectangle)
                     shut = False
@@ -568,7 +570,7 @@ class World:
                     img = self.platform
                     dimension_img = pygame.transform.scale(img, (tile_size, tile_size/6))
                     img_rectangle = dimension_img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     tile = (img, img_rectangle)
                     self.tile_list.append(tile)
@@ -578,22 +580,22 @@ class World:
                     short_rect = self.green_mushroom.get_rect()
                     medium_rect = self.green_mushroom.get_rect()
                     base_rect = self.short_grass.get_rect()
-                    tall_rect.x = column_count * tile_size
+                    tall_rect.x = column_count * tile_size - pov_offset
                     tall_rect.y = row_count * tile_size + 14
-                    short_rect.x = column_count * tile_size + 8
+                    short_rect.x = column_count * tile_size + 8 - pov_offset
                     short_rect.y = row_count * tile_size + 20
-                    medium_rect.x = column_count * tile_size + 16
+                    medium_rect.x = column_count * tile_size + 16 - pov_offset
                     medium_rect.y = row_count * tile_size + 17
-                    base_rect.x = column_count * tile_size
+                    base_rect.x = column_count * tile_size - pov_offset
                     base_rect.y = row_count * tile_size
                     tile = [base_rect, tall_rect, short_rect, medium_rect]
                     self.grn_mushroom_list.append(tile)
                 if tile == 26:
                     # hot lava start
-                    lava_start = [column_count * tile_size, row_count * tile_size]
+                    lava_start = [column_count * tile_size - pov_offset, row_count * tile_size]
                 if tile == 27:
                     # hot lava stop
-                    lava_stop = [column_count * tile_size + tile_size, row_count * tile_size]
+                    lava_stop = [column_count * tile_size + tile_size - pov_offset, row_count * tile_size]
                     len = lava_stop[0] - lava_start[0]
                     lava_surface = pygame.Surface((len, tile_size)).convert()
                     lava_surface.set_colorkey((0, 0, 0))
@@ -608,7 +610,7 @@ class World:
                     # bee hive
                     img = self.bee_hive
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size + tile_size / 2
                     bee_list = []
                     for i in range(4):
@@ -620,7 +622,7 @@ class World:
                     # shockwave mushroom
                     img = self.shockwave_mushroom
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size + tile_size / 2
                     squash_counter = 0
                     cooldown = 0
@@ -632,7 +634,7 @@ class World:
                     lava_img = random.choice([self.set_lava, self.set_lava2])
                     img = random.choice([lava_img, pygame.transform.flip(lava_img, True, False)])
                     img_rect = img.get_rect()
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size + tile_size - 5
                     offset = 0
                     tile = (img, img_rect, offset)
@@ -642,7 +644,7 @@ class World:
                     img = self.set_lava_left
                     img_rect = img.get_rect()
                     img_rect.width = tile_size - 10
-                    img_rect.x = column_count * tile_size + 10
+                    img_rect.x = column_count * tile_size + 10 - pov_offset
                     img_rect.y = row_count * tile_size + tile_size - 5
                     offset = -10
                     tile = (img, img_rect, offset)
@@ -652,7 +654,7 @@ class World:
                     img = self.set_lava_right
                     img_rect = img.get_rect()
                     img_rect.width = tile_size - 10
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size + tile_size - 5
                     offset = 0
                     tile = (img, img_rect, offset)
@@ -662,7 +664,7 @@ class World:
                     img = pygame.transform.scale(self.short_grass, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     tile = (img, img_rectangle)
                     self.decoration_list.append(tile)
@@ -671,7 +673,7 @@ class World:
                     img = pygame.transform.scale(self.short_grass_left, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     tile = (img, img_rectangle)
                     self.decoration_list.append(tile)
@@ -680,14 +682,14 @@ class World:
                     img = pygame.transform.scale(self.short_grass_right, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     tile = (img, img_rectangle)
                     self.decoration_list.append(tile)
                 if tile == 36:
                     # bush
                     img_rectangle = self.bush.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     tile = (self.bush, img_rectangle)
                     self.bush_list.append(tile)
@@ -696,7 +698,7 @@ class World:
                     img = pygame.transform.scale(self.spitting_plant0_raw, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     direction = 'left'
                     spit_list = []
@@ -712,7 +714,7 @@ class World:
                     img = pygame.transform.flip(img_raw, True, False)
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     direction = 'right'
                     spit_list = []
@@ -727,7 +729,7 @@ class World:
                     img = pygame.transform.scale(self.spitting_plant_up0_raw, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     direction = 'up'
                     spit_list = []
@@ -742,7 +744,7 @@ class World:
                     img = pygame.transform.scale(self.log0, (tile_size*2, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
+                    img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size + tile_size
                     tile = (img, img_rectangle)
                     self.log_list.append(tile)
@@ -750,7 +752,7 @@ class World:
                     # birch tree
                     img = self.birch_tree
                     img_rect = img.get_rect()
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.bg_decoration_list.append(tile)
@@ -758,7 +760,7 @@ class World:
                     # tree
                     img = self.tree
                     img_rect = img.get_rect()
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.bg_decoration_list.append(tile)
@@ -766,7 +768,7 @@ class World:
                     # short flowers together
                     img = self.short_flowers_together
                     img_rect = self.short_flowers_together.get_rect()
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.decoration_list.append(tile)
@@ -774,7 +776,7 @@ class World:
                     # leek patch
                     img = self.leek_patch
                     img_rect = self.leek_patch.get_rect()
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.decoration_list.append(tile)
@@ -782,7 +784,7 @@ class World:
                     # carrot patch
                     img = self.carrot_patch
                     img_rect = self.carrot_patch.get_rect()
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.decoration_list.append(tile)
@@ -790,7 +792,7 @@ class World:
                     # lettuce patch
                     img = self.lettuce_patch
                     img_rect = self.lettuce_patch.get_rect()
-                    img_rect.x = column_count * tile_size
+                    img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.decoration_list.append(tile)
@@ -837,14 +839,14 @@ class World:
             for bg_tile in row:
                 if bg_tile == 47:
                     # bg dirt tile
-                    tile = img_rect_pos(self.bg_dirt_tile, bg_col_count, bg_row_count)
+                    tile = img_rect_pos(self.bg_dirt_tile, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([bg_col_count * tile_size, bg_row_count * tile_size])
+                    self.bg_tile_pos_list.append([bg_col_count * tile_size - pov_offset, bg_row_count * tile_size])
                 if bg_tile == 48:
                     # bg dark tile
-                    tile = img_rect_pos(self.bg_dark_tile, bg_col_count, bg_row_count)
+                    tile = img_rect_pos(self.bg_dark_tile, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([bg_col_count * tile_size, bg_row_count * tile_size])
+                    self.bg_tile_pos_list.append([bg_col_count * tile_size - pov_offset, bg_row_count * tile_size])
 
                 bg_col_count += 1
             bg_row_count += 1
@@ -1043,7 +1045,7 @@ class World:
                     elif y_lava_offset < 0:
                         pygame.draw.line(package[0], (0, 0, 0), (x, 7 - y_lava_offset), (x, 7))
 
-                    package[0].set_at(((package[5] - (pixel - 47)), 7 - y_lava_offset), (255, 0, 0))
+                    package[0].set_at((round(package[5] - (pixel - 47)), round(7 - y_lava_offset)), (255, 0, 0))
                 if package[5] - 47 > 0:
                     pygame.draw.line(package[0], (255, 0, 0), (0, 7), (package[5] - 47, 7))
                 if package[3] > package[5] + 47:

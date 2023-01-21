@@ -495,8 +495,8 @@ class Game:
         self.tile_list = self.world.tile_list
         self.level_length = self.world.level_length
 
-        self.left_border = self.start_x * 32
-        self.right_border = self.left_border + self.level_length * 32
+        self.left_border = self.start_x * 32 - (480 - swidth) / 2
+        self.right_border = self.left_border + self.level_length * 32 - (480 - swidth) / 2
 
         portal_position = self.world.portal_position
         self.portal_surface_x = portal_position[0] + tile_size / 2 - swidth / 2
@@ -570,8 +570,8 @@ class Game:
             self.start_x = pos[0]
             self.start_y = pos[1]
 
-            self.left_border = self.start_x * 32
-            self.right_border = self.left_border + self.level_length * 32
+            self.left_border = self.start_x * 32 - (480 - swidth) / 2
+            self.right_border = self.left_border + self.level_length * 32 - (480 - swidth) / 2
         else:
             world_data_level_checker = []
             bg_data = []
@@ -888,7 +888,7 @@ class Game:
                 play_card_pull_sound = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment, events,
                                                                tutorial, fps_adjust, level_count,
                                                                self.health, self.move, self.player_moved,
-                                                               self.gem_equipped, self.controls['configuration'],
+                                                               self.gem_equipped, self.controls,
                                                                joysticks, self.controller_type,
                                                                joystick_calibration)
 

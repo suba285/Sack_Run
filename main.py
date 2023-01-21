@@ -52,7 +52,7 @@ except FileNotFoundError:
     settings_counters = {
         'walking': 1,
         'jumping': 1,
-        'rumble': 1,
+        'cards': 1,
         'configuration': 1,
         'resolution': 1,
         'performance': 1,
@@ -329,9 +329,8 @@ controls_nums = {
     'jump2': pygame.K_w,
     'jump3': pygame.K_UP,
     'configuration': [[0, 1], 4, 5, 10, 1],  # controller button configuration [lb, rb, pause, settings_counter]
-    'rumble1': pygame.K_x,
-    'rumble2': pygame.K_e,
-    'rumble3': pygame.K_SLASH,
+    'cards1': 'mouse',
+    'cards2': 'keyboard',
 }
 
 controls = {
@@ -339,7 +338,7 @@ controls = {
     'right': controls_nums[f"right{settings_counters['walking']}"],
     'jump': controls_nums[f"jump{settings_counters['jumping']}"],
     'configuration': controls_nums["configuration"],
-    'rumble': controls_nums[f"rumble{settings_counters['rumble']}"],
+    'cards': controls_nums[f"cards{settings_counters['cards']}"],
 }
 
 # custom cursor setup --------------------------------------------------------------------------------------------------
@@ -818,6 +817,14 @@ while run:
                     json.dump(settings_counters, json_file)
             except FileNotFoundError:
                 settings_not_saved_error = True
+
+            controls = {
+                'left': controls_nums[f"left{settings_counters['walking']}"],
+                'right': controls_nums[f"right{settings_counters['walking']}"],
+                'jump': controls_nums[f"jump{settings_counters['jumping']}"],
+                'configuration': controls_nums["configuration"],
+                'cards': controls_nums[f"cards{settings_counters['cards']}"],
+            }
 
             pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
