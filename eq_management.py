@@ -156,6 +156,14 @@ class eqManager:
         self.button_rb_press = img_loader('data/images/buttons/button_rb_press.PNG', tile_size / 2, tile_size / 2)
         self.button_lb = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
         self.button_lb_press = img_loader('data/images/buttons/button_lb_press.PNG', tile_size / 2, tile_size / 2)
+        self.j_key = img_loader('data/images/buttons/key_j.PNG', tile_size / 2, tile_size / 2)
+        self.j_key_press = img_loader('data/images/buttons/key_j_press.PNG', tile_size / 2, tile_size / 2)
+        self.k_key = img_loader('data/images/buttons/key_k.PNG', tile_size / 2, tile_size / 2)
+        self.k_key_press = img_loader('data/images/buttons/key_k_press.PNG', tile_size / 2, tile_size / 2)
+        self.l_key = img_loader('data/images/buttons/key_l.PNG', tile_size / 2, tile_size / 2)
+        self.l_key_press = img_loader('data/images/buttons/key_l_press.PNG', tile_size / 2, tile_size / 2)
+        self.i_key = img_loader('data/images/buttons/key_i.PNG', tile_size / 2, tile_size / 2)
+        self.i_key_press = img_loader('data/images/buttons/key_i_press.PNG', tile_size / 2, tile_size / 2)
         self.use_text_caps = text.make_text(['USE'])
         self.use_text = text.make_text(['use'])
         self.info_text_caps = text.make_text(['INFO'])
@@ -515,15 +523,19 @@ class eqManager:
             if over:
                 if self.press_counter >= 40:
                     mouse_img = self.mouse_press
+                    key1_img = self.k_key_press
+                    key2_img = self.i_key_press
                     if self.press_counter >= 50:
                         self.press_counter = 0
                 else:
                     mouse_img = self.mouse3
+                    key1_img = self.k_key
+                    key2_img = self.i_key
 
                 cont_img = self.controller_buttons[controller_type]['1']
                 cont_img2 = self.controller_buttons[controller_type]['2']
 
-                keybrd_img2 = pygame.transform.flip(mouse_img, True, False)
+                mouse_img2 = pygame.transform.flip(mouse_img, True, False)
 
                 center_width = swidth / 2
                 center_height = sheight / 3 - tile_size / 2 + tile_size / 4
@@ -533,9 +545,14 @@ class eqManager:
                     img2 = cont_img2
                     img_y = center_height
                 else:
-                    img1 = mouse_img
-                    img2 = keybrd_img2
-                    img_y = center_height - tile_size / 3
+                    if self.eq_controls['cards'] == 'keyboard':
+                        img_y = center_height
+                        img1 = key1_img
+                        img2 = key2_img
+                    else:
+                        img_y = center_height - tile_size / 3
+                        img1 = mouse_img
+                        img2 = mouse_img2
 
                 if gem_equipped:
                     total_tutorial_width = img1.get_width() * 2 + self.use_text_caps.get_width() + \
@@ -561,7 +578,7 @@ class eqManager:
                     screen.blit(self.info_text_caps, (tutorial_x, center_height + 5))
 
             elif (not self.card_checked or gem_equipped) and player_moved:
-                if not joysticks:
+                if not joysticks and self.eq_controls['cards'] == 'mouse':
                     if self.press_counter >= 60:
                         mouse_img = self.mouse0
                         self.press_counter = 0
@@ -578,18 +595,26 @@ class eqManager:
                     if health > 0:
                         screen.blit(mouse_img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
                 else:
-                    bumper_img1 = self.button_rb
-                    bumper_img2 = self.button_lb
+                    if self.eq_controls['cards'] == 'keyboard':
+                        btn1 = self.j_key
+                        btn2 = self.l_key
+                        btn_press1 = self.j_key_press
+                        btn_press2 = self.l_key_press
+                    else:
+                        btn1 = self.button_rb
+                        btn2 = self.button_lb
+                        btn_press1 = self.button_rb_press
+                        btn_press2 = self.button_lb_press
                     if self.press_counter > 90:
-                        bumper_img2 = self.button_lb_press
+                        btn2 = btn_press2
                         if self.press_counter > 100:
                             self.press_counter = 0
                     elif 50 > self.press_counter > 40:
-                        bumper_img1 = self.button_rb_press
+                        btn1 = btn_press1
                     if health > 0:
                         x = swidth / 2 - (tile_size + 6) / 2
-                        screen.blit(bumper_img1, (x, sheight / 3 - tile_size / 4))
-                        screen.blit(bumper_img2, (x + tile_size / 2 + 3, sheight / 3 - tile_size / 4))
+                        screen.blit(btn1, (x, sheight / 3 - tile_size / 4))
+                        screen.blit(btn2, (x + tile_size / 2 + 3, sheight / 3 - tile_size / 4))
 
                 self.arrow_bob_counter += 1 * fps_adjust
                 y_arrow_offset = math.sin((1 / 13) * self.arrow_bob_counter) * 3

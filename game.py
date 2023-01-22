@@ -791,7 +791,7 @@ class Game:
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
 
         # blitting tiles and images in the background ------------------------------------------------------------------
-        if world_count in [1, 2, 4]:
+        if world_count in [1, 2, 4] or level_count == 1:
             self.game_screen.fill(self.sky_background_colour)
         else:
             self.game_screen.fill(self.cave_background_colour)

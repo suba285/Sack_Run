@@ -56,44 +56,32 @@ class SettingsMenu:
         self.calibrate_btn_press = img_loader('data/images/button_calibrate_press.PNG', tile_size * 2, tile_size * 0.75)
         self.calibrate_btn_down= img_loader('data/images/button_calibrate_down.PNG', tile_size * 2, tile_size * 0.75)
 
-        self.keyboard_base = img_loader('data/images/keyboard_base.PNG', tile_size * 3, tile_size)
-        keyboard_interact1 = img_loader('data/images/keyboard_highlights/keyboard_interact1.PNG',
-                                        tile_size * 3, tile_size)
-        keyboard_interact2 = img_loader('data/images/keyboard_highlights/keyboard_interact2.PNG',
-                                        tile_size * 3, tile_size)
-        keyboard_interact3 = img_loader('data/images/keyboard_highlights/keyboard_interact3.PNG',
-                                        tile_size * 3, tile_size)
+        self.keyboard_base = img_loader('data/images/keyboard_highlights/keyboard_base.PNG', tile_size * 3, tile_size)
+        self.mouse_base = img_loader('data/images/keyboard_highlights/mouse_base.PNG', tile_size, tile_size)
         keyboard_jump1 = img_loader('data/images/keyboard_highlights/keyboard_jump1.PNG',
                                     tile_size * 3, tile_size)
         keyboard_jump2 = img_loader('data/images/keyboard_highlights/keyboard_jump2.PNG',
                                     tile_size * 3, tile_size)
         keyboard_jump3 = img_loader('data/images/keyboard_highlights/keyboard_jump3.PNG',
                                     tile_size * 3, tile_size)
-        keyboard_shockwave1 = img_loader('data/images/keyboard_highlights/keyboard_shockwave1.PNG',
-                                         tile_size * 3, tile_size)
-        keyboard_shockwave2 = img_loader('data/images/keyboard_highlights/keyboard_shockwave2.PNG',
-                                         tile_size * 3, tile_size)
-        keyboard_shockwave3 = img_loader('data/images/keyboard_highlights/keyboard_shockwave3.PNG',
-                                         tile_size * 3, tile_size)
         keyboard_walk1 = img_loader('data/images/keyboard_highlights/keyboard_walk1.PNG',
                                     tile_size * 3, tile_size)
         keyboard_walk2 = img_loader('data/images/keyboard_highlights/keyboard_walk2.PNG',
                                     tile_size * 3, tile_size)
+        keyboard_cards1 = img_loader('data/images/keyboard_highlights/keyboard_cards1.PNG',
+                                     tile_size * 3, tile_size)
+        mouse_cards1 = img_loader('data/images/keyboard_highlights/mouse_cards.PNG', tile_size, tile_size)
 
         self.controller = img_loader('data/images/controller.PNG', tile_size * 2, tile_size)
 
         self.keyboard_overlays = {
-            'interact1': keyboard_interact1,
-            'interact2': keyboard_interact2,
-            'interact3': keyboard_interact3,
-            'shockwave1': keyboard_shockwave1,
-            'shockwave2': keyboard_shockwave2,
-            'shockwave3': keyboard_shockwave3,
             'jump1': keyboard_jump1,
             'jump2': keyboard_jump2,
             'jump3': keyboard_jump3,
             'walk1': keyboard_walk1,
-            'walk2': keyboard_walk2
+            'walk2': keyboard_walk2,
+            'keybrd_cards': keyboard_cards1,
+            'mouse_cards': mouse_cards1
         }
 
         # variables ----------------------------------------------------------------------------------------------------
@@ -156,8 +144,8 @@ class SettingsMenu:
         self.jump_conf1 = text.make_text(['space bar'])
         self.jump_conf2 = text.make_text(['W key'])
         self.jump_conf3 = text.make_text(['up key'])
-        self.rumble_conf1 = text.make_text(['mouse'])
-        self.rumble_conf2 = text.make_text(['J K L keys'])
+        self.cards_conf1 = text.make_text(['mouse'])
+        self.cards_conf2 = text.make_text(['J K L keys'])
 
         # visual settings
         self.resolution_txt = text.make_text(['window size:'])
@@ -352,6 +340,10 @@ class SettingsMenu:
         self.keyboard_control_box2 = self.keyboard_control_box_mould.get_rect()
         self.keyboard_control_box2.x = self.center + 6
         self.keyboard_control_box2.y = control_button_start_y + gap * 2 - 4
+
+        self.keyboard_control_box3 = self.keyboard_control_box_mould.get_rect()
+        self.keyboard_control_box3.x = self.center + 6
+        self.keyboard_control_box3.y = control_button_start_y + gap * 3 - 4
 
         # controller configuration popup window
         self.controller_conf_popup0 = popup_bg_generator((200, 100))
@@ -914,9 +906,9 @@ class SettingsMenu:
                 jump_text = self.jump_conf3
 
             if self.cards_counter == 1:
-                rumble_text = self.rumble_conf1
+                cards_text = self.cards_conf1
             else:
-                rumble_text = self.rumble_conf2
+                cards_text = self.cards_conf2
 
             # updating the text showing the player's current controls --------------------------------------------------
             self.control_screen.blit(self.walking_txt, (self.center - 10 - self.walking_txt.get_width(),
@@ -927,21 +919,37 @@ class SettingsMenu:
                                                         self.button_start_y + 7 + self.gap * 3))
             self.control_screen.blit(self.configuration_txt, (self.center - 10 - self.configuration_txt.get_width(),
                                                         self.button_start_y + 7 + self.gap * 4))
+            # keyboard controls visualisation --------------------------------------------------------------------------
+            if self.walk_counter == 2 or self.jump_counter == 3:
+                keyboard_x = swidth / 2 - tile_size
+                mouse_x = swidth / 2 - tile_size * 2
+            else:
+                keyboard_x = swidth / 2 - tile_size * 2
+                mouse_x = keyboard_x + tile_size * 3
             if not joystick_connected:
-                self.control_screen.blit(self.keyboard_base, (swidth / 2 - self.keyboard_base.get_width() / 2,
+                self.control_screen.blit(self.keyboard_base, (keyboard_x,
                                                               (175 / 270 * sheight)))
+                self.control_screen.blit(self.mouse_base, (mouse_x,(175 / 270 * sheight)))
                 self.control_screen.blit(self.keyboard_overlays[f'walk{self.walk_counter}'],
-                                         (swidth / 2 - self.keyboard_base.get_width() / 2, (175 / 270 * sheight)))
+                                         (keyboard_x, (175 / 270 * sheight)))
                 self.control_screen.blit(self.keyboard_overlays[f'jump{self.jump_counter}'],
-                                         (swidth / 2 - self.keyboard_base.get_width() / 2, (175 / 270 * sheight)))
+                                         (keyboard_x, (175 / 270 * sheight)))
+                if self.cards_counter == 2:
+                    self.control_screen.blit(self.keyboard_overlays['keybrd_cards'],
+                                             (keyboard_x, (175 / 270 * sheight)))
+                else:
+                    self.control_screen.blit(self.keyboard_overlays['mouse_cards'],
+                                             (mouse_x, (175 / 270 * sheight)))
+
             else:
                 self.control_screen.blit(self.controller, (swidth / 2 - tile_size, (175 / 270 * sheight)))
 
+            # displaying the selected option (text) --------------------------------------------------------------------
             self.control_screen.blit(walk_text, (button_text_center - walk_text.get_width() / 2 + button_size / 2,
                                                  self.control_row1_y + 7))
             self.control_screen.blit(jump_text, (button_text_center - jump_text.get_width() / 2 + button_size / 2,
                                                  self.control_row2_y + 7))
-            self.control_screen.blit(rumble_text, (button_text_center - rumble_text.get_width() / 2 + button_size / 2,
+            self.control_screen.blit(cards_text, (button_text_center - cards_text.get_width() / 2 + button_size / 2,
                                                    self.control_row3_y + 7))
 
             if self.walk_counter > 1:
@@ -1015,6 +1023,9 @@ class SettingsMenu:
             if self.keyboard_control_box2.collidepoint(mouse_pos):
                 control_box2_over = True
 
+            if self.keyboard_control_box3.collidepoint(mouse_pos):
+                control_box3_over = True
+
             # controller calibration trigger
             if calib_press and joystick_connected:
                 self.controller_calibration = True
@@ -1024,26 +1035,29 @@ class SettingsMenu:
             if control_box1_over:
                 self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(255)
                 self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays['keybrd_cards'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays['mouse_cards'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_highlight_off = False
 
             elif control_box2_over:
                 self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(255)
+                self.keyboard_overlays['keybrd_cards'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays['mouse_cards'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_highlight_off = False
 
             elif control_box3_over:
                 self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
                 self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_highlight_off = False
-
-            elif control_box4_over:
-                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
+                self.keyboard_overlays['keybrd_cards'].set_alpha(255)
+                self.keyboard_overlays['mouse_cards'].set_alpha(255)
                 self.keyboard_highlight_off = False
 
             elif not self.keyboard_highlight_off:
                 self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(255)
                 self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(255)
+                self.keyboard_overlays['keybrd_cards'].set_alpha(255)
+                self.keyboard_overlays['mouse_cards'].set_alpha(255)
                 self.keyboard_highlight_off = True
 
         # adjusting control counters if buttons are pressed ------------------------------------------------------------
