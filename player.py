@@ -613,7 +613,7 @@ class Player:
             if not self.mid_air_jump:
                 if self.player_jump and self.jumped and self.jump_adder < 1.5:
                     self.jump_adder += 0.16 * fps_adjust
-                    self.vel_y -= 0.35
+                    self.vel_y -= 0.35 * fps_adjust
                 if self.jump_adder >= 1.5:
                     self.player_jump = False
 

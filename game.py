@@ -83,7 +83,7 @@ level_pos_dictionary = {
     "level1_3": (3, 2),
     "level2_3": (3, -4),
     "level3_3": (-2, -5),
-    "level4_3": (4, -3),
+    "level4_3": (4, -4),
     "level5_3": (3, -4)
 }
 

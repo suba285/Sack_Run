@@ -840,6 +840,9 @@ while run:
                 user_quit1 = True
             if event.key == pygame.K_LCTRL:
                 user_quit2 = True
+            if event.key == pygame.K_j or event.key == pygame.K_l:
+                joystick_over_card = True
+
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_q:
                 user_quit1 = False
