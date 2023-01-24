@@ -2,7 +2,7 @@ import pygame
 
 
 class Button:
-    def __init__(self, x, y, image1, image2, image3):
+    def __init__(self, x, y, image1, image2, image3, fast_action=False):
         self.image1 = image1
         self.image2 = image2
         self.image3 = image3
@@ -12,6 +12,8 @@ class Button:
         self.outline1_surf.set_colorkey((0, 0, 0))
         for pixel in self.outline1:
             self.outline1_surf.set_at((pixel[0], pixel[1]), (255, 255, 255))
+
+        self.fast_action = fast_action
 
         self.image = self.image1
         self.image_rect = self.image.get_rect()
@@ -63,12 +65,14 @@ class Button:
                     self.image_rect.x = self.x
                     self.image_rect.y = self.y
                     self.button_down = True
+                    if self.fast_action:
+                        action = True
 
         for event in events:
             if (event.type == pygame.MOUSEBUTTONUP and event.button == 1) or \
                     (event.type == pygame.JOYBUTTONUP and event.button == joystick_button) or \
                     (event.type == pygame.KEYUP and event.key == pygame.K_k and card):
-                if self.button_down:
+                if self.button_down and not self.fast_action:
                     action = True
                 self.button_down = False
 

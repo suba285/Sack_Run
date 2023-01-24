@@ -105,9 +105,9 @@ class LevelSelection:
         play_w = self.play_button.get_width()
 
         self.left_btn = Button(self.left_x, self.button_y,
-                               self.left_button, self.left_button_press, self.left_button_down)
+                               self.left_button, self.left_button_press, self.left_button_down, True)
         self.right_btn = Button(self.right_x, self.button_y,
-                                self.right_button, self.right_button_press, self.right_button_down)
+                                self.right_button, self.right_button_press, self.right_button_down, True)
         self.menu_btn = Button(swidth * (1/3) - menu_w / 2 + 10, sheight * (2/3),
                                self.menu_button, self.menu_button_press, self.menu_button_down)
 

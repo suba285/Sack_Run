@@ -419,7 +419,8 @@ class eqManager:
         if bumper_key_pressed:
             self.joystick_over_counter = self.joystick_card_over_time
 
-        if self.joystick_over_counter > 0 and not self.card_info and move and self.eq_controls['cards'] == 'keyboard':
+        if self.joystick_over_counter > 0 and not self.card_info and move and \
+                (self.eq_controls['cards'] == 'keyboard' or joysticks):
             if self.joystick_counter == 0:
                 joystick_over0 = True
             if self.joystick_counter == 1:
@@ -584,7 +585,7 @@ class eqManager:
                     if health > 0:
                         screen.blit(mouse_img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
                 else:
-                    if self.eq_controls['cards'] == 'keyboard':
+                    if self.eq_controls['cards'] == 'keyboard' and not joysticks:
                         btn1 = self.j_key
                         btn2 = self.l_key
                         btn_press1 = self.j_key_press

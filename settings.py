@@ -334,6 +334,19 @@ class SettingsMenu:
         self.keyboard_control_box3.x = self.center + 6
         self.keyboard_control_box3.y = control_button_start_y + gap * 3 - 4
 
+        # pov settings popup window
+        self.pov_popup_text = text.make_text(['POV settings changes will apply after restarting the game'])
+        self.pov_popup = popup_bg_generator((self.pov_popup_text.get_width() + 10, 15))
+        self.pov_popup.blit(self.pov_popup_text, (7, 7))
+
+        self.pov_popup_counter = 0
+
+        # no controller detected popup window
+        self.no_controller_txt = text.make_text(['no controller connected'])
+        self.no_controller_popup = popup_bg_generator((self.no_controller_txt.get_width() + 10, 15))
+        self.no_controller_popup.blit(self.no_controller_txt, (7, 7))
+        self.no_controller_counter = 0
+
         # controller configuration popup window
         self.controller_conf_popup0 = popup_bg_generator((200, 100))
         self.controller_conf_popup1 = popup_bg_generator((200, 100))
@@ -468,12 +481,6 @@ class SettingsMenu:
         self.choose_different_btn_surf.fill((78, 69, 80))
         self.choose_different_btn_surf.blit(self.choose_different_btn_txt,
                                             (0, 10))
-
-        # no controller detected popup window
-        self.no_controller_txt = text.make_text(['no controller connected'])
-        self.no_controller_popup = popup_bg_generator((self.no_controller_txt.get_width() + 10, 15))
-        self.no_controller_popup.blit(self.no_controller_txt, (7, 7))
-        self.no_controller_counter = 0
 
     def update_settings_counters(self, settings_counters, controls):
         self.settings_counters = settings_counters
@@ -699,6 +706,8 @@ class SettingsMenu:
             for event in events:
                 # axis input
                 if event.type == pygame.JOYAXISMOTION:
+                    self.no_controller_counter = 0
+                    self.pov_popup_counter = 0
                     # horizontal joystick movement
                     if event.axis == self.controls['configuration'][0][0]:
                         if abs(event.value) > 0.3 and not self.joystick_moved:
@@ -736,11 +745,16 @@ class SettingsMenu:
                             self.joystick_moved = False
 
                 if event.type == pygame.JOYBUTTONDOWN:
+                    self.no_controller_counter = 0
+                    self.pov_popup_counter = 0
                     # bumper input
                     if event.button == 4 or event.button == self.controls['configuration'][1]:
                         joystick_tab_left = True
                     if event.button == 5 or event.button == self.controls['configuration'][2]:
                         joystick_tab_right = True
+                if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:
+                    self.no_controller_counter = 0
+                    self.pov_popup_counter = 0
             # D-pad input
             if joysticks:
                 hat_value = joysticks[0].get_hat(0)
@@ -829,8 +843,8 @@ class SettingsMenu:
 
         res_left_press = False
         res_right_press = False
-        perf_left_press = False
-        perf_right_press = False
+        pov_left_press = False
+        pov_right_press = False
         hit_left_press = False
         hit_right_press = False
 
@@ -865,6 +879,7 @@ class SettingsMenu:
 
         self.keyboard_highlight_counter += 1 * fps_adjust
         self.no_controller_counter -= 1 * fps_adjust
+        self.pov_popup_counter -= 1 * fps_adjust
 
         if prev_joystick_counter != self.joystick_counter:
             self.arrow_button_outline_alpha = 0
@@ -1139,9 +1154,9 @@ class SettingsMenu:
                                                                              self.vis_sound_button_start_y + self.gap))
 
             if self.pov_counter > 1:
-                perf_left_press, over3 = self.performance_btn_left.draw_button(self.visual_screen,
-                                                                               False, mouse_adjustment, events,
-                                                                               joystick_over2)
+                pov_left_press, over3 = self.performance_btn_left.draw_button(self.visual_screen,
+                                                                              False, mouse_adjustment, events,
+                                                                              joystick_over2)
             else:
                 self.visual_screen.blit(self.left_button_grey, (self.left_btn_x,
                                                                 self.vis_sound_button_start_y + self.gap * 2))
@@ -1150,9 +1165,9 @@ class SettingsMenu:
                                                                              self.vis_sound_button_start_y + self.gap * 2))
 
             if self.pov_counter < 2:
-                perf_right_press, over4 = self.performance_btn_right.draw_button(self.visual_screen,
-                                                                                 False, mouse_adjustment, events,
-                                                                                 joystick_over_2)
+                pov_right_press, over4 = self.performance_btn_right.draw_button(self.visual_screen,
+                                                                                False, mouse_adjustment, events,
+                                                                                joystick_over_2)
             else:
                 self.visual_screen.blit(self.right_button_grey, (self.right_btn_x,
                                                                  self.vis_sound_button_start_y + self.gap * 2))
@@ -1190,15 +1205,19 @@ class SettingsMenu:
         if res_right_press and self.resolution_counter < 4:
             self.resolution_counter += 1
 
-        if perf_left_press and self.pov_counter > 1:
+        if pov_left_press and self.pov_counter > 1:
             self.pov_counter -= 1
-        if perf_right_press and self.pov_counter < 2:
+        if pov_right_press and self.pov_counter < 2:
             self.pov_counter += 1
 
         if hit_left_press and self.hitbox_counter > 1:
             self.hitbox_counter -= 1
         if hit_right_press and self.hitbox_counter < 2:
             self.hitbox_counter += 1
+
+        # pov popup trigger
+        if pov_left_press or pov_right_press:
+            self.pov_popup_counter = 140
 
         # SOUND SETTINGS SCREEN ========================================================================================
         text_titles_y = round(40 / 270 * sheight)
@@ -1375,6 +1394,11 @@ class SettingsMenu:
             settings_screen.blit(self.no_controller_popup,
                                  (swidth / 2 - self.no_controller_popup.get_width() / 2,
                                   sheight / 2 - self.no_controller_popup.get_height() / 2))
+        # pov popup
+        if self.pov_popup_counter > 0:
+            settings_screen.blit(self.pov_popup,
+                                 (swidth / 2 - self.pov_popup.get_width() / 2,
+                                  sheight / 2 - self.pov_popup.get_height() / 2))
         # --------------------------------------------------------------------------------------------------------------
 
         if over or over1 or over3 or over5 or over7:

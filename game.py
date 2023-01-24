@@ -391,7 +391,7 @@ class Game:
                 5: Dialogue('It may not sound glamorous, I know, but it is what it is.', text),
                 6: Dialogue('All you need to do is get to the mill.', text),
                 7: Dialogue("You think that's easy? It's a long way full of traps and enemies.", text),
-                8: Dialogue('Good luck! :))', text),
+                8: Dialogue('Good luck!', text),
                 9: 'end'
             }
         else:
