@@ -818,7 +818,7 @@ while run:
                 'left': controls_nums[f"left{settings_counters['walking']}"],
                 'right': controls_nums[f"right{settings_counters['walking']}"],
                 'jump': controls_nums[f"jump{settings_counters['jumping']}"],
-                'configuration': controls_nums["configuration"],
+                'configuration': controls['configuration'],
                 'cards': controls_nums[f"cards{settings_counters['cards']}"],
             }
 

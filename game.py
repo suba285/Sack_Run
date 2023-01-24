@@ -527,9 +527,6 @@ class Game:
         elif configuration_counter == 2:
             self.controller_type = 'ps4'
             jump_btn = 'cross'
-        else:
-            self.controller_type = 'other'
-            jump_btn = 'A or cross'
 
 # LEVEL CHECKING =======================================================================================================
     def level_checker(self, level_count, world_count):
