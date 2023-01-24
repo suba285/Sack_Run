@@ -1,5 +1,4 @@
 import time
-import json
 import threading
 from screen_info import *
 
@@ -55,7 +54,7 @@ except FileNotFoundError:
         'cards': 1,
         'configuration': 1,
         'resolution': 1,
-        'performance': 1,
+        'pov': 1,
         'hitbox': 1,
         'music_volume': 2,
         'sounds': 2
@@ -187,10 +186,7 @@ game_counter = default_game_counter
 # variables ------------------------------------------------------------------------------------------------------------
 text = Text()
 
-if settings_counters['performance'] == 1:
-    slow_computer = False
-else:
-    slow_computer = True
+slow_computer = False
 run = True
 run_game = False
 run_menu = True

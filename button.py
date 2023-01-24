@@ -6,6 +6,12 @@ class Button:
         self.image1 = image1
         self.image2 = image2
         self.image3 = image3
+        self.mask1 = pygame.mask.from_surface(self.image1)
+        self.outline1 = pygame.mask.Mask.outline(self.mask1)
+        self.outline1_surf = pygame.Surface((self.image1.get_width(), self.image1.get_height())).convert()
+        self.outline1_surf.set_colorkey((0, 0, 0))
+        for pixel in self.outline1:
+            self.outline1_surf.set_at((pixel[0], pixel[1]), (255, 255, 255))
 
         self.image = self.image1
         self.image_rect = self.image.get_rect()
@@ -70,6 +76,10 @@ class Button:
             self.image = self.image3
 
         screen.blit(self.image, self.image_rect)
+        if self.joystick_over_button and not self.button_down and not card:
+            if 255 >= self.joystick_over_counter * 40 > 0:
+                self.outline1_surf.set_alpha(self.joystick_over_counter * 40)
+            screen.blit(self.outline1_surf, self.image_rect)
 
         return action, self.cursor_over
 

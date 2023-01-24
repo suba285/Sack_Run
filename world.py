@@ -5,7 +5,7 @@ from plant_spit import PlantSpit
 from image_loader import img_loader
 from font_manager import Text
 from shockwave import Shockwave
-from screen_info import global_monitor_height, global_monitor_width
+from screen_info import swidth, sheight
 import random
 import math
 
@@ -13,16 +13,6 @@ pygame.mixer.init()
 pygame.init()
 
 tile_size = 32
-monitor_width = global_monitor_width
-monitor_height = global_monitor_height
-
-sheight = 270
-swidth = 480
-
-if monitor_width / 16 <= monitor_height / 9:
-    fullscreen_scale = round(monitor_width / swidth)
-    swidth = round(monitor_width / fullscreen_scale)
-    sheight = round(swidth / 16 * 9)
 
 # this class is responsible for assigning tile images to their places on the screen
 # it's functions draw the tiles and manage the interactive tiles of the game

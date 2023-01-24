@@ -4,20 +4,9 @@ from button import Button
 from image_loader import img_loader
 from font_manager import Text
 from popup_bg_generator import popup_bg_generator
-from screen_info import global_monitor_height, global_monitor_width
+from screen_info import swidth, sheight
 
 tile_size = 32
-
-monitor_width = global_monitor_width
-monitor_height = global_monitor_height
-
-sheight = 270
-swidth = 480
-
-if monitor_width / 16 <= monitor_height / 9:
-    fullscreen_scale = round(monitor_width / swidth)
-    swidth = round(monitor_width / fullscreen_scale)
-    sheight = round(swidth / 16 * 9)
 
 card_tile_size = 2 * tile_size
 
