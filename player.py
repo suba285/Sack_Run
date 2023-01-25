@@ -193,7 +193,7 @@ class Player:
         self.sack_rect.x = swidth / 2 - self.sack_rect.width / 2
         self.sack_rect.y = sheight / 2 - self.sack_rect.height / 2
 
-        self.player_speed = 2.2
+        self.player_speed = 2
         self.slide = 0.4
         self.default_on_ground_counter = 6
         self.on_ground_counter = self.default_on_ground_counter
@@ -872,7 +872,7 @@ class Player:
                 mushroom[2] = 12
                 mushroom[3] = 60
                 dy = 0
-                self.vel_y = -7.2
+                self.vel_y = -7.4
 
         # next level position
         if self.new_level:

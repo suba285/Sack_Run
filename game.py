@@ -244,9 +244,8 @@ class Game:
 
         self.controls_popup_text_surface = pygame.Surface((instruction_width + 6, 180)).convert_alpha()
         self.controls_popup_text_space = pygame.Surface((instruction_width + 6, 115)).convert_alpha()
-        self.popup_bg_colour = img_loader('data/images/popup_bg.PNG', self.controls_popup_text_space.get_width(),
-                                          self.controls_popup_text_space.get_width())
-        self.controls_popup_text_space.blit(self.popup_bg_colour, (0, 0))
+        self.popup_bg_colour = (79, 70, 81)
+        self.controls_popup_text_space.fill(self.popup_bg_colour)
         self.controls_popup_text_surface.set_colorkey((0, 0, 0))
 
         self.controls_popup_gradient = Gradient(instruction_width + 10, 15, (1, 101))
@@ -904,7 +903,7 @@ class Game:
                                                                                           mouse_adjustment, events,
                                                                                           joysticks,
                                                                                           self.controls['configuration'])
-                self.controls_popup_text_space.blit(self.popup_bg_colour, (0, 0))
+                self.controls_popup_text_space.fill(self.popup_bg_colour)
                 self.controls_popup_text_space.blit(self.controls_popup_text_surface,
                                                     (0, -controls_popup_percentage * (self.controls_popup_text_surface.get_height() - self.controls_popup_text_space.get_height())))
                 popup.blit(self.controls_popup_text_space, (2, 1))

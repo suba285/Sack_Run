@@ -1039,20 +1039,19 @@ while run:
             output = pygame.transform.scale(screen, (swidth * scaling, sheight * scaling))
             main_screen.blit(output, (swidth / 2 - swidth * scaling / 2, 0))
         else:
-            output = screen
-            main_screen.blit(output, (0, 0))
+            main_screen = screen.copy()
 
     elif paused:
-        main_screen.blit(pause_screen, (0, 0))
+        main_screen = pause_screen.copy()
 
     elif run_level_selection:
-        main_screen.blit(level_selection_screen, (0, 0))
+        main_screen = level_selection_screen.copy()
 
     elif run_settings:
-        main_screen.blit(settings_screen, (0, 0))
+        main_screen = settings_screen.copy()
 
     else:
-        main_screen.blit(menu_screen, (0, 0))
+        main_screen = menu_screen.copy()
 
     # controller errors and messages -----------------------------------------------------------------------------------
 

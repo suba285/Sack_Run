@@ -24,7 +24,7 @@ try:
 except FileNotFoundError:
     pov_condition = 1
 
-if pov_condition == 1:
+if pov_condition == 2:
     if global_monitor_width / 16 <= global_monitor_height / 9:
         fullscreen_scale = round(global_monitor_width / global_swidth)
         swidth = global_monitor_width / fullscreen_scale

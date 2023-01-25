@@ -143,8 +143,8 @@ class SettingsMenu:
         self.res_conf2 = text.make_text([f'{int(swidth*3)} x {int(sheight*3)}'])
         self.res_conf3 = text.make_text([f'{int(swidth*4)} x {int(sheight*4)}'])
         self.res_conf4 = text.make_text(['FULLSCREEN'])
-        self.pov_conf1 = text.make_text(['on'])
-        self.pov_conf2 = text.make_text(['off'])
+        self.pov_conf1 = text.make_text(['off'])
+        self.pov_conf2 = text.make_text(['on'])
         self.hitbox_txt = text.make_text(['show hitbox:'])
         self.hitbox_conf1 = self.off_conf
         self.hitbox_conf2 = self.on_conf
