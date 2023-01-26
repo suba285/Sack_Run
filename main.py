@@ -488,8 +488,9 @@ while run:
 
         # controller not configured message
         if controller_not_configured_counter > 0:
-            menu_screen.blit(controller_not_configured_popup, (swidth / 2 - controller_not_configured_popup.get_width() / 2,
-                                                             130))
+            menu_screen.blit(controller_not_configured_popup,
+                             (swidth / 2 - controller_not_configured_popup.get_width() / 2,
+                              130))
 
         # changing the displayed screens
         if settings:

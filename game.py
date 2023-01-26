@@ -167,6 +167,7 @@ class Game:
 
         self.cave_background_colour = (35, 29, 39)
         self.sky_background_colour = (100, 63, 102)
+        self.bg_transition_colour = [0, 0, 0]
 
         text = Text()
 
@@ -776,10 +777,21 @@ class Game:
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
 
         # blitting tiles and images in the background ------------------------------------------------------------------
-        if world_count in [1, 2, 4] or level_count == 1:
+        if world_count in [1, 2, 4]:
             self.game_screen.fill(self.sky_background_colour)
         else:
-            self.game_screen.fill(self.cave_background_colour)
+            if self.world.bg_border == 0:
+                self.game_screen.fill(self.cave_background_colour)
+            else:
+                if self.sack_position[1] > self.world.bg_border:
+                    for index in range(3):
+                        self.bg_transition_colour[index] -= 6
+                        if self.bg_transition_colour[index] < self.cave_background_colour[index]:
+                            self.bg_transition_colour[index] = self.cave_background_colour[index]
+                    self.game_screen.fill(self.bg_transition_colour)
+                else:
+                    self.game_screen.fill(self.sky_background_colour)
+                    self.bg_transition_colour = list(self.sky_background_colour)
         self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust)
         self.world.draw_bg_tile_list(self.game_screen)
         self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,

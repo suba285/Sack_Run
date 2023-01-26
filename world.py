@@ -107,6 +107,7 @@ class World:
         self.list_of_lists = []
 
         # variables ----------------------------------------------------------------------------------------------------
+        self.bg_border = 0
         self.portal_counter = 0
         self.portal_part_counter = 0
         self.bee_release_counter = 400
@@ -411,6 +412,7 @@ class World:
         self.bg_data = bg_data
 
         # TILE DATA ENCODING SYSTEM ====================================================================================
+        # 9 - background transition border
         # 10 - gem
         # 11 - dirt
         # 12 - stone
@@ -458,6 +460,9 @@ class World:
             column_count = start_x
             self.level_length = 0
             for tile in row:
+                if tile == 9:
+                    # background transition border
+                    self.bg_border = row_count * tile_size
                 if tile == 10:
                     # gem
                     if level_count == 5 and self.world_count == 3:
@@ -915,6 +920,8 @@ class World:
             for wheat in wheat_list:
                 wheat[0] += camera_move_x
                 wheat[1] += camera_move_y
+
+        self.bg_border += camera_move_y
 
         return self.tile_list
 
