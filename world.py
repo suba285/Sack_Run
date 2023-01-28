@@ -121,6 +121,7 @@ class World:
         self.spit_counter_up = 0
         self.log_counter = 0
         self.wood_num = 0
+        self.playing_wheat_sound = False
         self.gem_bob_counter = 0
         self.gem_flicker_counter = 0
         self.gem_equipped = False
@@ -374,7 +375,6 @@ class World:
         self.bee_hive_list = []
         self.shut_trap_list = []
         self.bush_list = []
-        self.slope_list = []
         self.decoration_list = []
         self.spitting_plant_list_left = []
         self.spitting_plant_list_right = []
@@ -401,6 +401,7 @@ class World:
         self.spit_counter_up = 0
         self.log_counter = 0
         self.wood_num = 0
+        self.playing_wheat_sound = False
         self.wood_particles = []
         self.mush_particles = []
         self.gem_particles = []
@@ -453,11 +454,22 @@ class World:
 
         lava_start = []
 
+        # static lists:
+        # • tile_list
+        # • decoration_list
+        # • set_lava_list
+        # • bg_tile_list
+        # • bg_decoration_list
+
         pov_offset = (480 - swidth) / 2
 
+        self.tile_surface_pos = [start_x * tile_size - pov_offset, start_y * tile_size]
+
         row_count = start_y
+        tile_row = 0
         for row in self.data:
             column_count = start_x
+            tile_column = 0
             self.level_length = 0
             for tile in row:
                 if tile == 9:
@@ -483,12 +495,16 @@ class World:
                 if tile == 11:
                     # dirt
                     tile = img_rect_pos(self.dirt_tile, column_count, row_count, pov_offset)
+                    tile.append('grass')
+                    tile.append([(column_count - start_x) * tile_size, (row_count - start_y) * tile_size])
                     self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                     self.tile_list.append(tile)
                 if tile == 12:
                     # stone
                     tile = img_rect_pos(self.stone_tile, column_count, row_count, pov_offset)
+                    tile.append('rock')
+                    tile.append([tile_column * tile_size, tile_row * tile_size])
                     self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                     self.tile_list.append(tile)
@@ -536,9 +552,9 @@ class World:
                     # stone dirt
                     img = self.dirt_tile_rocks
                     img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size - pov_offset
+                    img_rectangle.x = column_count * tile_size
                     img_rectangle.y = row_count * tile_size
-                    tile = (img, img_rectangle)
+                    tile = [img, img_rectangle, 'grass', [tile_column * tile_size, tile_row * tile_size]]
                     self.tile_pos_list.append([img_rectangle.x, img_rectangle.y])
                     self.tile_list.append(tile)
                 if tile == 22:
@@ -567,7 +583,7 @@ class World:
                     img_rectangle = dimension_img.get_rect()
                     img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
-                    tile = (img, img_rectangle)
+                    tile = [img, img_rectangle, 'wood', [tile_column * tile_size, tile_row * tile_size]]
                     self.tile_list.append(tile)
                 if tile == 25:
                     # wobbly mushrooms
@@ -664,7 +680,7 @@ class World:
                     tile = (img, img_rectangle)
                     self.decoration_list.append(tile)
                 if tile == 34:
-                    # short left
+                    # short grass left
                     img = pygame.transform.scale(self.short_grass_left, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
@@ -673,7 +689,7 @@ class World:
                     tile = (img, img_rectangle)
                     self.decoration_list.append(tile)
                 if tile == 35:
-                    # short right
+                    # short grass right
                     img = pygame.transform.scale(self.short_grass_right, (tile_size, tile_size))
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
@@ -687,7 +703,7 @@ class World:
                     img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
                     tile = (self.bush, img_rectangle)
-                    self.bush_list.append(tile)
+                    self.bg_decoration_list.append(tile)
                 if tile == 37:
                     # spitting plant left
                     img = pygame.transform.scale(self.spitting_plant0_raw, (tile_size, tile_size))
@@ -793,9 +809,18 @@ class World:
                     self.decoration_list.append(tile)
 
                 column_count += 1
+                tile_column += 1
                 self.level_length += 1
             row_count += 1
+            tile_row += 1
             self.level_height += 1
+
+        self.tile_surface_fg = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
+        self.tile_surface_fg.set_colorkey((0, 0, 0))
+        self.tile_surface_bg = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
+        self.tile_surface_bg.set_colorkey((0, 0, 0))
+
+        temp_tile_list = []
 
         for tile in self.tile_list:
             #    0
@@ -824,6 +849,20 @@ class World:
                     tile[0] = self.stone_tiles[tuple(tile_edge_data)]
                 except KeyError:
                     tile[0] = self.stone_tile
+
+            self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
+                                                tile[1][1] - start_y * tile_size))
+            if tile[0] != self.dirt_tile and tile[0] != self.stone_tile:
+                temp_tile_list.append(tile)
+
+        self.tile_list = temp_tile_list
+
+        for tile in self.decoration_list:
+            self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
+                                                tile[1][1] - start_y * tile_size))
+        for tile in self.set_lava_list:
+            self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
+                                                tile[1][1] - start_y * tile_size))
 
         # background tiles ---------------------------------------------------------------------------------------------
         bg_row_count = start_y
@@ -874,10 +913,15 @@ class World:
                 except KeyError:
                     tile[0] = self.bg_dark_tile
 
-        self.list_of_lists = [self.tile_list, self.decoration_list, self.slope_list, self.set_lava_list,
-                              self.portal_list, self.bee_hive_list, self.bush_list, self.bg_tile_list,
+            self.tile_surface_bg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
+                                                tile[1][1] - start_y * tile_size))
+        for tile in self.bg_decoration_list:
+            self.tile_surface_bg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
+                                                tile[1][1] - start_y * tile_size))
+
+        self.list_of_lists = [self.portal_list, self.bee_hive_list, self.bush_list, self.tile_list,
                               self.spitting_plant_list_up, self.spitting_plant_list_left,
-                              self.spitting_plant_list_right, self.bg_decoration_list,
+                              self.spitting_plant_list_right,
                               self.log_list, self.gem_list, self.shockwave_mushroom_list]
 
         return self.level_length, self.level_height
@@ -885,16 +929,7 @@ class World:
     def return_tile_list(self):
         return self.tile_list, self.level_length
 
-    def return_slope_list(self):
-        return self.slope_list
-
-    # functions drawing tiles ==========================================================================================
-
-    def draw_foliage(self, screen):
-        for tile in self.decoration_list:
-            if - tile_size < tile[1][0] < swidth:
-                if - tile_size * 2 < tile[1][1] < sheight:
-                    screen.blit(tile[0], tile[1])
+    # functions drawing and updating tile surfaces =====================================================================
 
     # updating the position of all tiles -------------------------------------------------------------------------------
     def update_tile_list(self, camera_move_x, camera_move_y):
@@ -902,6 +937,9 @@ class World:
             for tile in tile_list:
                 tile[1][0] += camera_move_x
                 tile[1][1] += camera_move_y
+
+        self.tile_surface_pos[0] += camera_move_x
+        self.tile_surface_pos[1] += camera_move_y
 
         self.bear_trap.bear_trap_update(camera_move_x, camera_move_y, self.bear_trap_rect_list)
 
@@ -926,19 +964,12 @@ class World:
         return self.tile_list
 
     # ------------------------------------------------------------------------------------------------------------------
-    def draw_tile_list(self, screen):
-        for tile in self.tile_list:
-            if - tile_size < tile[1][0] < swidth:
-                if - tile_size < tile[1][1] < sheight:
-                    screen.blit(tile[0], tile[1])
+    def draw_static_tiles_foreground(self, screen):
+        screen.blit(self.tile_surface_fg, self.tile_surface_pos)
 
     # ------------------------------------------------------------------------------------------------------------------
-    def draw_bg_tile_list(self, screen):
-        for tile in self.bg_tile_list:
-            screen.blit(tile[0], tile[1])
-            if - tile_size < tile[1][0] < swidth:
-                if - tile_size < tile[1][1] < sheight:
-                    screen.blit(tile[0], tile[1])
+    def draw_static_tiles_background(self, screen):
+        screen.blit(self.tile_surface_bg, self.tile_surface_pos)
 
     # functions for drawing animated or interactive tiles and enemies ==================================================
 
@@ -1000,13 +1031,12 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_set_lava(self, screen, sack_rect):
+    def update_set_lava(self, sack_rect):
         set_lava_harm = False
         for tile in self.set_lava_list:
             if -tile_size < tile[1][0] < swidth:
                 if tile[1].colliderect(sack_rect):
                     set_lava_harm = True
-                screen.blit(tile[0], (tile[1][0] + tile[2], tile[1][1]))
         return set_lava_harm
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -1201,15 +1231,6 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_bush(self, screen):
-        self.bush_img = self.bush
-        for tile in self.bush_list:
-            if - tile_size * 2 < tile[1][0] < swidth:
-                if - tile_size * 2 < tile[1][1] < sheight:
-                    screen.blit(self.bush_img, tile[1])
-
-    # ------------------------------------------------------------------------------------------------------------------
-
     def draw_spitting_plant_left(self, screen, fps_adjust, camera_move_x, camera_move_y, sack_rect, health):
         harm = False
         self.spitting_counter_left += 1 * fps_adjust
@@ -1332,22 +1353,26 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_bg_decoration(self, screen):
-        for tile in self.bg_decoration_list:
-            if - tile_size * 3 < tile[1][0] < swidth:
-                if - tile_size * 3 < tile[1][1] < sheight:
-                    screen.blit(tile[0], tile[1])
-
-    # ------------------------------------------------------------------------------------------------------------------
-
-    def draw_wheat(self, screen, sack_rect):
+    def draw_wheat(self, screen, sack_rect, moving):
+        sound = 0
+        colliding = False
         for list_of_wheat in self.wheat_list:
             if -tile_size < list_of_wheat[0][0] < swidth and -tile_size < list_of_wheat[0][1] < sheight:
                 for wheat_pos in list_of_wheat:
                     y = wheat_pos[1]
                     if wheat_pos.colliderect(sack_rect.x - 4, sack_rect.y, sack_rect.width + 8, sack_rect.height):
                         y += 6
+                        colliding = True
+                        if not self.playing_wheat_sound and moving:
+                            sound = 1
+                            self.playing_wheat_sound = True
                     screen.blit(self.wheat, (wheat_pos[0], y))
+        if not colliding or not moving:
+            if self.playing_wheat_sound:
+                sound = -1
+            self.playing_wheat_sound = False
+
+        return sound
 
     # ------------------------------------------------------------------------------------------------------------------
 

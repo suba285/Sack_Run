@@ -109,11 +109,11 @@ class PauseScreen:
         if joysticks:
             if self.joystick_counter == 0:
                 joystick_over0 = True
-            if self.joystick_counter == 1:
+            elif self.joystick_counter == 1:
                 joystick_over1 = True
-            if self.joystick_counter == 2:
+            elif self.joystick_counter == 2:
                 joystick_over2 = True
-            if self.joystick_counter == 3:
+            elif self.joystick_counter == 3:
                 joystick_over3 = True
 
         if joystick_over3:

@@ -298,6 +298,7 @@ class Player:
         self.harm_flash_counter = 0
         self.init_flash = False
         self.lowering_cooldown = 15
+        self.surface_type = 'grass'
 
         self.screen_shake_counter = 0
 
@@ -380,6 +381,17 @@ class Player:
 
         dx = 0
         dy = 0
+
+        sounds = {
+            'step_grass': False,
+            'step_wood': False,
+            'step_rock': False,
+            'jump': False,
+            'mid_air_jump': False,
+            'mushroom': False,
+            'land': False,
+            'death': False,
+        }
 
         self.animation_counter += 1 * fps_adjust
 
@@ -525,6 +537,7 @@ class Player:
                                                                unsetcolor=(0, 0, 0))
             self.sack_silhouette.set_colorkey((0, 0, 0))
             self.dead = True
+            sounds['death'] = True
             self.harmed = True
             self.speed_dash = False
             self.speed_dash_activated = False
@@ -584,17 +597,19 @@ class Player:
                     self.speed_dash_activated = False
                     if not gem_equipped:
                         self.speed_dash = False
-                    self.vel_y = -8
+                    self.vel_y = -7.5
                 self.player_moved = True
                 if not self.jumped and \
                         ((self.on_ground_counter > 0 and not self.airborn) or (self.dy > 5 and self.mid_air_jump)):
                     if self.mid_air_jump and not (self.on_ground_counter > 0 and not self.airborn):
                         self.mid_air_jump_counter += 1
                         self.screen_shake_counter = 10
+                        sounds['mid_air_jump'] = True
                     if self.mid_air_jump:
                         self.vel_y = -11
                     else:
-                        self.vel_y = -8.1
+                        self.vel_y = -7.5
+                    sounds['jump'] = True
                     self.jump_adder = 0
                     self.jumped = True
                     self.animate_walk = False
@@ -675,6 +690,8 @@ class Player:
                 if (walking_right or walking_left) and self.animate_walk and not self.airborn and self.vel_x != 0:
                     if self.animation_counter > self.walk_animation_speed:
                         self.walk_counter += 1
+                        if self.walk_counter in [4, 8]:
+                            sounds[f'step_{self.surface_type}'] = True
                         self.animation_counter = 0
                     if self.walk_counter > len(self.sack_walk):
                         self.walk_counter = 1
@@ -846,8 +863,12 @@ class Player:
         for tile in hit_list_y:
             if dy > 0:
                 self.sack_rect.bottom = tile[1].top
+                self.surface_type = tile[2]
                 if (self.airborn or dy > 8) and self.player_moved and self.squash_counter_y > 4:
                     self.squash_counter_y = -3
+                    sounds[f'step_{self.surface_type}'] = True
+                    sounds['land'] = True
+                    self.walk_counter = 0
                 dy = 0
                 self.vel_y = 0
                 self.col_types['bottom'] = True
@@ -872,7 +893,8 @@ class Player:
                 mushroom[2] = 12
                 mushroom[3] = 60
                 dy = 0
-                self.vel_y = -7.4
+                self.vel_y = -7.5
+                sounds['mushroom'] = True
 
         # next level position
         if self.new_level:
@@ -924,7 +946,7 @@ class Player:
         return level_count, self.sack_rect, self.direction, self.health,\
                self.camera_movement_x, self.camera_movement_y,\
                self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list,\
-               gem_equipped, screen_shake
+               gem_equipped, screen_shake, sounds
 
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================
     def blit_player(self, screen, draw_hitbox, fps_adjust):

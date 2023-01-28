@@ -142,6 +142,7 @@ from world_selection import LevelSelection
 from game import level_dictionary, level_bg_dictionary
 from settings import SettingsMenu
 from image_loader import img_loader
+import random
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -267,22 +268,45 @@ screen_dim.fill((0, 0, 0))
 
 # sounds ---------------------------------------------------------------------------------------------------------------
 sounds = {
-        'card_shuffle': pygame.mixer.Sound('data/sounds/card_shuffle.wav'),
         'card_pull': pygame.mixer.Sound('data/sounds/card_pull_short2.wav'),
         'lock_click': pygame.mixer.Sound('data/sounds/lock_click.wav'),
+        'step_grass1': pygame.mixer.Sound('data/sounds/step_grass1.wav'),
+        'step_grass2': pygame.mixer.Sound('data/sounds/step_grass2.wav'),
+        'step_wood': pygame.mixer.Sound('data/sounds/step_wood.wav'),
+        'step_rock1': pygame.mixer.Sound('data/sounds/step_rock1.wav'),
+        'step_rock2': pygame.mixer.Sound('data/sounds/step_rock2.wav'),
+        'landing': pygame.mixer.Sound('data/sounds/landing.wav'),
+        'jump': pygame.mixer.Sound('data/sounds/jump.wav'),
+        'mid_air_jump': pygame.mixer.Sound('data/sounds/mid_air_jump.wav'),
+        'mushroom': pygame.mixer.Sound('data/sounds/mushroom.wav'),
         'bear_trap_cling': pygame.mixer.Sound('data/sounds/bear_trap_cling.wav'),
-        'healing_sound': pygame.mixer.Sound('data/sounds/healing_sound2.wav'),
+        'death': pygame.mixer.Sound('data/sounds/death2.wav'),
+        'wheat': pygame.mixer.Sound('data/sounds/wheat.wav'),
         'button_click': pygame.mixer.Sound('data/sounds/button_click.wav'),
-        'paper_crumbling': pygame.mixer.Sound('data/sounds/paper_crumbling.wav'),
         'world_completed': pygame.mixer.Sound('data/sounds/world_completed_sound.wav')
     }
+
+# wheat channel
+pygame.mixer.Channel(1)
+pygame.mixer.Channel(1).set_volume(0.5)
+
+walk_sound_switch = False
+step_sound_volume = 0.7
 
 sounds['card_pull'].set_volume(0.4)
 sounds['lock_click'].set_volume(1.4)
 sounds['bear_trap_cling'].set_volume(0.6)
-sounds['button_click'].set_volume(0.9)
-sounds['paper_crumbling'].set_volume(0.8)
+sounds['button_click'].set_volume(1.2)
 sounds['world_completed'].set_volume(0.6)
+sounds['step_grass1'].set_volume(step_sound_volume)
+sounds['step_grass2'].set_volume(step_sound_volume)
+sounds['step_wood'].set_volume(0.15)
+sounds['step_rock1'].set_volume(0.5)
+sounds['step_rock2'].set_volume(0.2)
+sounds['landing'].set_volume(0.1)
+sounds['death'].set_volume(0.7)
+sounds['jump'].set_volume(0.3)
+sounds['mid_air_jump'].set_volume(0.8)
 
 music = {
     '1': 'game_song1',
@@ -408,15 +432,24 @@ while run:
     key = pygame.key.get_pressed()
 
     # sound triggers
-    play_card_pull_sound = False
-    play_lock_sound = False
-    play_bear_trap_cling_sound = False
-    play_healing_sound = False
-    play_button_sound = False
-    play_paper_sound = False
     button_sound_trigger1 = False
     button_sound_trigger2 = False
     button_sound_trigger3 = False
+    sound_triggers = {
+        'card': False,
+        'lock': False,
+        'trap': False,
+        'button': False,
+        'step_grass': False,
+        'step_wood': False,
+        'step_rock': False,
+        'jump': False,
+        'mid_air_jump': False,
+        'mushroom': False,
+        'land': False,
+        'death': False,
+        'wheat': False
+    }
 
     load_music = False
 
@@ -439,7 +472,7 @@ while run:
     last_fps_adjust = fps_adjust
     fps_int = int(real_fps)
 
-    clock.tick(60)
+    clock.tick(120)
 
     # joystick variables and counters
     joystick_moved = False
@@ -461,7 +494,7 @@ while run:
         else:
             menu_events = []
         controller_not_configured_counter -= 1 * fps_adjust
-        level_selection, button_sound_trigger1,\
+        level_selection, sound_triggers['button'],\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
                                                              mouse_adjustment, menu_events, fps_adjust,
                                                              controls['configuration'], joysticks)
@@ -516,13 +549,8 @@ while run:
         run_menu = False
         if pygame.WINDOWMAXIMIZED not in events and not world_completed and not opening_scene:
             level_count,\
-                play_card_pull_sound,\
-                play_lock_sound,\
-                play_bear_trap_cling_sound,\
-                play_healing_sound,\
-                button_sound_trigger2,\
-                play_paper_sound,\
                 play_music_trigger,\
+                game_sounds,\
                 fadeout_music,\
                 lvl_selection_press,\
                 world_completed = main_game.game(screen, level_count, fps_adjust,
@@ -530,6 +558,7 @@ while run:
                                                  game_counter, world_count, controls,
                                                  controller_calibration, joysticks, level_restart_procedure)
             level_restart_procedure = False
+            sound_triggers.update(game_sounds)
         else:
             menu_press = False
             lvl_selection_press = False
@@ -599,7 +628,7 @@ while run:
         else:
             paused_events = []
         pause_screen,\
-            button_sound_trigger1,\
+            sound_triggers['button'],\
             resume,\
             lvl_select,\
             settings,\
@@ -668,7 +697,7 @@ while run:
             lvl_selection_events = []
         play_press,\
             menu,\
-            button_sound_trigger1,\
+            sound_triggers['button'],\
             world_count,\
             new_world_unlocked = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
                                                                    lvl_selection_events,
@@ -935,11 +964,11 @@ while run:
 
     # PLAYING SOUNDS ---------------------------------------------------------------------------------------------------
     if play_sounds:
-        if (play_card_pull_sound and one_time_play_card_pull)\
+        if (sound_triggers['card'] and one_time_play_card_pull)\
                 or (joystick_over_card and run_game):
             sounds['card_pull'].play()
             one_time_play_card_pull = False
-        if not play_card_pull_sound:
+        if not sound_triggers['card']:
             one_time_play_card_pull = True
 
         if button_sound_trigger3 and one_time_play_button2:
@@ -948,11 +977,12 @@ while run:
         if not button_sound_trigger3:
             one_time_play_button2 = True
 
-        if play_lock_sound and one_time_play_lock:
+        if sound_triggers['lock'] and one_time_play_lock:
             sounds['lock_click'].play()
             one_time_play_lock = False
             card_swoosh_chest = True
-        if not play_lock_sound:
+
+        if not sound_triggers['lock']:
             one_time_play_lock = True
         if card_swoosh_chest:
             card_swoosh_counter += 1 * fps_adjust
@@ -961,24 +991,44 @@ while run:
                 card_swoosh_chest = False
                 card_swoosh_counter = 0
 
-        if play_bear_trap_cling_sound:
+        if sound_triggers['step_grass']:
+            sounds[f'step_grass{random.choice([1, 2, 2, 2])}'].play()
+
+        if sound_triggers['step_rock']:
+            sounds[f'step_rock{random.choice([1, 2, 2])}'].play()
+
+        if sound_triggers['step_wood']:
+            sounds['step_wood'].play()
+
+        if sound_triggers['land']:
+            sounds['landing'].play()
+
+        if sound_triggers['death']:
+            sounds['death'].play()
+
+        if sound_triggers['trap']:
             sounds['bear_trap_cling'].play()
 
-        if play_healing_sound:
-            sounds['healing_sound'].play()
+        if sound_triggers['jump']:
+            sounds['jump'].play()
 
-        if play_paper_sound:
-            sounds['paper_crumbling'].play()
+        if sound_triggers['mid_air_jump']:
+            sounds['mid_air_jump'].play()
+
+        if sound_triggers['mushroom']:
+            sounds['mushroom'].play()
+
+        if sound_triggers['wheat'] == 1:
+            pygame.mixer.Channel(1).play(sounds['wheat'], -1)
+        if sound_triggers['wheat'] == -1:
+            pygame.mixer.Channel(1).fadeout(100)
 
     # button sounds
-    if button_sound_trigger1 or button_sound_trigger2:
-        play_button_sound = True
-
-    if (play_button_sound and one_time_play_button1)\
+    if (sound_triggers['button'] and one_time_play_button1)\
             or (joystick_moved and (run_menu or run_settings or run_level_selection or paused)):
         sounds['button_click'].play()
         one_time_play_button1 = False
-    if not play_button_sound:
+    if not sound_triggers['button']:
         one_time_play_button1 = True
 
     # music

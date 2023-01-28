@@ -507,7 +507,7 @@ class eqManager:
             eqManager.card_jump_animation(self, fps_adjust, screen)
 
         # tutorial on how to use cards ---------------------------------------------------------------------------------
-        if tutorial and self.eq_button_list and level_count != 3:
+        if self.eq_button_list:
             gap = 3
 
             if over:
@@ -567,7 +567,7 @@ class eqManager:
                     tutorial_x += (img2.get_width() + gap)
                     screen.blit(self.info_text_caps, (tutorial_x, center_height + 5))
 
-            elif (not self.card_checked or gem_equipped) and player_moved:
+            elif (not self.card_checked or gem_equipped) and player_moved and tutorial:
                 if not joysticks and self.eq_controls['cards'] == 'mouse':
                     if self.press_counter >= 60:
                         mouse_img = self.mouse0

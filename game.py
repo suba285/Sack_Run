@@ -698,10 +698,20 @@ class Game:
         self.controls = controls
 
         # sounds
-        play_card_pull_sound = False
-        play_healing_sound = False
-        play_paper_sound = False
-        play_lock_sound = False
+        sounds = {
+            'card': False,
+            'button': False,
+            'trap': False,
+            'step_grass': False,
+            'step_wood': False,
+            'step_rock': False,
+            'jump': False,
+            'mid_air_jump': False,
+            'mushroom': False,
+            'land': False,
+            'death': False,
+            'wheat': 0
+        }
 
         if joysticks:
             joystick_connected = True
@@ -755,23 +765,31 @@ class Game:
             new_level_cooldown,\
             self.world.shockwave_mushroom_list,\
             self.gem_equipped,\
-            screen_shake = self.player.update_pos_animation(screen,
-                                                            self.tile_list,
-                                                            self.world.next_level_list,
-                                                            level_count,
-                                                            self.harm,
-                                                            fps_adjust,
-                                                            self.mid_air_jump_trigger,
-                                                            self.speed_dash_trigger,
-                                                            self.left_border,
-                                                            self.right_border,
-                                                            self.move,
-                                                            self.world.shockwave_mushroom_list,
-                                                            events,
-                                                            self.gem_equipped,
-                                                            joysticks,
-                                                            restart_level_procedure
-                                                            )
+            screen_shake,\
+            player_sounds = self.player.update_pos_animation(screen,
+                                                             self.tile_list,
+                                                             self.world.next_level_list,
+                                                             level_count,
+                                                             self.harm,
+                                                             fps_adjust,
+                                                             self.mid_air_jump_trigger,
+                                                             self.speed_dash_trigger,
+                                                             self.left_border,
+                                                             self.right_border,
+                                                             self.move,
+                                                             self.world.shockwave_mushroom_list,
+                                                             events,
+                                                             self.gem_equipped,
+                                                             joysticks,
+                                                             restart_level_procedure
+                                                             )
+        # updating player sounds
+        sounds.update(player_sounds)
+        # sack motion
+        if self.camera_move_x != 0:
+            moving = True
+        else:
+            moving = False
 
         # updating solid tile positions --------------------------------------------------------------------------------
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
@@ -780,26 +798,27 @@ class Game:
         if world_count in [1, 2, 4]:
             self.game_screen.fill(self.sky_background_colour)
         else:
-            if self.world.bg_border == 0:
-                self.game_screen.fill(self.cave_background_colour)
-            else:
-                if self.sack_position[1] > self.world.bg_border:
-                    for index in range(3):
-                        self.bg_transition_colour[index] -= 6
-                        if self.bg_transition_colour[index] < self.cave_background_colour[index]:
-                            self.bg_transition_colour[index] = self.cave_background_colour[index]
-                    self.game_screen.fill(self.bg_transition_colour)
+            if level_count == 1:
+                if self.world.bg_border == 0:
+                    self.game_screen.fill(self.cave_background_colour)
                 else:
-                    self.game_screen.fill(self.sky_background_colour)
-                    self.bg_transition_colour = list(self.sky_background_colour)
+                    if self.sack_position[1] > self.world.bg_border:
+                        for index in range(3):
+                            self.bg_transition_colour[index] -= 6
+                            if self.bg_transition_colour[index] < self.cave_background_colour[index]:
+                                self.bg_transition_colour[index] = self.cave_background_colour[index]
+                        self.game_screen.fill(self.bg_transition_colour)
+                    else:
+                        self.game_screen.fill(self.sky_background_colour)
+                        self.bg_transition_colour = list(self.sky_background_colour)
+            else:
+                self.game_screen.fill(self.cave_background_colour)
         self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust)
-        self.world.draw_bg_tile_list(self.game_screen)
+        self.world.draw_static_tiles_background(self.game_screen)
         self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
                                     self.camera_move_x, self.camera_move_y)
-        self.world.draw_bg_decoration(self.game_screen)
         if world_count < 3 or level_count == 1:
             self.world.draw_log(self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
-            self.world.draw_bush(self.game_screen)
 
         # drawing the  player ------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)
@@ -839,15 +858,14 @@ class Game:
 
         # --------------------------------------------------------------------------------------------------------------
         if world_count == 3:
-            self.set_lava_harm = self.world.draw_set_lava(self.game_screen, sack_rect)
+            self.set_lava_harm = self.world.update_set_lava(sack_rect)
             self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
 
         if world_count < 3 or level_count == 1:
-            self.world.draw_wheat(self.game_screen, sack_rect)
+            sounds['wheat'] = self.world.draw_wheat(self.game_screen, sack_rect, moving)
             self.world.draw_green_mushrooms(self.game_screen, sack_rect)
-            self.world.draw_foliage(self.game_screen)
 
-        self.world.draw_tile_list(self.game_screen)
+        self.world.draw_static_tiles_foreground(self.game_screen)
 
         if world_count < 3:
             self.bee_harm = self.world.draw_and_manage_beehive(self.game_screen, sack_rect, fps_adjust,
@@ -856,7 +874,7 @@ class Game:
                                                                self.player_moved)
             self.world.draw_shockwave_mushrooms(self.game_screen, fps_adjust)
 
-        self.trap_harm, play_bear_trap_cling_sound = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
+        self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
         self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust)
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------
@@ -882,12 +900,12 @@ class Game:
             self.eq_power_list,\
                 self.mid_air_jump_trigger,\
                 self.speed_dash_trigger,\
-                play_card_pull_sound = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment, events,
-                                                               tutorial, fps_adjust, level_count,
-                                                               self.health, self.move, self.player_moved,
-                                                               self.gem_equipped, self.controls,
-                                                               joysticks, self.controller_type,
-                                                               joystick_calibration)
+                sounds['card'] = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment, events,
+                                                         tutorial, fps_adjust, level_count,
+                                                         self.health, self.move, self.player_moved,
+                                                         self.gem_equipped, self.controls,
+                                                         joysticks, self.controller_type,
+                                                         joystick_calibration)
 
         if self.mid_air_jump_trigger or self.speed_dash_trigger:
             self.gem_equipped = False
@@ -998,9 +1016,7 @@ class Game:
             self.move = True
 
         if ok_over:
-            game_button_over = True
-        else:
-            game_button_over = False
+            sounds['button'] = True
 
         # new level transition -----------------------------------------------------------------------------------------
         self.player.draw_transition(fps_adjust)
@@ -1019,6 +1035,5 @@ class Game:
             play_music = True
 
         # returns
-        return level_count, play_card_pull_sound, play_lock_sound, play_bear_trap_cling_sound,\
-            play_healing_sound, game_button_over, play_paper_sound, play_music,\
+        return level_count, play_music, sounds,\
             fadeout, popup_lvl_completed_press, self.world_completed
