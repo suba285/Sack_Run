@@ -133,9 +133,11 @@ class Dialogue:
     def display_dialogue(self, dialogue_surf, fps_adjust):
         self.frame_counter += 1 * fps_adjust
         self.arrow_bob_counter += 1 * fps_adjust
+        sound = False
         if self.frame_counter > self.letter_write_duration:
             self.letter_counter += 1
             self.frame_counter = 0
+            sound = True
         if self.btn_press:
             self.btn_press = False
             self.letter_counter = len(self.text_letters) - 1
@@ -152,7 +154,10 @@ class Dialogue:
             arrow_y = dialogue_surf.get_height() - 5 + math.sin((1 / 10) * self.arrow_bob_counter) * 2
             dialogue_surf.blit(self.down_arrow, (swidth / 2 - 3, arrow_y))
 
-        return self.done
+        if self.done:
+            sound = False
+
+        return self.done, sound
 
 
 class Game:
@@ -406,6 +411,8 @@ class Game:
         self.sack_anim_counter = -20
         self.animation_done = False
 
+        self.sack_noise_played = False
+
         self.dialogue_surface = pygame.Surface((swidth, 32))
         self.dialogue_surface.fill((0, 0, 0))
 
@@ -643,6 +650,10 @@ class Game:
         dialogue = False
 
         press = False
+        sounds = {
+            'sack_noise': False,
+            'click': False
+        }
 
         scene_step_type = self.opening_scene_step_controller[self.opening_scene_step_counter]
         if type(scene_step_type) == str:
@@ -651,7 +662,7 @@ class Game:
             elif scene_step_type == 'end':
                 final_step = True
         else:
-            dialogue_done = scene_step_type.display_dialogue(self.dialogue_surface, fps_adjust)
+            dialogue_done, sounds['click'] = scene_step_type.display_dialogue(self.dialogue_surface, fps_adjust)
             dialogue = True
 
         for event in events:
@@ -680,6 +691,11 @@ class Game:
             if not self.animation_done:
                 self.animation_done = True
                 self.opening_scene_step_counter += 1
+
+        if self.sack_anim_counter >= 0 and not self.sack_noise_played:
+            self.sack_noise_played = True
+            sounds['sack_noise'] = True
+
         anim_counter = round(self.sack_anim_counter)
         if anim_counter < 0:
             anim_counter = 0
@@ -688,7 +704,7 @@ class Game:
 
         screen.blit(self.dialogue_surface, (0, 10))
 
-        return self.opening_scene_done
+        return self.opening_scene_done, sounds
 
 # THE GAME =============================================================================================================
     def game(self, screen, level_count, fps_adjust, draw_hitbox, mouse_adjustment, events,
@@ -710,7 +726,8 @@ class Game:
             'mushroom': False,
             'land': False,
             'death': False,
-            'wheat': 0
+            'wheat': 0,
+            'gem': False,
         }
 
         if joysticks:
@@ -824,7 +841,8 @@ class Game:
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)
 
         # drawing gems -------------------------------------------------------------------------------------------------
-        self.gem_equipped = self.world.draw_gem(self.game_screen, sack_rect, fps_adjust, self.gem_equipped)
+        self.gem_equipped, sounds['gem'] = self.world.draw_gem(self.game_screen, sack_rect, fps_adjust,
+                                                               self.gem_equipped)
 
         # updating level border positions ------------------------------------------------------------------------------
         self.right_border += self.camera_move_x

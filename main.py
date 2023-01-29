@@ -280,21 +280,24 @@ sounds = {
         'mid_air_jump': pygame.mixer.Sound('data/sounds/mid_air_jump.wav'),
         'mushroom': pygame.mixer.Sound('data/sounds/mushroom.wav'),
         'bear_trap_cling': pygame.mixer.Sound('data/sounds/bear_trap_cling.wav'),
+        'gem': pygame.mixer.Sound('data/sounds/gem.wav'),
         'death': pygame.mixer.Sound('data/sounds/death2.wav'),
         'wheat': pygame.mixer.Sound('data/sounds/wheat.wav'),
         'button_click': pygame.mixer.Sound('data/sounds/button_click.wav'),
-        'world_completed': pygame.mixer.Sound('data/sounds/world_completed_sound.wav')
+        'world_completed': pygame.mixer.Sound('data/sounds/world_completed_sound.wav'),
+        'click': pygame.mixer.Sound('data/sounds/click.wav'),
+        'sack_noise': pygame.mixer.Sound('data/sounds/sack_noise.wav'),
     }
 
 # wheat channel
 pygame.mixer.Channel(1)
-pygame.mixer.Channel(1).set_volume(0.5)
+pygame.mixer.Channel(1).set_volume(0.3)
 
 walk_sound_switch = False
 step_sound_volume = 0.7
 
 sounds['card_pull'].set_volume(0.4)
-sounds['lock'].set_volume(2)
+sounds['lock'].set_volume(2.5)
 sounds['bear_trap_cling'].set_volume(0.6)
 sounds['button_click'].set_volume(1.2)
 sounds['world_completed'].set_volume(0.6)
@@ -307,6 +310,9 @@ sounds['landing'].set_volume(0.1)
 sounds['death'].set_volume(0.7)
 sounds['jump'].set_volume(0.3)
 sounds['mid_air_jump'].set_volume(0.8)
+sounds['gem'].set_volume(0.3)
+sounds['click'].set_volume(0.3)
+sounds['sack_noise'].set_volume(0.5)
 
 music = {
     '1': 'game_song1',
@@ -449,7 +455,10 @@ while run:
         'land': False,
         'death': False,
         'wheat': False,
-        'swoosh': False
+        'swoosh': False,
+        'gem': False,
+        'click': False,
+        'sack_noise': False
     }
 
     load_music = False
@@ -473,7 +482,7 @@ while run:
     last_fps_adjust = fps_adjust
     fps_int = int(real_fps)
 
-    clock.tick(120)
+    clock.tick(60)
 
     # joystick variables and counters
     joystick_moved = False
@@ -572,7 +581,9 @@ while run:
                 events = []
 
         if opening_scene:
-            opening_scene_done = main_game.opening_cutscene(screen, fps_adjust, events, controller_calibration)
+            opening_scene_done, opening_scene_sounds = main_game.opening_cutscene(screen, fps_adjust, events,
+                                                                                  controller_calibration)
+            sound_triggers.update(opening_scene_sounds)
             if opening_scene_done:
                 opening_scene = False
 
@@ -628,17 +639,14 @@ while run:
             paused_events = events
         else:
             paused_events = []
-        if level_count == 1 and world_count == 1:
-            no_restart = True
-        else:
-            no_restart = False
         pause_screen,\
             sound_triggers['button'],\
             resume,\
             lvl_select,\
             settings,\
             restart_level = pause_menu.draw_pause_screen(mouse_adjustment, paused_events,
-                                                    joysticks, controls['configuration'], fps_adjust, no_restart)
+                                                         joysticks, controls['configuration'],
+                                                         fps_adjust, opening_scene)
 
         if lvl_select:
             run_game = False
@@ -668,8 +676,9 @@ while run:
             run_game = True
             paused = False
             run_level_selection = False
-            play_music = True
-            load_music = True
+            if not opening_scene:
+                play_music = True
+                load_music = True
             main_game.update_controller_type(controls['configuration'], settings_counters)
             if restart_level:
                 level_restart_procedure = True
@@ -1016,13 +1025,23 @@ while run:
         if sound_triggers['mid_air_jump']:
             sounds['mid_air_jump'].play()
 
+        if sound_triggers['sack_noise']:
+            sounds['sack_noise'].play()
+
         if sound_triggers['mushroom']:
             sounds['mushroom'].play()
 
+        if sound_triggers['gem']:
+            sounds['gem'].play()
+
         if sound_triggers['wheat'] == 1:
+            pygame.mixer.Channel(1).set_volume(0.6)
             pygame.mixer.Channel(1).play(sounds['wheat'], -1)
         if sound_triggers['wheat'] == -1:
-            pygame.mixer.Channel(1).fadeout(200)
+            pygame.mixer.Channel(1).fadeout(400)
+
+        if sound_triggers['click']:
+            sounds['click'].play()
 
     # lock sound
     if sound_triggers['lock']:
@@ -1143,7 +1162,6 @@ while run:
                 settings_not_saved_error = True
 
     # DISPLAYING EVERYTHING ON THE MAIN WINDOW
-    window.fill((0, 0, 0))
     window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)),
                 (width_window_space / 2 - wiwidth / 2, height_window_space / 2 - wiheight / 2))
     pygame.display.update()

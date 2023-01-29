@@ -1,4 +1,5 @@
 import pygame
+import time
 from bee import Bee
 from bear_trap_class import BearTrap
 from plant_spit import PlantSpit
@@ -855,8 +856,6 @@ class World:
             if tile[0] != self.dirt_tile and tile[0] != self.stone_tile:
                 temp_tile_list.append(tile)
 
-        self.tile_list = temp_tile_list
-
         for tile in self.decoration_list:
             self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
@@ -919,7 +918,7 @@ class World:
             self.tile_surface_bg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
 
-        self.list_of_lists = [self.portal_list, self.bee_hive_list, self.bush_list, self.tile_list,
+        self.list_of_lists = [self.portal_list, self.bee_hive_list, self.tile_list,
                               self.spitting_plant_list_up, self.spitting_plant_list_left,
                               self.spitting_plant_list_right,
                               self.log_list, self.gem_list, self.shockwave_mushroom_list]
@@ -1092,6 +1091,8 @@ class World:
         if self.gem_flicker_counter >= 90:
             self.gem_flicker_counter = 0
 
+        gem_sound = False
+
         for tile in self.gem_list:
             tile[4].fill((0, 0, 0))
 
@@ -1106,6 +1107,7 @@ class World:
             if tile[1].colliderect(sack_rect) and not tile[3] and tile[6] < 0:
                 tile[3] = True
                 gem_equipped = True
+                gem_sound = True
 
             scale = 1
             circle_animation_finished = False
@@ -1139,7 +1141,7 @@ class World:
                 screen.blit(self.gem_outline_surface, (tile[1][0] + (8 - img.get_width() / 2),
                             tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
 
-        return gem_equipped
+        return gem_equipped, gem_sound
 
     # ------------------------------------------------------------------------------------------------------------------
 
