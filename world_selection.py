@@ -139,6 +139,8 @@ class LevelSelection:
         self.object_wobble_counter = 0
         self.text_wobble_default_value = 10
 
+        self.lock_sound_played = False
+
     def draw_level_selection(self, level_screen, mouse_adjustment, events, controls, joysticks, fps_adjust,
                              world_count, new_world_unlocked):
 
@@ -148,6 +150,12 @@ class LevelSelection:
         self.world_count = world_count
 
         update_value = 0
+
+        sounds = {
+            'lock': False,
+            'swoosh': False,
+            'button': False
+        }
 
         self.new_world_animation_counter += 1 * fps_adjust
 
@@ -159,6 +167,7 @@ class LevelSelection:
             self.lock_animation_counter += 1/3
 
         if new_world_unlocked:
+            self.lock_sound_played = False
             self.new_world_animation_counter = self.new_world_animation_stage0
             self.lock_animation_counter = 0
             self.new_world_circle_radius = 0
@@ -229,6 +238,8 @@ class LevelSelection:
             level_screen.blit(description, (swidth / 2 - description.get_width() / 2, self.button_y + 40))
 
         if self.new_world_animation_stage3 < self.new_world_animation_counter < 0:
+            if self.new_world_circle_radius == 0:
+                sounds['swoosh'] = True
             self.new_world_circle_radius += 20 * fps_adjust
             pygame.draw.circle(self.new_world_dim_surf, (255, 255, 255), (swidth / 2, sheight / 2),
                                self.new_world_circle_radius, 0)
@@ -262,6 +273,9 @@ class LevelSelection:
             animation_length = len(self.lock_animation)
             if lock_frame > animation_length - 1:
                 lock_frame = animation_length - 1
+            if lock_frame == 3 and not self.lock_sound_played:
+                sounds['lock'] = True
+                self.lock_sound_played = True
             anim_img = self.lock_animation[lock_frame]
             lock_vibration = [0, 0]
             if self.new_world_animation_stage3 > self.new_world_animation_counter > self.new_world_animation_stage2:
@@ -322,9 +336,9 @@ class LevelSelection:
             self.world_count = 4
 
         if over1 or over2 or over3 or over4:
-            over = True
+            sounds['button'] = True
 
-        return play_press, menu_press, over, self.world_count, new_world_unlocked
+        return play_press, menu_press, self.world_count, new_world_unlocked, sounds
 
 
 

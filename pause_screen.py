@@ -61,7 +61,7 @@ class PauseScreen:
         self.restart_button = Button(swidth / 2 - self.restart_button_img.get_width() / 2, 166 / 270 * sheight,
                                      self.reset_button_img, self.reset_button_press, self.reset_button_down)
 
-    def draw_pause_screen(self, mouse_adjustment, events, joysticks, joystick_configuration, fps_adjust):
+    def draw_pause_screen(self, mouse_adjustment, events, joysticks, joystick_configuration, fps_adjust, no_restart):
 
         self.pause_screen.blit(self.background, (0, 0))
 
@@ -133,8 +133,11 @@ class PauseScreen:
         resume, over1 = self.resume_btn.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over0)
         menu, over2 = self.menu_btn.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over1)
         settings, over3 = self.s_button.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over2)
-        restart, over4 = self.restart_button.draw_button(self.pause_screen, False, mouse_adjustment, events,
-                                                         joystick_over3)
+        if not no_restart:
+            restart, over4 = self.restart_button.draw_button(self.pause_screen, False, mouse_adjustment, events,
+                                                             joystick_over3)
+        else:
+            restart, over4 = False, False
 
         if over1 or over2 or over3 or over4:
             final_over1 = True

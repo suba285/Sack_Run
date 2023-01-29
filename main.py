@@ -269,7 +269,7 @@ screen_dim.fill((0, 0, 0))
 # sounds ---------------------------------------------------------------------------------------------------------------
 sounds = {
         'card_pull': pygame.mixer.Sound('data/sounds/card_pull_short2.wav'),
-        'lock_click': pygame.mixer.Sound('data/sounds/lock_click.wav'),
+        'lock': pygame.mixer.Sound('data/sounds/lock_click.wav'),
         'step_grass1': pygame.mixer.Sound('data/sounds/step_grass1.wav'),
         'step_grass2': pygame.mixer.Sound('data/sounds/step_grass2.wav'),
         'step_wood': pygame.mixer.Sound('data/sounds/step_wood.wav'),
@@ -294,7 +294,7 @@ walk_sound_switch = False
 step_sound_volume = 0.7
 
 sounds['card_pull'].set_volume(0.4)
-sounds['lock_click'].set_volume(1.4)
+sounds['lock'].set_volume(2)
 sounds['bear_trap_cling'].set_volume(0.6)
 sounds['button_click'].set_volume(1.2)
 sounds['world_completed'].set_volume(0.6)
@@ -448,7 +448,8 @@ while run:
         'mushroom': False,
         'land': False,
         'death': False,
-        'wheat': False
+        'wheat': False,
+        'swoosh': False
     }
 
     load_music = False
@@ -627,13 +628,17 @@ while run:
             paused_events = events
         else:
             paused_events = []
+        if level_count == 1 and world_count == 1:
+            no_restart = True
+        else:
+            no_restart = False
         pause_screen,\
             sound_triggers['button'],\
             resume,\
             lvl_select,\
             settings,\
             restart_level = pause_menu.draw_pause_screen(mouse_adjustment, paused_events,
-                                                    joysticks, controls['configuration'], fps_adjust)
+                                                    joysticks, controls['configuration'], fps_adjust, no_restart)
 
         if lvl_select:
             run_game = False
@@ -697,12 +702,13 @@ while run:
             lvl_selection_events = []
         play_press,\
             menu,\
-            sound_triggers['button'],\
             world_count,\
-            new_world_unlocked = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
-                                                                   lvl_selection_events,
-                                                                   controls, joysticks, fps_adjust, world_count,
-                                                                   new_world_unlocked)
+            new_world_unlocked,\
+            level_selection_sounds = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
+                                                                       lvl_selection_events,
+                                                                       controls, joysticks, fps_adjust, world_count,
+                                                                       new_world_unlocked)
+        sound_triggers.update(level_selection_sounds)
 
         if play_press and (joystick_configured or not joystick_connected):
             if world_count != 1:
@@ -977,11 +983,6 @@ while run:
         if not button_sound_trigger3:
             one_time_play_button2 = True
 
-        if sound_triggers['lock'] and one_time_play_lock:
-            sounds['lock_click'].play()
-            one_time_play_lock = False
-            card_swoosh_chest = True
-
         if not sound_triggers['lock']:
             one_time_play_lock = True
         if card_swoosh_chest:
@@ -1021,8 +1022,13 @@ while run:
         if sound_triggers['wheat'] == 1:
             pygame.mixer.Channel(1).play(sounds['wheat'], -1)
         if sound_triggers['wheat'] == -1:
-            pygame.mixer.Channel(1).fadeout(100)
+            pygame.mixer.Channel(1).fadeout(200)
 
+    # lock sound
+    if sound_triggers['lock']:
+        sounds['lock'].play()
+    if sound_triggers['swoosh']:
+        sounds['jump'].play()
     # button sounds
     if (sound_triggers['button'] and one_time_play_button1)\
             or (joystick_moved and (run_menu or run_settings or run_level_selection or paused)):
