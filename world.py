@@ -1,5 +1,4 @@
 import pygame
-import time
 from bee import Bee
 from bear_trap_class import BearTrap
 from plant_spit import PlantSpit
@@ -862,6 +861,7 @@ class World:
         for tile in self.set_lava_list:
             self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
+        self.tile_list = temp_tile_list
 
         # background tiles ---------------------------------------------------------------------------------------------
         bg_row_count = start_y
@@ -920,7 +920,7 @@ class World:
 
         self.list_of_lists = [self.portal_list, self.bee_hive_list, self.tile_list,
                               self.spitting_plant_list_up, self.spitting_plant_list_left,
-                              self.spitting_plant_list_right,
+                              self.spitting_plant_list_right, self.set_lava_list,
                               self.log_list, self.gem_list, self.shockwave_mushroom_list]
 
         return self.level_length, self.level_height
@@ -953,8 +953,8 @@ class World:
             lava[2][0] += camera_move_x
             lava[2][1] += camera_move_y
 
-        for wheat_list in self.wheat_list:
-            for wheat in wheat_list:
+        for wheat_tile in self.wheat_list:
+            for wheat in wheat_tile:
                 wheat[0] += camera_move_x
                 wheat[1] += camera_move_y
 

@@ -482,7 +482,7 @@ while run:
     last_fps_adjust = fps_adjust
     fps_int = int(real_fps)
 
-    clock.tick(60)
+    clock.tick(100)
 
     # joystick variables and counters
     joystick_moved = False
@@ -614,9 +614,9 @@ while run:
                     unlocked_world_data = json.load(json_file)
             except FileNotFoundError:
                 unlocked_world_data = [True, False, False, False]
-            if world_count < 4 and not unlocked_world_data[world_count]:
+            if world_count < 2 and not unlocked_world_data[world_count]:
                 new_world_unlocked = True
-            unlocked_world_data[nums_to_unlocked_world_data[world_count]] = True
+                unlocked_world_data[nums_to_unlocked_world_data[world_count]] = True
             try:
                 with open('data/unlocked_worlds.json', 'w') as json_file:
                     json.dump(unlocked_world_data, json_file)
@@ -1162,6 +1162,7 @@ while run:
                 settings_not_saved_error = True
 
     # DISPLAYING EVERYTHING ON THE MAIN WINDOW
+    window.fill((0, 0, 0))
     window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)),
                 (width_window_space / 2 - wiwidth / 2, height_window_space / 2 - wiheight / 2))
     pygame.display.update()

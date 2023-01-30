@@ -813,14 +813,9 @@ class Player:
             self.airborn = True
 
         # collision detection and position -----------------------------------------------------------------------------
-        hit_list_x = []
         self.vel_x = self.vel_x_l + self.vel_x_r
         temp_rect = self.sack_rect
         temp_rect.x += (self.vel_x + 0.5)
-
-        for tile in tile_list:
-            if tile[1].colliderect(temp_rect.x + self.vel_x, temp_rect.y, self.sack_width, self.sack_height):
-                hit_list_x.append(tile)
 
         if self.sack_rect.x + 20 > self.right_border:
             if self.vel_x > 0:
@@ -835,17 +830,23 @@ class Player:
                 self.sack_rect.x = self.left_border
                 self.col_types['left'] = True
 
-        for tile in hit_list_x:
-            if self.vel_x > 0:
-                self.sack_rect.right = tile[1].left
-                self.vel_x = 0
-                self.vel_x_r = 0
-                self.col_types['right'] = True
-            if self.vel_x < 0:
-                self.sack_rect.left = tile[1].right
-                self.vel_x = 0
-                self.vel_x_l = 0
-                self.col_types['left'] = True
+        col_counter = 0
+        col_y_tile_list = []
+        for tile in tile_list:
+            if tile[1].colliderect(temp_rect.x + self.vel_x, temp_rect.y, self.sack_width, self.sack_height):
+                if self.vel_x > 0:
+                    self.sack_rect.right = tile[1].left
+                    self.vel_x = 0
+                    self.vel_x_r = 0
+                    self.col_types['right'] = True
+                if self.vel_x < 0:
+                    self.sack_rect.left = tile[1].right
+                    self.vel_x = 0
+                    self.vel_x_l = 0
+                    self.col_types['left'] = True
+            if tile[1][0] + tile_size > self.sack_rect.x > tile[1][0] - tile_size:
+                col_y_tile_list.append(tile)
+            col_counter += 1
 
         if (self.col_types['left'] or self.col_types['right']) and self.speed_dash_activated:
             self.speed_dash_activated = False
@@ -853,36 +854,34 @@ class Player:
                 self.speed_dash = False
             self.vel_y = -10
 
-        hit_list_y = []
-        for tile in tile_list:
+        col_counter = 0
+        for tile in col_y_tile_list:
             if tile[1].colliderect(self.sack_rect.x, self.sack_rect.y + dy, self.sack_width, self.sack_height):
-                hit_list_y.append(tile)
+                if dy > 0:
+                    self.sack_rect.bottom = tile[1].top
+                    self.surface_type = tile[2]
+                    if (self.airborn or dy > 8) and self.player_moved and self.squash_counter_y > 4:
+                        self.squash_counter_y = -3
+                        sounds[f'step_{self.surface_type}'] = True
+                        sounds['land'] = True
+                        self.walk_counter = 0
+                    dy = 0
+                    self.vel_y = 0
+                    self.col_types['bottom'] = True
+                    self.airborn = False
+                    self.camera_falling_assist = False
+                    self.first_collision = True
+                    self.on_ground_counter = self.default_on_ground_counter
+                    self.animate_walk = True
+                    self.speed_dash_landed = True
+                if dy < 0:
+                    self.sack_rect.top = tile[1].bottom
+                    dy = 0
+                    self.vel_y = 0
+                    self.col_types['top'] = True
+            col_counter += 1
 
         self.on_ground_counter -= 1
-
-        for tile in hit_list_y:
-            if dy > 0:
-                self.sack_rect.bottom = tile[1].top
-                self.surface_type = tile[2]
-                if (self.airborn or dy > 8) and self.player_moved and self.squash_counter_y > 4:
-                    self.squash_counter_y = -3
-                    sounds[f'step_{self.surface_type}'] = True
-                    sounds['land'] = True
-                    self.walk_counter = 0
-                dy = 0
-                self.vel_y = 0
-                self.col_types['bottom'] = True
-                self.airborn = False
-                self.camera_falling_assist = False
-                self.first_collision = True
-                self.on_ground_counter = self.default_on_ground_counter
-                self.animate_walk = True
-                self.speed_dash_landed = True
-            if dy < 0:
-                self.sack_rect.top = tile[1].bottom
-                dy = 0
-                self.vel_y = 0
-                self.col_types['top'] = True
 
         # mushroom collisions
         for mushroom in shockwave_mush_list:

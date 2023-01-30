@@ -830,7 +830,6 @@ class Game:
                         self.bg_transition_colour = list(self.sky_background_colour)
             else:
                 self.game_screen.fill(self.cave_background_colour)
-        self.particles.bg_particles(self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust)
         self.world.draw_static_tiles_background(self.game_screen)
         self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
                                     self.camera_move_x, self.camera_move_y)
@@ -893,7 +892,6 @@ class Game:
             self.world.draw_shockwave_mushrooms(self.game_screen, fps_adjust)
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
-        self.particles.front_particles(self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust)
 
         # blitting the game screen onto the main screen ----------------------------------------------------------------
         if screen_shake:
