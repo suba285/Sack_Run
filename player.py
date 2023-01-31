@@ -498,6 +498,7 @@ class Player:
             self.speed_dash_sine_offset_counter = 9
 
         # updating special power cards counters ------------------------------------------------------------------------
+        append = self.power_particle_list.append
         if self.mid_air_jump:
             if self.mid_air_jump_counter == 0:
                 self.particle_colour = (57, 182, 86)
@@ -507,10 +508,10 @@ class Player:
                 self.particle_colour = (200, 226, 151)
             x_value = int(self.sack_rect.x)
             y_value = int(self.sack_rect.y)
-            self.power_particle_list.append([random.randrange(x_value, x_value + self.sack_width),
-                                             random.randrange(y_value, y_value + self.sack_height),
-                                             random.randrange(6, 14),
-                                             self.particle_colour])
+            append([random.randrange(x_value, x_value + self.sack_width),
+                   random.randrange(y_value, y_value + self.sack_height),
+                   random.randrange(6, 14),
+                   self.particle_colour])
             if gem_equipped:
                 self.mid_air_jump_counter = 0
                 gem_equipped = False
@@ -518,10 +519,10 @@ class Player:
             self.particle_colour = (70, 161, 193)
             x_value = int(self.sack_rect.x)
             y_value = int(self.sack_rect.y)
-            self.power_particle_list.append([random.randrange(x_value, x_value + self.sack_width),
-                                             random.randrange(y_value, y_value + self.sack_height),
-                                             random.randrange(6, 14),
-                                             self.particle_colour])
+            append([random.randrange(x_value, x_value + self.sack_width),
+                   random.randrange(y_value, y_value + self.sack_height),
+                   random.randrange(6, 14),
+                   self.particle_colour])
 
         # special power cards duration counters ------------------------------------------------------------------------
         if self.mid_air_jump_counter >= self.mid_air_jumps_num:
@@ -832,6 +833,7 @@ class Player:
 
         col_counter = 0
         col_y_tile_list = []
+        append = col_y_tile_list.append
         for tile in tile_list:
             if tile[1].colliderect(temp_rect.x + self.vel_x, temp_rect.y, self.sack_width, self.sack_height):
                 if self.vel_x > 0:
@@ -845,7 +847,7 @@ class Player:
                     self.vel_x_l = 0
                     self.col_types['left'] = True
             if tile[1][0] + tile_size > self.sack_rect.x > tile[1][0] - tile_size:
-                col_y_tile_list.append(tile)
+                append(tile)
             col_counter += 1
 
         if (self.col_types['left'] or self.col_types['right']) and self.speed_dash_activated:

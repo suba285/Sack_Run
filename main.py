@@ -113,7 +113,7 @@ settings_counters['resolution'] = resolution_counter
 recommended_res_counter = resolution_counter
 
 # screens (surfaces)
-window = pygame.display.set_mode(display_geometry, flag, pygame.HWACCEL)
+window = pygame.display.set_mode(display_geometry, flag, pygame.DOUBLEBUF)
 window.fill((0, 0, 0))
 screen = pygame.Surface((swidth, sheight), pygame.SCALED).convert_alpha()
 screen.set_alpha(0)
@@ -473,16 +473,14 @@ while run:
                         (swidth / wiwidth) * ((width_window_space - wiwidth) / 2)]
 
     # fps adjustment ---------------------------------------------------------------------------------------------------
-    real_fps = clock.get_fps()
     fps_adjust = time.time() - last_time
     fps_adjust = fps_adjust * 60
+    real_fps = fps_adjust * 60
     if fps_adjust > 3:
         fps_adjust = 3
     last_time = time.time()
     last_fps_adjust = fps_adjust
     fps_int = int(real_fps)
-
-    clock.tick(100)
 
     # joystick variables and counters
     joystick_moved = False
@@ -1165,7 +1163,7 @@ while run:
     window.fill((0, 0, 0))
     window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)),
                 (width_window_space / 2 - wiwidth / 2, height_window_space / 2 - wiheight / 2))
-    pygame.display.update()
+    pygame.display.flip()
 
 pygame.quit()
 # ======================================================================================================================

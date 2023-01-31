@@ -434,6 +434,7 @@ class Game:
 
         self.health = 2
         self.harm = False
+        self.tile_harm = False
 
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
@@ -759,8 +760,7 @@ class Game:
             tutorial = False
 
         # dealing with harm
-        if self.spit_harm_up or self.spit_harm_left or self.spit_harm_right or self.trap_harm or self.bee_harm or\
-                self.set_lava_harm or self.hot_lava_harm:
+        if self.tile_harm or self.hot_lava_harm or self.trap_harm:
             self.harm = True
         else:
             self.harm = False
@@ -831,31 +831,18 @@ class Game:
             else:
                 self.game_screen.fill(self.cave_background_colour)
         self.world.draw_static_tiles_background(self.game_screen)
-        self.world.draw_portal_list(self.game_screen, fps_adjust, level_count,
-                                    self.camera_move_x, self.camera_move_y)
-        if world_count < 3 or level_count == 1:
-            self.world.draw_log(self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
+        self.tile_harm, self.gem_equipped, sounds['gem'] = self.world.update_bg_tiles(self.game_screen, fps_adjust,
+                                                                                      level_count, self.camera_move_x,
+                                                                                      self.camera_move_y, sack_rect,
+                                                                                      self.health, self.player_moved,
+                                                                                      self.gem_equipped)
 
         # drawing the  player ------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)
 
-        # drawing gems -------------------------------------------------------------------------------------------------
-        self.gem_equipped, sounds['gem'] = self.world.draw_gem(self.game_screen, sack_rect, fps_adjust,
-                                                               self.gem_equipped)
-
         # updating level border positions ------------------------------------------------------------------------------
         self.right_border += self.camera_move_x
         self.left_border += self.camera_move_x
-
-        # drawing and updating other tiles and objects in the game -----------------------------------------------------
-        if world_count < 3:
-            self.spit_harm_left = self.world.draw_spitting_plant_left(self.game_screen, fps_adjust, self.camera_move_x,
-                                                                      self.camera_move_y, sack_rect, self.health)
-            self.spit_harm_right = self.world.draw_spitting_plant_right(self.game_screen, fps_adjust,
-                                                                        self.camera_move_x,
-                                                                        self.camera_move_y, sack_rect, self.health)
-            self.spit_harm_up = self.world.draw_spitting_plant_up(self.game_screen, fps_adjust, self.camera_move_x,
-                                                                  self.camera_move_y, sack_rect, self.health)
 
         # updating the world data if new level -------------------------------------------------------------------------
         if self.level_check < level_count or restart_level:
@@ -875,7 +862,6 @@ class Game:
 
         # --------------------------------------------------------------------------------------------------------------
         if world_count == 3:
-            self.set_lava_harm = self.world.update_set_lava(sack_rect)
             self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
 
         if world_count < 3 or level_count == 1:
@@ -883,13 +869,6 @@ class Game:
             self.world.draw_green_mushrooms(self.game_screen, sack_rect)
 
         self.world.draw_static_tiles_foreground(self.game_screen)
-
-        if world_count < 3:
-            self.bee_harm = self.world.draw_and_manage_beehive(self.game_screen, sack_rect, fps_adjust,
-                                                               self.camera_move_x,
-                                                               self.camera_move_y, self.health,
-                                                               self.player_moved)
-            self.world.draw_shockwave_mushrooms(self.game_screen, fps_adjust)
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 
