@@ -3,7 +3,7 @@ from image_loader import img_loader
 from font_manager import Text
 from button import Button
 from screen_info import swidth, sheight
-import pygame
+import pygame._sdl2
 
 tile_size = 32
 

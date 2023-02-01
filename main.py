@@ -1,7 +1,7 @@
 import time
 import threading
 from screen_info import *
-
+import pygame._sdl2
 
 pygame.init()
 pygame.joystick.init()
@@ -475,12 +475,14 @@ while run:
     # fps adjustment ---------------------------------------------------------------------------------------------------
     fps_adjust = time.time() - last_time
     fps_adjust = fps_adjust * 60
-    real_fps = fps_adjust * 60
+    real_fps = clock.get_fps()
     if fps_adjust > 3:
         fps_adjust = 3
     last_time = time.time()
     last_fps_adjust = fps_adjust
     fps_int = int(real_fps)
+
+    clock.tick(120)
 
     # joystick variables and counters
     joystick_moved = False

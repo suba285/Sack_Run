@@ -1,4 +1,4 @@
-import pygame
+import pygame._sdl2
 from level_transition import CircleTransition
 from image_loader import img_loader
 from font_manager import Text

@@ -1,4 +1,4 @@
-import pygame
+import pygame._sdl2
 from screen_info import swidth, sheight
 
 tile_size = 32

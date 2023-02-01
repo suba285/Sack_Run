@@ -1,4 +1,4 @@
-import pygame
+import pygame._sdl2
 import math
 from button import Button
 from image_loader import img_loader

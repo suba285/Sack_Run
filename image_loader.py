@@ -1,4 +1,4 @@
-import pygame
+import pygame._sdl2
 
 # this function is used to load images, adjust their size and turn the black background transparent
 

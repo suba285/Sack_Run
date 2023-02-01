@@ -1,4 +1,4 @@
-import pygame
+import pygame._sdl2
 from image_loader import img_loader
 
 

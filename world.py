@@ -1,4 +1,4 @@
-import pygame
+import pygame._sdl2
 from bee import Bee
 from bear_trap_class import BearTrap
 from plant_spit import PlantSpit

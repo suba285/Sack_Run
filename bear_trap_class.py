@@ -1,4 +1,4 @@
-import pygame
+import pygame._sdl2
 
 tile_size = 32
 sack_width = 20

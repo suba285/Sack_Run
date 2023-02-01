@@ -1,4 +1,4 @@
-import pygame
+import pygame._sdl2
 
 
 class ScrollBar:
