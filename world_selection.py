@@ -161,7 +161,19 @@ class LevelSelection:
 
         local_events = events
         if self.new_world_animation_counter < 0:
-            local_events = []
+            local_events = {
+                'quit': False,
+                'keydown': False,
+                'keyup': False,
+                'mousebuttondown': False,
+                'mousebuttonup': False,
+                'joyaxismotion': False,
+                'joybuttondown': False,
+                'joybuttonup': False,
+                'joydeviceadded': False,
+                'joydeviceremoved': False,
+                'videoresize': False
+            }
 
         if 0 > self.new_world_animation_counter > self.new_world_animation_stage1:
             self.lock_animation_counter += 1/3
@@ -189,25 +201,26 @@ class LevelSelection:
         over3 = False
         over4 = False
 
-        for event in local_events:
-            if event.type == pygame.JOYAXISMOTION:
-                if event.axis == controls['configuration'][0][0]:
-                    # right and left
-                    if abs(event.value) > 0.3 and not self.joystick_moved:
-                        self.joystick_counter *= -1
-                        self.joystick_moved = True
-                    if event.value == 0:
-                        self.joystick_moved = False
-            if event.type == pygame.JOYBUTTONDOWN:
-                if event.button == controls['configuration'][1]:
-                    self.left_bumper_press = True
-                    left_bumper_press = True
-                if event.button == controls['configuration'][2]:
-                    self.right_bumper_press = True
-                    right_bumper_press = True
-            if event.type == pygame.JOYBUTTONUP:
-                self.left_bumper_press = False
-                self.right_bumper_press = False
+        if events['joyaxismotion']:
+            event = events['joyaxismotion']
+            if event.axis == controls['configuration'][0][0]:
+                # right and left
+                if abs(event.value) > 0.3 and not self.joystick_moved:
+                    self.joystick_counter *= -1
+                    self.joystick_moved = True
+                if event.value == 0:
+                    self.joystick_moved = False
+        if events['joybuttondown']:
+            event = events['joybuttondown']
+            if event.button == controls['configuration'][1]:
+                self.left_bumper_press = True
+                left_bumper_press = True
+            if event.button == controls['configuration'][2]:
+                self.right_bumper_press = True
+                right_bumper_press = True
+        if events['joybuttonup']:
+            self.left_bumper_press = False
+            self.right_bumper_press = False
 
         # D-pad input
         if joysticks:

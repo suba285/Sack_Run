@@ -919,8 +919,8 @@ class World:
                               self.log_list, self.gem_list, self.shockwave_mushroom_list]
 
         bg_tiles = [self.spitting_plant_list_up, self.spitting_plant_list_left, self.spitting_plant_list_right,
-                    self.set_lava_list, self.bee_hive_list, self.portal_list, self.gem_list,
-                    self.shockwave_mushroom_list, self.log_list]
+                    self.set_lava_list, self.portal_list, self.gem_list,
+                    self.shockwave_mushroom_list, self.log_list, self.bee_hive_list]
 
         for el in bg_tiles:
             self.main_tile_list += el
@@ -1061,20 +1061,6 @@ class World:
                     if level_count == 1:
                         screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
 
-            # bee hive -------------------------------------------------------------------------------------------------
-            if tile[0] == self.bee_hive:
-                if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
-                    screen.blit(self.bee_hive, tile[1])
-                if self.bee_counter > 0:
-                    for i in range(self.bee_counter - 1):
-                        if i <= 4:
-                            self.bee_harm = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
-                                                                  camera_move_x,
-                                                                  camera_move_y, tile[1][0], tile[1][1],
-                                                                  health,
-                                                                  self.shockwave_center_list,
-                                                                  player_moved)
-
             # set lava -------------------------------------------------------------------------------------------------
             if tile[0] in [self.set_lava, self.set_lava_left, self.set_lava_right]:
                 if -tile_size < tile[1][0] < swidth:
@@ -1168,6 +1154,22 @@ class World:
                     self.shockwave_center_list.append((shockwave_center[0], shockwave_center[1], radius))
 
                     screen.blit(img, (tile[1][0] - squash / 2, tile[1][1] + squash))
+
+            # bee hive -------------------------------------------------------------------------------------------------
+            if tile[0] == self.bee_hive:
+                if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                    screen.blit(self.bee_hive, tile[1])
+                if self.bee_counter > 0:
+                    for i in range(self.bee_counter - 1):
+                        if i <= 4:
+                            bee_harm = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
+                                                                  camera_move_x,
+                                                                  camera_move_y, tile[1][0], tile[1][1],
+                                                                  health,
+                                                                  self.shockwave_center_list,
+                                                                  player_moved)
+                            if bee_harm:
+                                self.bee_harm = True
 
             # spitting plant left --------------------------------------------------------------------------------------
             if tile[0] == self.spitting_plant0l:
@@ -1269,6 +1271,7 @@ class World:
 
         if self.bee_harm or spit_harm:
             harm = True
+            print('harm passed on')
 
         return harm, gem_equipped, gem_sound
 

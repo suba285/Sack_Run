@@ -57,10 +57,24 @@ class Button:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             self.image = self.image2
             self.cursor_over = True
-            for event in events:
-                if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not joystick_over) or \
-                        (event.type == pygame.JOYBUTTONDOWN and event.button == joystick_button) or \
-                        (event.type == pygame.KEYDOWN and event.key == pygame.K_k and card):
+            if events['mousebuttondown'] and not joystick_over:
+                if events['mousebuttondown'].button == 1:
+                    self.image = self.image1
+                    self.image_rect.x = self.x
+                    self.image_rect.y = self.y
+                    self.button_down = True
+                    if self.fast_action:
+                        action = True
+            if events['joybuttondown']:
+                if events['joybuttondown'].button == joystick_button:
+                    self.image = self.image1
+                    self.image_rect.x = self.x
+                    self.image_rect.y = self.y
+                    self.button_down = True
+                    if self.fast_action:
+                        action = True
+            if events['keydown'] and card:
+                if events['keydown'].key == pygame.K_k:
                     self.image = self.image1
                     self.image_rect.x = self.x
                     self.image_rect.y = self.y
@@ -68,10 +82,18 @@ class Button:
                     if self.fast_action:
                         action = True
 
-        for event in events:
-            if (event.type == pygame.MOUSEBUTTONUP and event.button == 1) or \
-                    (event.type == pygame.JOYBUTTONUP and event.button == joystick_button) or \
-                    (event.type == pygame.KEYUP and event.key == pygame.K_k and card):
+        if events['mousebuttonup']:
+           if events['mousebuttonup'].button == 1:
+               if self.button_down and not self.fast_action:
+                   action = True
+               self.button_down = False
+        if events['joybuttonup']:
+            if events['joybuttonup'].button == joystick_button:
+                if self.button_down and not self.fast_action:
+                    action = True
+                self.button_down = False
+        if events['keyup'] and card:
+            if events['keyup'].key == pygame.K_k:
                 if self.button_down and not self.fast_action:
                     action = True
                 self.button_down = False

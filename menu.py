@@ -108,9 +108,10 @@ class mainMenu:
             self.opening_animation_counter += 1 * fps_adjust
             self.logo_pos_counter += 1 * fps_adjust
 
-        for event in events:
-            # vertical axis input
-            if event.type == pygame.JOYAXISMOTION and event.axis == joystick_controls[0][1]:
+        # vertical axis input
+        if events['joyaxismotion']:
+            event = events['joyaxismotion']
+            if event.axis == joystick_controls[0][1]:
                 # down
                 if event.value > 0.1 and not self.joystick_moved:
                     self.joystick_counter += 1

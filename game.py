@@ -581,7 +581,20 @@ class Game:
         end_screen = False
 
         if joystick_calibration:
-            events = []
+            events = {
+                'quit': False,
+                'keydown': False,
+                'keyup': False,
+                'mousebuttondown': False,
+                'mousebuttonup': False,
+                'joyaxismotion': False,
+                'joybuttondown': False,
+                'joybuttonup': False,
+                'joydeviceadded': False,
+                'joydeviceremoved': False,
+                'mousewheel': False,
+                'videoresize': False
+            }
 
         self.world_completed_text_anim_count += 0.5 * fps_adjust
 
@@ -590,13 +603,12 @@ class Game:
             if self.world_completed_text_alpha > 255:
                 self.world_completed_text_alpha = 255
 
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == self.controls['jump']:
-                    menu_press = True
-            if event.type == pygame.JOYBUTTONDOWN:
-                if event.button == 0:
-                    menu_press = True
+        if events['keydown']:
+            if events['keydown'].key == self.controls['jump']:
+                menu_press = True
+        if events['joybuttondown']:
+            if events['joybuttondown'].button == 0:
+                menu_press = True
 
         text = self.world_completed_text
         if 0 <= self.world_completed_text_alpha <= 255:
@@ -643,7 +655,20 @@ class Game:
         self.dialogue_surface.fill((0, 0, 0))
 
         if joystick_calibration:
-            events = []
+            events = {
+                'quit': False,
+                'keydown': False,
+                'keyup': False,
+                'mousebuttondown': False,
+                'mousebuttonup': False,
+                'joyaxismotion': False,
+                'joybuttondown': False,
+                'joybuttonup': False,
+                'joydeviceadded': False,
+                'joydeviceremoved': False,
+                'mousewheel': False,
+                'videoresize': False
+            }
 
         final_step = False
 
@@ -666,10 +691,11 @@ class Game:
             dialogue_done, sounds['click'] = scene_step_type.display_dialogue(self.dialogue_surface, fps_adjust)
             dialogue = True
 
-        for event in events:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+        if events['keydown']:
+            if events['keydown'].key == pygame.K_SPACE:
                 press = True
-            if event.type == pygame.JOYBUTTONDOWN and event.button == 0:
+        if events['joybuttondown']:
+            if events['joybuttondown'].button == 0:
                 press = True
 
         if dialogue_done and dialogue and not final_step and press:
@@ -762,6 +788,7 @@ class Game:
         # dealing with harm
         if self.tile_harm or self.hot_lava_harm or self.trap_harm:
             self.harm = True
+            print('player harmed')
         else:
             self.harm = False
 
@@ -836,6 +863,8 @@ class Game:
                                                                                       self.camera_move_y, sack_rect,
                                                                                       self.health, self.player_moved,
                                                                                       self.gem_equipped)
+        if self.tile_harm:
+            print('harm received')
 
         # drawing the  player ------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)

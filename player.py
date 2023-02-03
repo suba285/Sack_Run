@@ -455,31 +455,33 @@ class Player:
             harm = True
 
         # joystick input management
-        for event in events:
-            if event.type == pygame.KEYDOWN and event.key == self.controls['jump']:
+        if events['keydown']:
+            if events['keydown'].key == self.controls['jump']:
                 self.player_jump = True
-            if event.type == pygame.KEYUP and event.key == self.controls['jump']:
+        if events['keyup']:
+            if events['keyup'].key == self.controls['jump']:
                 self.player_jump = False
-            if event.type == pygame.JOYBUTTONDOWN:
-                if event.button == 0:
-                    self.player_jump = True
-            if event.type == pygame.JOYBUTTONUP:
-                if event.button == 0:
-                    self.player_jump = False
-            if event.type == pygame.JOYAXISMOTION:
-                if event.axis == self.controls['configuration'][0][0]:
-                    if event.value > 0.4:
-                        self.joystick_right = True
-                    else:
-                        self.joystick_right = False
-                    if event.value < -0.4:
-                        self.joystick_left = True
-                    else:
-                        self.joystick_left = False
-            if event.type == pygame.JOYDEVICEREMOVED:
-                self.joystick_left = False
-                self.joystick_right = False
+        if events['joybuttondown']:
+            if events['joybuttondown'].button == 0:
+                self.player_jump = True
+        if events['joybuttonup']:
+            if events['joybuttonup'].button == 0:
                 self.player_jump = False
+        if events['joyaxismotion']:
+            event = events['joyaxismotion']
+            if event.axis == self.controls['configuration'][0][0]:
+                if event.value > 0.4:
+                    self.joystick_right = True
+                else:
+                    self.joystick_right = False
+                if event.value < -0.4:
+                    self.joystick_left = True
+                else:
+                    self.joystick_left = False
+        if events['joydeviceremoved']:
+            self.joystick_left = False
+            self.joystick_right = False
+            self.player_jump = False
 
         # D-pad input
         if joysticks:

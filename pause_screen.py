@@ -3,7 +3,6 @@ from image_loader import img_loader
 from font_manager import Text
 from button import Button
 from screen_info import swidth, sheight
-import pygame._sdl2
 
 tile_size = 32
 
@@ -74,8 +73,9 @@ class PauseScreen:
         joystick_over2 = False
         joystick_over3 = False
 
-        for event in events:
-            if event.type == pygame.JOYAXISMOTION and event.axis == joystick_configuration[0][1]:
+        if events['joyaxismotion']:
+            event = events['joyaxismotion']
+            if event.axis == joystick_configuration[0][1]:
                 if event.value > 0.1 and not self.joystick_moved:
                     self.joystick_counter += 1
                     self.joystick_moved = True

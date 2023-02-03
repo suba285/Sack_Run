@@ -11,7 +11,7 @@ joysticks = {}
 # pygame events --------------------------------------------------------------------------------------------------------
 allowed_events = [pygame.KEYDOWN, pygame.KEYUP, pygame.MOUSEBUTTONUP, pygame.MOUSEBUTTONDOWN, pygame.JOYAXISMOTION,
                   pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED,
-                  pygame.VIDEORESIZE]
+                  pygame.VIDEORESIZE, pygame.QUIT, pygame.MOUSEWHEEL]
 pygame.event.set_allowed(allowed_events)
 
 # basic game variables -------------------------------------------------------------------------------------------------
@@ -432,7 +432,46 @@ game_duration_counter = 0
 # MAIN LOOP ============================================================================================================
 while run:
 
-    events = pygame.event.get()
+    event_list = pygame.event.get()
+    events = {
+        'quit': False,
+        'keydown': False,
+        'keyup': False,
+        'mousebuttondown': False,
+        'mousebuttonup': False,
+        'joyaxismotion': False,
+        'joybuttondown': False,
+        'joybuttonup': False,
+        'joydeviceadded': False,
+        'joydeviceremoved': False,
+        'mousewheel': False,
+        'videoresize': False
+    }
+    for event in event_list:
+        if event.type == pygame.QUIT:
+            events['quit'] = event
+        if event.type == pygame.KEYDOWN:
+            events['keydown'] = event
+        if event.type == pygame.KEYUP:
+            events['keyup'] = event
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            events['mousebuttondown'] = event
+        if event.type == pygame.MOUSEBUTTONUP:
+            events['mousebuttonup'] = event
+        if event.type == pygame.JOYAXISMOTION:
+            events['joyaxismotion'] = event
+        if event.type == pygame.JOYBUTTONDOWN:
+            events['joybuttondown'] = event
+        if event.type == pygame.JOYBUTTONUP:
+            events['joybuttonup'] = event
+        if event.type == pygame.JOYDEVICEADDED:
+            events['joydeviceadded'] = event
+        if event.type == pygame.JOYDEVICEREMOVED:
+            events['joydeviceremoved'] = event
+        if event.type == pygame.MOUSEWHEEL:
+            events['mousewheel'] = event
+        if event.type == pygame.VIDEORESIZE:
+            events['videoresize'] = event
 
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
     key = pygame.key.get_pressed()
@@ -482,7 +521,7 @@ while run:
     last_fps_adjust = fps_adjust
     fps_int = int(real_fps)
 
-    clock.tick(120)
+    clock.tick(60)
 
     # joystick variables and counters
     joystick_moved = False
@@ -502,7 +541,20 @@ while run:
         if not controller_calibration:
             menu_events = events
         else:
-            menu_events = []
+            menu_events = {
+                'quit': False,
+                'keydown': False,
+                'keyup': False,
+                'mousebuttondown': False,
+                'mousebuttonup': False,
+                'joyaxismotion': False,
+                'joybuttondown': False,
+                'joybuttonup': False,
+                'joydeviceadded': False,
+                'joydeviceremoved': False,
+                'mousewheel': False,
+                'videoresize': False
+            }
         controller_not_configured_counter -= 1 * fps_adjust
         level_selection, sound_triggers['button'],\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
@@ -578,7 +630,20 @@ while run:
                                                                    controller_calibration)
             world_completed_transition_counter = 255
             if lvl_selection_press:
-                events = []
+                events = {
+                    'quit': False,
+                    'keydown': False,
+                    'keyup': False,
+                    'mousebuttondown': False,
+                    'mousebuttonup': False,
+                    'joyaxismotion': False,
+                    'joybuttondown': False,
+                    'joybuttonup': False,
+                    'joydeviceadded': False,
+                    'joydeviceremoved': False,
+                    'mousewheel': False,
+                    'videoresize': False
+                }
 
         if opening_scene:
             opening_scene_done, opening_scene_sounds = main_game.opening_cutscene(screen, fps_adjust, events,
@@ -638,7 +703,20 @@ while run:
         if joystick_configured or not joystick_connected or controller_calibration:
             paused_events = events
         else:
-            paused_events = []
+            paused_events = {
+                'quit': False,
+                'keydown': False,
+                'keyup': False,
+                'mousebuttondown': False,
+                'mousebuttonup': False,
+                'joyaxismotion': False,
+                'joybuttondown': False,
+                'joybuttonup': False,
+                'joydeviceadded': False,
+                'joydeviceremoved': False,
+                'mousewheel': False,
+                'videoresize': False
+            }
         pause_screen,\
             sound_triggers['button'],\
             resume,\
@@ -708,7 +786,20 @@ while run:
         if joystick_configured or not joystick_connected or controller_calibration:
             lvl_selection_events = events
         else:
-            lvl_selection_events = []
+            lvl_selection_events = {
+                'quit': False,
+                'keydown': False,
+                'keyup': False,
+                'mousebuttondown': False,
+                'mousebuttonup': False,
+                'joyaxismotion': False,
+                'joybuttondown': False,
+                'joybuttonup': False,
+                'joydeviceadded': False,
+                'joydeviceremoved': False,
+                'mousewheel': False,
+                'videoresize': False
+            }
         play_press,\
             menu,\
             world_count,\
@@ -774,9 +865,23 @@ while run:
     # settings ---------------------------------------------------------------------------------------------------------
     if run_settings:
         if controller_calibration:
-            settings_events = []
+            settings_events = {
+                'quit': False,
+                'keydown': False,
+                'keyup': False,
+                'mousebuttondown': False,
+                'mousebuttonup': False,
+                'joyaxismotion': False,
+                'joybuttondown': False,
+                'joybuttonup': False,
+                'joydeviceadded': False,
+                'joydeviceremoved': False,
+                'mousewheel': False,
+                'videoresize': False
+            }
         else:
             settings_events = events
+
         menu,\
             controls,\
             button_sound_trigger1,\
@@ -873,106 +978,110 @@ while run:
     fps_display.draw_fps(fps_int, screen)
 
     # game event handling ----------------------------------------------------------------------------------------------
-    for event in events:
-        if event.type == pygame.QUIT:
-            run = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_q:
-                user_quit1 = True
-            if event.key == pygame.K_LCTRL:
-                user_quit2 = True
-            if event.key == pygame.K_j or event.key == pygame.K_l:
-                joystick_over_card = True
+    if events['quit']:
+        run = False
+    if events['keydown']:
+        event = events['keydown']
+        if event.key == pygame.K_q:
+            user_quit1 = True
+        if event.key == pygame.K_LCTRL:
+            user_quit2 = True
+        if event.key == pygame.K_j or event.key == pygame.K_l:
+            joystick_over_card = True
 
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_q:
-                user_quit1 = False
-            if event.key == pygame.K_LCTRL:
-                user_quit2 = False
-            # play = True
-        if event.type == pygame.VIDEORESIZE and not adjust_resolution:
-            window_geometry = (window.get_width(), window.get_height())
-            if window_geometry[0] / 16 > window_geometry[1] / 9:
-                height_window_space = window_geometry[1]
-                width_window_space = window_geometry[0]
-                wiheight = window_geometry[1]
-                wiwidth = wiheight / 9 * 16
-            else:
-                height_window_space = window_geometry[1]
-                width_window_space = window_geometry[0]
-                wiwidth = window_geometry[0]
-                wiheight = wiwidth / 16 * 9
-            if height_window_space == monitor_height and width_window_space == monitor_width:
-                settings_counters['resolution'] = 4
-                settings_menu.update_settings_counters(settings_counters, controls)
-                try:
-                    with open('data/settings_configuration.json', 'w') as json_file:
-                        json.dump(settings_counters, json_file)
-                except FileNotFoundError:
-                    settings_not_saved_error = True
-
-        if event.type == pygame.JOYDEVICEADDED:
-            pygame.mouse.set_visible(False)
-            joystick = pygame.joystick.Joystick(event.device_index)
-            joysticks[0] = joystick
-            joystick_connected = True
-            joystick_name = str(joystick.get_name())
-            if joystick_name in controllers:
-                controller_connected_counter = 90
-                joystick_configured = True
-                controller_popup = controller_connected_popup
-            else:
-                controller_connected_counter = 90
-                settings_counters['configuration'] = 1
-                settings_menu.update_settings_counters(settings_counters, controls)
-                joystick_configured = False
-                controller_popup = controller_connected_popup
-                controller_calibration = True
-
+    if events['keyup']:
+        event = events['keyup']
+        if event.key == pygame.K_q:
+            user_quit1 = False
+        if event.key == pygame.K_LCTRL:
+            user_quit2 = False
+        # play = True
+    if events['videoresize'] and not adjust_resolution:
+        window_geometry = (window.get_width(), window.get_height())
+        if window_geometry[0] / 16 > window_geometry[1] / 9:
+            height_window_space = window_geometry[1]
+            width_window_space = window_geometry[0]
+            wiheight = window_geometry[1]
+            wiwidth = wiheight / 9 * 16
+        else:
+            height_window_space = window_geometry[1]
+            width_window_space = window_geometry[0]
+            wiwidth = window_geometry[0]
+            wiheight = wiwidth / 16 * 9
+        if height_window_space == monitor_height and width_window_space == monitor_width:
+            settings_counters['resolution'] = 4
+            settings_menu.update_settings_counters(settings_counters, controls)
             try:
-                if joystick.get_name() not in controllers:
-                    if run_game:
-                        controllers[joystick_name] = [4, 5, 10, 1]
-                        joystick_configured = False
-                    else:
-                        controllers[joystick_name] = []
+                with open('data/settings_configuration.json', 'w') as json_file:
+                    json.dump(settings_counters, json_file)
+            except FileNotFoundError:
+                settings_not_saved_error = True
 
-                if joystick_name in controllers:
-                    settings_counters['configuration'] = controllers[joystick_name][3]
-                    controls['configuration'] = controllers[joystick_name]
-                    joystick_configured = True
-                    settings_menu.update_settings_counters(settings_counters, controls)
-            except Exception:
-                joystick_connection_error = True
-
-        if event.type == pygame.JOYDEVICEREMOVED and game_duration_counter > 20:
-            controller_disconnected_counter = 90
-            joysticks = {}
-            if not joystick_configured:
-                del controllers[joystick_name]
-            joystick_connected = False
-            joystick_name = ''
+    if events['joydeviceadded']:
+        event = events['joydeviceremoved']
+        pygame.mouse.set_visible(False)
+        joystick = pygame.joystick.Joystick(event.device_index)
+        joysticks[0] = joystick
+        joystick_connected = True
+        joystick_name = str(joystick.get_name())
+        if joystick_name in controllers:
+            controller_connected_counter = 90
+            joystick_configured = True
+            controller_popup = controller_connected_popup
+        else:
+            controller_connected_counter = 90
+            settings_counters['configuration'] = 1
+            settings_menu.update_settings_counters(settings_counters, controls)
             joystick_configured = False
-            pygame.mouse.set_visible(True)
+            controller_popup = controller_connected_popup
+            controller_calibration = True
 
-        if event.type == pygame.JOYAXISMOTION:
-            if joystick_idle and abs(event.value) > 0.3:
-                joystick_moved = True
-                joystick_idle = False
-            if event.value == 0:
-                joystick_idle = True
+        try:
+            if joystick.get_name() not in controllers:
+                if run_game:
+                    controllers[joystick_name] = [4, 5, 10, 1]
+                    joystick_configured = False
+                else:
+                    controllers[joystick_name] = []
 
-        if event.type == pygame.JOYBUTTONDOWN and not controller_calibration:
-            if event.button == controls['configuration'][1] or event.button == controls['configuration'][2]:
-                joystick_over_card = True
-            # game pause
-            if event.button == controls['configuration'][3] and run_game:
-                run_menu = False
-                run_game = False
-                paused = True
-                run_level_selection = False
-                fadeout_music = True
-                pause_menu.joystick_counter = 0
+            if joystick_name in controllers:
+                settings_counters['configuration'] = controllers[joystick_name][3]
+                controls['configuration'] = controllers[joystick_name]
+                joystick_configured = True
+                settings_menu.update_settings_counters(settings_counters, controls)
+        except Exception:
+            joystick_connection_error = True
+
+    if events['joydeviceremoved'] and game_duration_counter > 20:
+        controller_disconnected_counter = 90
+        joysticks = {}
+        if not joystick_configured:
+            del controllers[joystick_name]
+        joystick_connected = False
+        joystick_name = ''
+        joystick_configured = False
+        pygame.mouse.set_visible(True)
+
+    if events['joyaxismotion']:
+        event = events['joyaxismotion']
+        if joystick_idle and abs(event.value) > 0.3:
+            joystick_moved = True
+            joystick_idle = False
+        if event.value == 0:
+            joystick_idle = True
+
+    if events['joybuttondown'] and not controller_calibration:
+        event = events['joybuttondown']
+        if event.button == controls['configuration'][1] or event.button == controls['configuration'][2]:
+            joystick_over_card = True
+        # game pause
+        if event.button == controls['configuration'][3] and run_game:
+            run_menu = False
+            run_game = False
+            paused = True
+            run_level_selection = False
+            fadeout_music = True
+            pause_menu.joystick_counter = 0
 
     if user_quit1 and user_quit2:
         run = False
