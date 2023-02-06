@@ -59,6 +59,7 @@ class PauseScreen:
                                self.settings_button_down)
         self.restart_button = Button(swidth / 2 - self.restart_button_img.get_width() / 2, 166 / 270 * sheight,
                                      self.reset_button_img, self.reset_button_press, self.reset_button_down)
+        self.restart_over = False
 
     def draw_pause_screen(self, mouse_adjustment, events, joysticks, joystick_configuration, fps_adjust, no_restart):
 
@@ -73,8 +74,8 @@ class PauseScreen:
         joystick_over2 = False
         joystick_over3 = False
 
-        if events['joyaxismotion']:
-            event = events['joyaxismotion']
+        if events['joyaxismotion_y']:
+            event = events['joyaxismotion_y']
             if event.axis == joystick_configuration[0][1]:
                 if event.value > 0.1 and not self.joystick_moved:
                     self.joystick_counter += 1
@@ -116,7 +117,7 @@ class PauseScreen:
             elif self.joystick_counter == 3:
                 joystick_over3 = True
 
-        if joystick_over3:
+        if joystick_over3 or self.restart_over:
             self.restart_over_counter += 1 * fps_adjust
             if self.restart_over_counter > 25:
                 self.restart_lvl_txt_alpha += 25 * fps_adjust
@@ -134,12 +135,12 @@ class PauseScreen:
         menu, over2 = self.menu_btn.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over1)
         settings, over3 = self.s_button.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over2)
         if not no_restart:
-            restart, over4 = self.restart_button.draw_button(self.pause_screen, False, mouse_adjustment, events,
-                                                             joystick_over3)
+            restart, self.restart_over = self.restart_button.draw_button(self.pause_screen, False, mouse_adjustment,
+                                                                         events, joystick_over3)
         else:
-            restart, over4 = False, False
+            restart, self.restart_over = False, False
 
-        if over1 or over2 or over3 or over4:
+        if over1 or over2 or over3 or self.restart_over:
             final_over1 = True
 
         return self.pause_screen, final_over1, resume, menu, settings, restart

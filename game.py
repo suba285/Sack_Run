@@ -786,9 +786,8 @@ class Game:
             tutorial = False
 
         # dealing with harm
-        if self.tile_harm or self.hot_lava_harm or self.trap_harm:
+        if self.tile_harm or self.hot_lava_harm or self.trap_harm or self.bee_harm:
             self.harm = True
-            print('player harmed')
         else:
             self.harm = False
 
@@ -810,7 +809,8 @@ class Game:
             self.world.shockwave_mushroom_list,\
             self.gem_equipped,\
             screen_shake,\
-            player_sounds = self.player.update_pos_animation(screen,
+            player_sounds,\
+            bridge_cutscene_trigger = self.player.update_pos_animation(screen,
                                                              self.tile_list,
                                                              self.world.next_level_list,
                                                              level_count,
@@ -861,8 +861,7 @@ class Game:
         self.tile_harm, self.gem_equipped, sounds['gem'] = self.world.update_bg_tiles(self.game_screen, fps_adjust,
                                                                                       level_count, self.camera_move_x,
                                                                                       self.camera_move_y, sack_rect,
-                                                                                      self.health, self.player_moved,
-                                                                                      self.gem_equipped)
+                                                                                      self.gem_equipped, self.health)
         if self.tile_harm:
             print('harm received')
 
@@ -898,6 +897,9 @@ class Game:
             self.world.draw_green_mushrooms(self.game_screen, sack_rect)
 
         self.world.draw_static_tiles_foreground(self.game_screen)
+
+        self.bee_harm = self.world.update_fg_tiles(self.game_screen, sack_rect, fps_adjust, self.camera_move_x,
+                                                   self.camera_move_y, self.health, self.player_moved)
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 

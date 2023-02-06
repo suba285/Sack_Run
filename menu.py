@@ -109,25 +109,24 @@ class mainMenu:
             self.logo_pos_counter += 1 * fps_adjust
 
         # vertical axis input
-        if events['joyaxismotion']:
-            event = events['joyaxismotion']
-            if event.axis == joystick_controls[0][1]:
-                # down
-                if event.value > 0.1 and not self.joystick_moved:
-                    self.joystick_counter += 1
-                    self.joystick_moved = True
-                    joystick_sound = True
-                    if self.joystick_counter > 1:
-                        self.joystick_counter = 0
-                # up
-                elif event.value < -0.1 and not self.joystick_moved:
-                    self.joystick_counter -= 1
-                    joystick_sound = True
-                    self.joystick_moved = True
-                    if self.joystick_counter < 0:
-                        self.joystick_counter = 1
-                elif event.value == 0:
-                    self.joystick_moved = False
+        if events['joyaxismotion_y']:
+            event = events['joyaxismotion_y']
+            # down
+            if event.value > 0.1 and not self.joystick_moved:
+                self.joystick_counter += 1
+                self.joystick_moved = True
+                joystick_sound = True
+                if self.joystick_counter > 1:
+                    self.joystick_counter = 0
+            # up
+            elif event.value < -0.1 and not self.joystick_moved:
+                self.joystick_counter -= 1
+                joystick_sound = True
+                self.joystick_moved = True
+                if self.joystick_counter < 0:
+                    self.joystick_counter = 1
+            elif event.value == 0:
+                self.joystick_moved = False
         # D-pad input
         if joysticks:
             hat_value = joysticks[0].get_hat(0)

@@ -80,6 +80,7 @@ class World:
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.main_tile_list = []
+        self.main_fg_tile_list = []
         self.tile_list = []
         self.tile_pos_list = []
         self.updating_tile_list = []
@@ -105,8 +106,7 @@ class World:
         self.shockwave_center_list = []
         self.set_lava_list = []
         self.hot_lava_list = []
-
-        self.list_of_lists = []
+        self.bridge_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -127,6 +127,9 @@ class World:
         self.gem_bob_counter = 0
         self.gem_flicker_counter = 0
         self.gem_equipped = False
+        self.bridge_collapse_counter = 0
+        self.bridge_collapsing = False
+        self.bridge_debris_list = []
         self.wood_particles = []
         self.mush_particles = []
         self.gem_particles = []
@@ -306,6 +309,11 @@ class World:
         self.tree = img_loader('data/images/tree.PNG', 2 * tile_size, 2 * tile_size)
         self.birch_tree = img_loader('data/images/tree_birch.PNG', tile_size, tile_size * 3)
 
+        # bridge tiles -------------------------------------------------------------------------------------------------
+        self.bridge_section = img_loader('data/images/bridge_section.PNG', tile_size, 7)
+        self.bridge_support_left = img_loader('data/images/bridge_support.PNG', tile_size, tile_size)
+        self.bridge_support_right = pygame.transform.flip(self.bridge_support_left, True, False)
+
         # foliage tile images ------------------------------------------------------------------------------------------
         self.short_grass = img_loader('data/images/short_grass.PNG', tile_size, tile_size)
         self.short_grass_left = img_loader('data/images/short_grass_left.PNG', tile_size, tile_size)
@@ -366,6 +374,7 @@ class World:
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.main_tile_list = []
+        self.main_fg_tile_list = []
         self.tile_list = []
         self.tile_pos_list = []
         self.updating_tile_list = []
@@ -389,6 +398,7 @@ class World:
         self.shockwave_mushroom_list = []
         self.set_lava_list = []
         self.hot_lava_list = []
+        self.bridge_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -405,6 +415,9 @@ class World:
         self.log_counter = 0
         self.wood_num = 0
         self.playing_wheat_sound = False
+        self.bridge_collapse_counter = 0
+        self.bridge_collapsing = False
+        self.bridge_debris_list = []
         self.wood_particles = []
         self.mush_particles = []
         self.gem_particles = []
@@ -426,7 +439,7 @@ class World:
         # 16 - free tile
         # 17 - free tile
         # 18 - wheat
-        # 19 - free tile
+        # 19 - bridge
         # 20 - portal
         # 21 - dirt tile rocks
         # 22 - greenhouse
@@ -521,6 +534,9 @@ class World:
                         rect.x = (column_count * tile_size) + wheat_spacer * num - pov_offset
                         local_list.append(rect)
                     self.wheat_list.append(local_list)
+                if tile == 19:
+                    tile = img_rect_pos(self.bridge_section, column_count, row_count, pov_offset)
+                    self.tile_list.append(tile)
                 if tile == 20:
                     # portal
                     img1 = self.portal
@@ -716,8 +732,7 @@ class World:
                     self.spitting_plant_list_left.append(tile)
                 if tile == 38:
                     # spitting plant right
-                    img_raw = self.spitting_plant0r
-                    img = pygame.transform.flip(img_raw, True, False)
+                    img = self.spitting_plant0r
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size - pov_offset
@@ -844,6 +859,14 @@ class World:
                     tile[0] = self.stone_tiles[tuple(tile_edge_data)]
                 except KeyError:
                     tile[0] = self.stone_tile
+            if tile[0] == self.bridge_section:
+                if tile_edge_data[1] and not tile_edge_data[3]:
+                    tile.append('right')
+                elif tile_edge_data[3] and not tile_edge_data[1]:
+                    tile.append('left')
+                else:
+                    tile.append('none')
+                self.bridge_list.append(tile)
 
             self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
@@ -913,19 +936,18 @@ class World:
             self.tile_surface_bg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
 
-        self.list_of_lists = [self.portal_list, self.bee_hive_list, self.tile_list,
-                              self.spitting_plant_list_up, self.spitting_plant_list_left,
-                              self.spitting_plant_list_right, self.set_lava_list,
-                              self.log_list, self.gem_list, self.shockwave_mushroom_list]
-
         bg_tiles = [self.spitting_plant_list_up, self.spitting_plant_list_left, self.spitting_plant_list_right,
-                    self.set_lava_list, self.portal_list, self.gem_list,
-                    self.shockwave_mushroom_list, self.log_list, self.bee_hive_list]
+                    self.set_lava_list, self.portal_list, self.gem_list, self.log_list]
 
         for el in bg_tiles:
             self.main_tile_list += el
 
-        self.updating_tile_list = self.tile_list + self.main_tile_list
+        fg_tiles = [self.shockwave_mushroom_list, self.bee_hive_list]
+
+        for el in fg_tiles:
+            self.main_fg_tile_list += el
+
+        self.updating_tile_list = self.tile_list + self.main_tile_list + self.main_fg_tile_list
 
         return self.level_length, self.level_height
 
@@ -975,18 +997,9 @@ class World:
 
     # functions for drawing animated or interactive tiles and enemies ==================================================
 
-    def update_bg_tiles(self, screen, fps_adjust, level_count, camera_move_x, camera_move_y, sack_rect, health,
-                        player_moved, gem_equipped):
+    def update_bg_tiles(self, screen, fps_adjust, level_count, camera_move_x, camera_move_y, sack_rect,
+                        gem_equipped, health):
         harm = False
-        # bee tile variables
-        self.bee_harm = False
-        if player_moved:
-            self.bee_release_counter += 1 * fps_adjust
-        if self.bee_release_counter >= 120 and health > 0 and player_moved:
-            self.bee_counter += 1
-            if self.bee_counter >= 4:
-                self.bee_counter = 4
-            self.bee_release_counter = 0
         # portal variables
         self.portal_counter += 1 * fps_adjust
         self.portal_part_counter += 1 * fps_adjust
@@ -996,8 +1009,6 @@ class World:
         if self.gem_flicker_counter >= 90:
             self.gem_flicker_counter = 0
         gem_sound = False
-        # shockwave mushroom variables
-        self.shockwave_center_list = []
         # spitting plant variables
         spit_harm = False
         self.spitting_counter_left += 1 * fps_adjust
@@ -1116,61 +1127,6 @@ class World:
                     screen.blit(self.gem_outline_surface, (tile[1][0] + (8 - img.get_width() / 2),
                                                            tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
 
-            # shockwave mushroom ---------------------------------------------------------------------------------------
-            if tile[0] == self.shockwave_mushroom:
-                if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
-                    squash = 0
-                    trigger = False
-                    tile[3] -= 1 * fps_adjust
-                    tile[2] -= 1 * fps_adjust
-                    if tile[3] < 0:
-                        tile[3] = 0
-
-                    if tile[2] > 12:
-                        squash = 2
-                    elif tile[2] > 9:
-                        squash = 4
-                    elif tile[2] > 6:
-                        squash = 6
-                    elif tile[2] > 3:
-                        squash = 4
-                    elif tile[2] > 0:
-                        squash = 2
-                        trigger = True
-
-                    if squash > 0:
-                        img = pygame.transform.scale(self.shockwave_mushroom,
-                                                     (tile_size + squash, tile_size / 2 - squash))
-                    else:
-                        img = self.shockwave_mushroom
-
-                    if tile[3] != 0 and tile[2] < 0:
-                        img = self.shockwave_mushroom_dark
-
-                    shockwave_center = (tile[1][0] + tile_size / 2, tile[1][1] + 10)
-                    radius = tile[4].update_shockwave((shockwave_center[0], shockwave_center[1]),
-                                                          fps_adjust, trigger)
-
-                    self.shockwave_center_list.append((shockwave_center[0], shockwave_center[1], radius))
-
-                    screen.blit(img, (tile[1][0] - squash / 2, tile[1][1] + squash))
-
-            # bee hive -------------------------------------------------------------------------------------------------
-            if tile[0] == self.bee_hive:
-                if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
-                    screen.blit(self.bee_hive, tile[1])
-                if self.bee_counter > 0:
-                    for i in range(self.bee_counter - 1):
-                        if i <= 4:
-                            bee_harm = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
-                                                                  camera_move_x,
-                                                                  camera_move_y, tile[1][0], tile[1][1],
-                                                                  health,
-                                                                  self.shockwave_center_list,
-                                                                  player_moved)
-                            if bee_harm:
-                                self.bee_harm = True
-
             # spitting plant left --------------------------------------------------------------------------------------
             if tile[0] == self.spitting_plant0l:
                 if self.spitting_counter_left >= 60:
@@ -1269,11 +1225,83 @@ class World:
                         if part[2] <= 0:
                             self.wood_particles.remove(part)
 
-        if self.bee_harm or spit_harm:
+        if spit_harm:
             harm = True
-            print('harm passed on')
 
         return harm, gem_equipped, gem_sound
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def update_fg_tiles(self, screen, sack_rect, fps_adjust, camera_move_x, camera_move_y, health, player_moved):
+        # shockwave mushroom variables
+        self.shockwave_center_list = []
+        # bee tile variables
+        self.bee_harm = False
+        if player_moved:
+            self.bee_release_counter += 1 * fps_adjust
+        if self.bee_release_counter >= 120 and health > 0 and player_moved:
+            self.bee_counter += 1
+            if self.bee_counter >= 4:
+                self.bee_counter = 4
+            self.bee_release_counter = 0
+
+        for tile in self.main_fg_tile_list:
+            # shockwave mushroom ---------------------------------------------------------------------------------------
+            if tile[0] == self.shockwave_mushroom:
+                if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                    squash = 0
+                    trigger = False
+                    tile[3] -= 1 * fps_adjust
+                    tile[2] -= 1 * fps_adjust
+                    if tile[3] < 0:
+                        tile[3] = 0
+
+                    if tile[2] > 12:
+                        squash = 2
+                    elif tile[2] > 9:
+                        squash = 4
+                    elif tile[2] > 6:
+                        squash = 6
+                    elif tile[2] > 3:
+                        squash = 4
+                    elif tile[2] > 0:
+                        squash = 2
+                        trigger = True
+
+                    if squash > 0:
+                        img = pygame.transform.scale(self.shockwave_mushroom,
+                                                     (tile_size + squash, tile_size / 2 - squash))
+                    else:
+                        img = self.shockwave_mushroom
+
+                    if tile[3] != 0 and tile[2] < 0:
+                        img = self.shockwave_mushroom_dark
+
+                    shockwave_center = (tile[1][0] + tile_size / 2, tile[1][1] + 10)
+                    radius = tile[4].update_shockwave((shockwave_center[0], shockwave_center[1]),
+                                                      fps_adjust, trigger)
+
+                    self.shockwave_center_list.append((shockwave_center[0], shockwave_center[1], radius))
+
+                    screen.blit(img, (tile[1][0] - squash / 2, tile[1][1] + squash))
+
+            # bee hive -------------------------------------------------------------------------------------------------
+            if tile[0] == self.bee_hive:
+                if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                    screen.blit(self.bee_hive, tile[1])
+                if self.bee_counter > 0:
+                    for i in range(self.bee_counter - 1):
+                        if i <= 4:
+                            bee_harm = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
+                                                             camera_move_x,
+                                                             camera_move_y, tile[1][0], tile[1][1],
+                                                             health,
+                                                             self.shockwave_center_list,
+                                                             player_moved)
+                            if bee_harm:
+                                self.bee_harm = True
+
+        return self.bee_harm
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -1319,6 +1347,39 @@ class World:
             screen.blit(package[0], package[1])
 
         return hot_lava_harm
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def draw_bridge(self, screen, camera_move_x, camera_move_y, collapse, fps_adjust):
+        offset_x = 0
+        offset_y = 0
+        offset_x_bg = 0
+        offset_y_bg = 0
+
+        if collapse:
+            self.bridge_collapsing = True
+            self.bridge_collapse_counter = 60
+        if self.bridge_collapsing:
+            self.bridge_collapse_counter -= 1 * fps_adjust
+
+        for tile in self.bridge_list:
+            if self.bridge_collapsing:
+                self.bridge_collapse_counter -= 1 * fps_adjust
+                offset_x = random.randint(1, -1)
+                offset_y = random.randint(1, -1)
+                offset_x_bg = random.randint(1, -1)
+                offset_y_bg = random.randint(1, -1)
+            if self.bridge_collapse_counter >= 0:
+                tile[1][0] += camera_move_x
+                tile[1][1] += camera_move_y
+                print(tile[-1])
+                if tile[-1] == 'right':
+                    screen.blit(self.bridge_support_right, (tile[1][0] + offset_x_bg, tile[1][1] + offset_y_bg))
+                elif tile[-1] == 'left':
+                    screen.blit(self.bridge_support_left, (tile[1][0] + offset_x_bg, tile[1][1] + offset_y_bg))
+                screen.blit(tile[0], (tile[1][0] + offset_x, tile[1][1] + offset_y))
+            if self.bridge_collapse_counter < 0 and tile in self.tile_list:
+                self.tile_list.remove(tile)
 
     # ------------------------------------------------------------------------------------------------------------------
 

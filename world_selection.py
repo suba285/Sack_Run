@@ -201,15 +201,14 @@ class LevelSelection:
         over3 = False
         over4 = False
 
-        if events['joyaxismotion']:
-            event = events['joyaxismotion']
-            if event.axis == controls['configuration'][0][0]:
-                # right and left
-                if abs(event.value) > 0.3 and not self.joystick_moved:
-                    self.joystick_counter *= -1
-                    self.joystick_moved = True
-                if event.value == 0:
-                    self.joystick_moved = False
+        if events['joyaxismotion_x']:
+            event = events['joyaxismotion_x']
+            # right and left
+            if abs(event.value) > 0.3 and not self.joystick_moved:
+                self.joystick_counter *= -1
+                self.joystick_moved = True
+            if event.value == 0:
+                self.joystick_moved = False
         if events['joybuttondown']:
             event = events['joybuttondown']
             if event.button == controls['configuration'][1]:

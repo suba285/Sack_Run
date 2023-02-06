@@ -523,8 +523,11 @@ class SettingsMenu:
                 self.controller_configuration.append((0, 1))
 
         # events
-        if events['joyaxismotion']:
-            event = events['joyaxismotion']
+        if len(self.calibrated_axis) == 0:
+            event = events['joyaxismotion_x']
+        else:
+            event = events['joyaxismotion_y']
+        if event:
             if event.value > 0.9:
                 if not self.controller_configuration:
                     if event.axis not in self.calibrated_axis:
@@ -574,8 +577,8 @@ class SettingsMenu:
             self.dim_surf.set_alpha(self.dim_surf_alpha)
 
         if self.controller_calibration_step_counter == 4:
-            if events['joyaxismotion']:
-                event = events['joyaxismotion']
+            if events['joyaxismotion_x']:
+                event = events['joyaxismotion_x']
                 if event.axis == self.controller_configuration[0][0]:
                     if not self.joystick_moved and abs(event.value) > 0.3:
                         if self.btn_names_counter == 1:
@@ -709,19 +712,20 @@ class SettingsMenu:
 
         if not self.controller_calibration:
             # axis input
-            if events['joyaxismotion']:
-                event = events['joyaxismotion']
+            if events['joyaxismotion_x'] or events['joyaxismotion_y']:
                 self.no_controller_counter = 0
                 self.pov_popup_counter = 0
                 # horizontal joystick movement
-                if event.axis == self.controls['configuration'][0][0]:
+                if events['joyaxismotion_x']:
+                    event = events['joyaxismotion_x']
                     if abs(event.value) > 0.3 and not self.joystick_moved:
                         self.joystick_counter = self.joystick_counter * -1
                         self.joystick_moved = True
                     if event.value == 0:
                         self.joystick_moved = False
                 # vertical joystick movement
-                if event.axis == self.controls['configuration'][0][1]:
+                if events['joyaxismotion_y']:
+                    event = events['joyaxismotion_y']
                     # down
                     if event.value > 0.3 and not self.joystick_moved:
                         if self.joystick_counter >= 0:

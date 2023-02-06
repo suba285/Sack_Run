@@ -410,8 +410,11 @@ class eqManager:
                     joystick_jump_press = True
                 if (not joystick_info_press or self.card_info or joystick_jump_press) and not bumper_key_pressed:
                     joystick_action = True
-            if events['joyaxismotion']:
-                if abs(events['joyaxismotion'].value) > 0.3:
+            if events['joyaxismotion_x']:
+                if abs(events['joyaxismotion_x'].value) > 0.3:
+                    joystick_action = True
+            if events['joyaxismotion_y']:
+                if abs(events['joyaxismotion_y'].value) > 0.3:
                     joystick_action = True
 
         if joysticks:

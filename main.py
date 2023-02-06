@@ -439,7 +439,8 @@ while run:
         'keyup': False,
         'mousebuttondown': False,
         'mousebuttonup': False,
-        'joyaxismotion': False,
+        'joyaxismotion_y': False,
+        'joyaxismotion_x': False,
         'joybuttondown': False,
         'joybuttonup': False,
         'joydeviceadded': False,
@@ -459,7 +460,10 @@ while run:
         if event.type == pygame.MOUSEBUTTONUP:
             events['mousebuttonup'] = event
         if event.type == pygame.JOYAXISMOTION:
-            events['joyaxismotion'] = event
+            if event.axis == controls['configuration'][0][0]:
+                events['joyaxismotion_x'] = event
+            if event.axis == controls['configuration'][0][1]:
+                events['joyaxismotion_y'] = event
         if event.type == pygame.JOYBUTTONDOWN:
             events['joybuttondown'] = event
         if event.type == pygame.JOYBUTTONUP:
@@ -679,7 +683,7 @@ while run:
                     unlocked_world_data = json.load(json_file)
             except FileNotFoundError:
                 unlocked_world_data = [True, False, False, False]
-            if world_count < 2 and not unlocked_world_data[world_count]:
+            if world_count < 3 and not unlocked_world_data[world_count]:
                 new_world_unlocked = True
                 unlocked_world_data[nums_to_unlocked_world_data[world_count]] = True
             try:
@@ -1018,7 +1022,7 @@ while run:
                 settings_not_saved_error = True
 
     if events['joydeviceadded']:
-        event = events['joydeviceremoved']
+        event = events['joydeviceadded']
         pygame.mouse.set_visible(False)
         joystick = pygame.joystick.Joystick(event.device_index)
         joysticks[0] = joystick
@@ -1062,8 +1066,15 @@ while run:
         joystick_configured = False
         pygame.mouse.set_visible(True)
 
-    if events['joyaxismotion']:
-        event = events['joyaxismotion']
+    if events['joyaxismotion_x']:
+        event = events['joyaxismotion_x']
+        if joystick_idle and abs(event.value) > 0.3:
+            joystick_moved = True
+            joystick_idle = False
+        if event.value == 0:
+            joystick_idle = True
+    if events['joyaxismotion_y']:
+        event = events['joyaxismotion_y']
         if joystick_idle and abs(event.value) > 0.3:
             joystick_moved = True
             joystick_idle = False
@@ -1274,7 +1285,7 @@ while run:
     window.fill((0, 0, 0))
     window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)),
                 (width_window_space / 2 - wiwidth / 2, height_window_space / 2 - wiheight / 2))
-    pygame.display.flip()
+    pygame.display.update()
 
 pygame.quit()
 # ======================================================================================================================
