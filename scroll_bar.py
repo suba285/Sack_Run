@@ -68,8 +68,8 @@ class ScrollBar:
             event = events['mousewheel']
             if event.y != 0:
                 self.scroll_value = self.scroll_speed * -event.y
-        if events['joyaxismotion']:
-            event = events['joyaxismotion']
+        if events['joyaxismotion_y']:
+            event = events['joyaxismotion_y']
             if event.axis == joystick_controls[0][1]:
                 self.scroll_value = self.scroll_speed * event.value
                 self.scrolling = True

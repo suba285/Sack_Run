@@ -867,9 +867,9 @@ class World:
                 else:
                     tile.append('none')
                 self.bridge_list.append(tile)
-
-            self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
-                                                tile[1][1] - start_y * tile_size))
+            else:
+                self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
+                                                    tile[1][1] - start_y * tile_size))
             if tile[0] != self.dirt_tile and tile[0] != self.stone_tile:
                 temp_tile_list.append(tile)
 
@@ -1145,6 +1145,8 @@ class World:
                     spit_harm = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
                                                   tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
                                                   sack_rect, health, self.tile_list)
+                    if spit_harm:
+                        harm = True
 
                 if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
                     screen.blit(self.spitting_plant_img_left, tile[1])
@@ -1167,6 +1169,8 @@ class World:
                     spit_harm = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
                                                   tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
                                                   sack_rect, health, self.tile_list)
+                    if spit_harm:
+                        harm = True
 
                 if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
                     screen.blit(self.spitting_plant_img_right, tile[1])
@@ -1189,6 +1193,8 @@ class World:
                     spit_harm = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
                                                   tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
                                                   sack_rect, health, self.tile_list)
+                    if spit_harm:
+                        harm = True
 
                 if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
                     screen.blit(self.spitting_plant_img_up, tile[1])
@@ -1224,9 +1230,6 @@ class World:
                         pygame.draw.rect(screen, (192, 161, 133), [int(part[0][0]), int(part[0][1]), 1, 1])
                         if part[2] <= 0:
                             self.wood_particles.remove(part)
-
-        if spit_harm:
-            harm = True
 
         return harm, gem_equipped, gem_sound
 
@@ -1370,9 +1373,6 @@ class World:
                 offset_x_bg = random.randint(1, -1)
                 offset_y_bg = random.randint(1, -1)
             if self.bridge_collapse_counter >= 0:
-                tile[1][0] += camera_move_x
-                tile[1][1] += camera_move_y
-                print(tile[-1])
                 if tile[-1] == 'right':
                     screen.blit(self.bridge_support_right, (tile[1][0] + offset_x_bg, tile[1][1] + offset_y_bg))
                 elif tile[-1] == 'left':

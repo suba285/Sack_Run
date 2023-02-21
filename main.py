@@ -551,7 +551,8 @@ while run:
                 'keyup': False,
                 'mousebuttondown': False,
                 'mousebuttonup': False,
-                'joyaxismotion': False,
+                'joyaxismotion_y': False,
+                'joyaxismotion_x': False,
                 'joybuttondown': False,
                 'joybuttonup': False,
                 'joydeviceadded': False,
@@ -640,7 +641,8 @@ while run:
                     'keyup': False,
                     'mousebuttondown': False,
                     'mousebuttonup': False,
-                    'joyaxismotion': False,
+                    'joyaxismotion_y': False,
+                    'joyaxismotion_x': False,
                     'joybuttondown': False,
                     'joybuttonup': False,
                     'joydeviceadded': False,
@@ -713,7 +715,8 @@ while run:
                 'keyup': False,
                 'mousebuttondown': False,
                 'mousebuttonup': False,
-                'joyaxismotion': False,
+                'joyaxismotion_y': False,
+                'joyaxismotion_x': False,
                 'joybuttondown': False,
                 'joybuttonup': False,
                 'joydeviceadded': False,
@@ -796,7 +799,8 @@ while run:
                 'keyup': False,
                 'mousebuttondown': False,
                 'mousebuttonup': False,
-                'joyaxismotion': False,
+                'joyaxismotion_y': False,
+                'joyaxismotion_x': False,
                 'joybuttondown': False,
                 'joybuttonup': False,
                 'joydeviceadded': False,
@@ -875,7 +879,8 @@ while run:
                 'keyup': False,
                 'mousebuttondown': False,
                 'mousebuttonup': False,
-                'joyaxismotion': False,
+                'joyaxismotion_y': False,
+                'joyaxismotion_x': False,
                 'joybuttondown': False,
                 'joybuttonup': False,
                 'joydeviceadded': False,
@@ -975,6 +980,8 @@ while run:
                 'configuration': controls['configuration'],
                 'cards': controls_nums[f"cards{settings_counters['cards']}"],
             }
+
+            print(controls['jump'])
 
             pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 

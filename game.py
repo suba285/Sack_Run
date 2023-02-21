@@ -811,22 +811,23 @@ class Game:
             screen_shake,\
             player_sounds,\
             bridge_cutscene_trigger = self.player.update_pos_animation(screen,
-                                                             self.tile_list,
-                                                             self.world.next_level_list,
-                                                             level_count,
-                                                             self.harm,
-                                                             fps_adjust,
-                                                             self.mid_air_jump_trigger,
-                                                             self.speed_dash_trigger,
-                                                             self.left_border,
-                                                             self.right_border,
-                                                             self.move,
-                                                             self.world.shockwave_mushroom_list,
-                                                             events,
-                                                             self.gem_equipped,
-                                                             joysticks,
-                                                             restart_level_procedure
-                                                             )
+                                                                       self.tile_list,
+                                                                       self.world.next_level_list,
+                                                                       level_count,
+                                                                       self.harm,
+                                                                       fps_adjust,
+                                                                       self.mid_air_jump_trigger,
+                                                                       self.speed_dash_trigger,
+                                                                       self.left_border,
+                                                                       self.right_border,
+                                                                       self.move,
+                                                                       self.world.shockwave_mushroom_list,
+                                                                       events,
+                                                                       self.gem_equipped,
+                                                                       joysticks,
+                                                                       restart_level_procedure,
+                                                                       self.controls,
+                                                                       )
         # updating player sounds
         sounds.update(player_sounds)
         # sack motion
@@ -862,8 +863,9 @@ class Game:
                                                                                       level_count, self.camera_move_x,
                                                                                       self.camera_move_y, sack_rect,
                                                                                       self.gem_equipped, self.health)
-        if self.tile_harm:
-            print('harm received')
+        self.world.draw_bridge(self.game_screen, self.camera_move_x, self.camera_move_y, bridge_cutscene_trigger,
+                               fps_adjust)
+
 
         # drawing the  player ------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)

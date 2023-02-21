@@ -382,7 +382,8 @@ class Player:
     def update_pos_animation(self, screen, tile_list, next_level_list, level_count, harm_in, fps_adjust,
                              mid_air_jump_trigger, speed_dash_trigger,
                              left_border, right_border,
-                             move, shockwave_mush_list, events, gem_equipped, joysticks, restart_level_procedure):
+                             move, shockwave_mush_list, events, gem_equipped, joysticks, restart_level_procedure,
+                             controls):
 
         dx = 0
         dy = 0
@@ -397,6 +398,8 @@ class Player:
             'land': False,
             'death': False,
         }
+
+        self.controls = controls
 
         self.animation_counter += 1 * fps_adjust
 
