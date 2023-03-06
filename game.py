@@ -69,7 +69,7 @@ level_pos_dictionary = {
     "level7_2": (5, -19),
     "level8_2": (5, -5),
     "level9_2": (5, -2),
-    "level1_3": (3, 2),
+    "level1_3": (3, 1),
     "level2_3": (3, -4),
     "level3_3": (-2, -5),
     "level4_3": (4, -4),
@@ -474,6 +474,8 @@ class Game:
         self.change_music = True
         self.change_music_counter = 0
 
+        self.bridge_collapsing = False
+
         # initiating classes -------------------------------------------------------------------------------------------
         self.world = World(world_data, self.game_screen, slow_computer, bg_data,
                            settings_counters, world_count)
@@ -809,25 +811,24 @@ class Game:
             self.world.shockwave_mushroom_list,\
             self.gem_equipped,\
             screen_shake,\
-            player_sounds,\
-            bridge_cutscene_trigger = self.player.update_pos_animation(screen,
-                                                                       self.tile_list,
-                                                                       self.world.next_level_list,
-                                                                       level_count,
-                                                                       self.harm,
-                                                                       fps_adjust,
-                                                                       self.mid_air_jump_trigger,
-                                                                       self.speed_dash_trigger,
-                                                                       self.left_border,
-                                                                       self.right_border,
-                                                                       self.move,
-                                                                       self.world.shockwave_mushroom_list,
-                                                                       events,
-                                                                       self.gem_equipped,
-                                                                       joysticks,
-                                                                       restart_level_procedure,
-                                                                       self.controls,
-                                                                       )
+            player_sounds = self.player.update_pos_animation(screen,
+                                                             self.tile_list,
+                                                             self.world.next_level_list,
+                                                             level_count,
+                                                             self.harm,
+                                                             fps_adjust,
+                                                             self.mid_air_jump_trigger,
+                                                             self.speed_dash_trigger,
+                                                             self.left_border,
+                                                             self.right_border,
+                                                             self.move,
+                                                             self.world.shockwave_mushroom_list,
+                                                             events,
+                                                             self.gem_equipped,
+                                                             joysticks,
+                                                             restart_level_procedure,
+                                                             self.controls,
+                                                             )
         # updating player sounds
         sounds.update(player_sounds)
         # sack motion
@@ -863,9 +864,7 @@ class Game:
                                                                                       level_count, self.camera_move_x,
                                                                                       self.camera_move_y, sack_rect,
                                                                                       self.gem_equipped, self.health)
-        self.world.draw_bridge(self.game_screen, self.camera_move_x, self.camera_move_y, bridge_cutscene_trigger,
-                               fps_adjust)
-
+        self.world.draw_bridge(self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust, sack_rect)
 
         # drawing the  player ------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)

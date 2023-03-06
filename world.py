@@ -129,6 +129,7 @@ class World:
         self.gem_equipped = False
         self.bridge_collapse_counter = 0
         self.bridge_collapsing = False
+        self.bridge_collapse_cooldown = 10
         self.bridge_debris_list = []
         self.wood_particles = []
         self.mush_particles = []
@@ -417,6 +418,7 @@ class World:
         self.playing_wheat_sound = False
         self.bridge_collapse_counter = 0
         self.bridge_collapsing = False
+        self.bridge_collapse_cooldown = 10
         self.bridge_debris_list = []
         self.wood_particles = []
         self.mush_particles = []
@@ -1353,25 +1355,26 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_bridge(self, screen, camera_move_x, camera_move_y, collapse, fps_adjust):
+    def draw_bridge(self, screen, camera_move_x, camera_move_y, fps_adjust, sack_rect):
         offset_x = 0
         offset_y = 0
         offset_x_bg = 0
         offset_y_bg = 0
 
-        if collapse:
-            self.bridge_collapsing = True
-            self.bridge_collapse_counter = 60
         if self.bridge_collapsing:
             self.bridge_collapse_counter -= 1 * fps_adjust
 
         for tile in self.bridge_list:
+            if sack_rect.x > tile[1][0] and not self.bridge_collapsing:
+                self.bridge_collapse_cooldown -= 1*fps_adjust
+                if self.bridge_collapse_cooldown < 0:
+                    self.bridge_collapsing = True
+                    self.bridge_collapse_counter = 40
             if self.bridge_collapsing:
-                self.bridge_collapse_counter -= 1 * fps_adjust
-                offset_x = random.randint(1, -1)
-                offset_y = random.randint(1, -1)
-                offset_x_bg = random.randint(1, -1)
-                offset_y_bg = random.randint(1, -1)
+                offset_x = random.randint(-2, 3)
+                offset_y = random.randint(-2, 3)
+                offset_x_bg = random.randint(-2, 3)
+                offset_y_bg = random.randint(-2, 3)
             if self.bridge_collapse_counter >= 0:
                 if tile[-1] == 'right':
                     screen.blit(self.bridge_support_right, (tile[1][0] + offset_x_bg, tile[1][1] + offset_y_bg))
@@ -1380,6 +1383,29 @@ class World:
                 screen.blit(tile[0], (tile[1][0] + offset_x, tile[1][1] + offset_y))
             if self.bridge_collapse_counter < 0 and tile in self.tile_list:
                 self.tile_list.remove(tile)
+                # debris = [image, position, velocity, rotation, rotation_speed, alpha, fadeout_counter]
+                debris = [tile[0].copy(), tile[1], random.randrange(1, 3), 0,
+                          random.randint(random.randrange(-3, -2), random.randrange(2, 3)), 255, random.randrange(4, 6)]
+                self.bridge_debris_list.append(debris)
+
+            # debris management
+            for debris in self.bridge_debris_list:
+                # y velocity
+                debris[1][1] += debris[2] * fps_adjust
+                # rotation
+                debris[3] += debris[4] * fps_adjust
+                # alpha value
+                debris[-2] -= debris[-1] * fps_adjust
+                debris[0].set_alpha(debris[-2])
+
+                img = debris[0]
+                if debris[-2] < 0:
+                    self.bridge_debris_list.remove(debris)
+                else:
+                    img = pygame.transform.rotate(debris[0], debris[3])
+                screen.blit(img, (debris[1][0] + debris[0].get_width() / 2, debris[1][1] + debris[0].get_height() / 2))
+
+    # add screen shake when bridge is collapsing
 
     # ------------------------------------------------------------------------------------------------------------------
 

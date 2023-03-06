@@ -13,12 +13,6 @@ player_size_x = 20
 
 jump_offset_amount = 5
 
-sack_level_positions = {
-    '1_1': (200, 200),
-    '2_1': (200, 200),
-    '3_1': (200, 200)
-}
-
 
 # hey particles coming off the player ----------------------------------------------------------------------------------
 class HeyParticle:
@@ -847,8 +841,6 @@ class Player:
         append = col_y_tile_list.append
         for tile in tile_list:
             if tile[1].colliderect(temp_rect.x + self.vel_x, temp_rect.y, self.sack_width, self.sack_height):
-                if tile[0] == self.bridge_section:
-                    bridge_cutscene_trigger = True
                 if self.vel_x > 0:
                     self.sack_rect.right = tile[1].left
                     self.vel_x = 0
@@ -872,11 +864,6 @@ class Player:
         col_counter = 0
         for tile in col_y_tile_list:
             if tile[1].colliderect(self.sack_rect.x, self.sack_rect.y + dy, self.sack_width, self.sack_height):
-                if tile[0] == self.bridge_section:
-                    self.bridge_cutscene_walk = True
-                    if tile[-1] == 'none':
-                        self.bridge_cutscene_walk = False
-                        bridge_cutscene_trigger = True
                 if dy > 0:
                     self.sack_rect.bottom = tile[1].top
                     self.surface_type = tile[2]
@@ -965,7 +952,7 @@ class Player:
         return level_count, self.sack_rect, self.direction, self.health,\
                self.camera_movement_x, self.camera_movement_y,\
                self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list,\
-               gem_equipped, screen_shake, sounds, bridge_cutscene_trigger
+               gem_equipped, screen_shake, sounds
 
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================
     def blit_player(self, screen, draw_hitbox, fps_adjust):
