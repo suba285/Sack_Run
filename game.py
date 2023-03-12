@@ -864,7 +864,10 @@ class Game:
                                                                                       level_count, self.camera_move_x,
                                                                                       self.camera_move_y, sack_rect,
                                                                                       self.gem_equipped, self.health)
-        self.world.draw_bridge(self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust, sack_rect)
+        bridge_screen_shake = self.world.draw_bridge(self.game_screen, self.camera_move_x, self.camera_move_y,
+                                                     fps_adjust, sack_rect)
+        if bridge_screen_shake:
+            screen_shake = True
 
         # drawing the  player ------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)

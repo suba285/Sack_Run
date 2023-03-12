@@ -129,6 +129,7 @@ class World:
         self.gem_equipped = False
         self.bridge_collapse_counter = 0
         self.bridge_collapsing = False
+        self.bridge_collapsed = False
         self.bridge_collapse_cooldown = 10
         self.bridge_debris_list = []
         self.wood_particles = []
@@ -315,6 +316,13 @@ class World:
         self.bridge_support_left = img_loader('data/images/bridge_support.PNG', tile_size, tile_size)
         self.bridge_support_right = pygame.transform.flip(self.bridge_support_left, True, False)
 
+        # debris = [image, position, velocity, rotation, rotation_speed, alpha, fadeout_counter]
+        self.default_debris_list = []
+        deb1 = [self.bridge_section.copy(), [0, 0], 3, 0, -8, 255, 5]
+        deb2 = [self.bridge_section.copy(), [0, 0], 4, 0, 3, 255, 4]
+        deb3 = [self.bridge_section.copy(), [0, 0], 2, 0, 7, 255, 5]
+        self.default_debris_list = [deb1, deb2, deb3]
+
         # foliage tile images ------------------------------------------------------------------------------------------
         self.short_grass = img_loader('data/images/short_grass.PNG', tile_size, tile_size)
         self.short_grass_left = img_loader('data/images/short_grass_left.PNG', tile_size, tile_size)
@@ -418,6 +426,7 @@ class World:
         self.playing_wheat_sound = False
         self.bridge_collapse_counter = 0
         self.bridge_collapsing = False
+        self.bridge_collapsed = False
         self.bridge_collapse_cooldown = 10
         self.bridge_debris_list = []
         self.wood_particles = []
@@ -879,7 +888,7 @@ class World:
             self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
         for tile in self.set_lava_list:
-            self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
+            self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset + tile[-1],
                                                 tile[1][1] - start_y * tile_size))
         self.tile_list = temp_tile_list
 
@@ -1075,7 +1084,7 @@ class World:
                         screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
 
             # set lava -------------------------------------------------------------------------------------------------
-            if tile[0] in [self.set_lava, self.set_lava_left, self.set_lava_right]:
+            if tile[0] in [self.set_lava, self.set_lava2, self.set_lava_left, self.set_lava_right]:
                 if -tile_size < tile[1][0] < swidth:
                     if tile[1].colliderect(sack_rect):
                         harm = True
@@ -1361,8 +1370,12 @@ class World:
         offset_x_bg = 0
         offset_y_bg = 0
 
+        screen_shake = False
+
         if self.bridge_collapsing:
             self.bridge_collapse_counter -= 1 * fps_adjust
+
+        debris_tile_counter = 0
 
         for tile in self.bridge_list:
             if sack_rect.x > tile[1][0] and not self.bridge_collapsing:
@@ -1384,28 +1397,35 @@ class World:
             if self.bridge_collapse_counter < 0 and tile in self.tile_list:
                 self.tile_list.remove(tile)
                 # debris = [image, position, velocity, rotation, rotation_speed, alpha, fadeout_counter]
-                debris = [tile[0].copy(), tile[1], random.randrange(1, 3), 0,
-                          random.randint(random.randrange(-3, -2), random.randrange(2, 3)), 255, random.randrange(4, 6)]
+                debris = self.default_debris_list[debris_tile_counter].copy()
+                debris[1] = [tile[1][0], tile[1][1]]
                 self.bridge_debris_list.append(debris)
+                self.bridge_collapsed = True
+            debris_tile_counter += 1
 
-            # debris management
-            for debris in self.bridge_debris_list:
-                # y velocity
-                debris[1][1] += debris[2] * fps_adjust
-                # rotation
-                debris[3] += debris[4] * fps_adjust
-                # alpha value
-                debris[-2] -= debris[-1] * fps_adjust
-                debris[0].set_alpha(debris[-2])
+        # debris management
+        for debris in self.bridge_debris_list:
+            # y velocity
+            debris[1][1] += debris[2] * fps_adjust + camera_move_y
+            debris[1][0] += camera_move_x
+            # rotation
+            debris[3] += debris[4] * fps_adjust
+            # alpha value
+            debris[-2] -= debris[-1] * fps_adjust
+            debris[0].set_alpha(debris[-2])
 
-                img = debris[0]
-                if debris[-2] < 0:
-                    self.bridge_debris_list.remove(debris)
-                else:
-                    img = pygame.transform.rotate(debris[0], debris[3])
-                screen.blit(img, (debris[1][0] + debris[0].get_width() / 2, debris[1][1] + debris[0].get_height() / 2))
+            img = debris[0]
+            if debris[-2] < 0:
+                self.bridge_debris_list.remove(debris)
+            else:
+                img = pygame.transform.rotate(debris[0], debris[3])
+            screen.blit(img, (debris[1][0] - img.get_width() / 2 + tile_size / 2,
+                              debris[1][1] - img.get_height() / 2 + tile_size / 2))
 
-    # add screen shake when bridge is collapsing
+        if self.bridge_collapsing and not self.bridge_collapsed:
+            screen_shake = True
+
+        return screen_shake
 
     # ------------------------------------------------------------------------------------------------------------------
 
