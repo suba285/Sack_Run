@@ -69,7 +69,7 @@ level_pos_dictionary = {
     "level7_2": (5, -19),
     "level8_2": (5, -5),
     "level9_2": (5, -2),
-    "level1_3": (3, 1),
+    "level1_3": (3, 0),
     "level2_3": (3, -4),
     "level3_3": (-2, -5),
     "level4_3": (4, -4),
@@ -550,6 +550,7 @@ class Game:
         if world_count >= max_world:
             world_count = max_world
 
+        # popup windows
         if (world_count == 1 and level_count == 3) or (world_count == 2 and level_count == 9):
             self.lvl_completed_popup = True
 
@@ -559,6 +560,7 @@ class Game:
         if world_count == 3 and level_count == 5:
             self.dash_info_popup = True
 
+        # loading world data and position info
         if level_count != world_ending_levels[world_count]:
             world_data_level_checker = level_dictionary[f'level{level_count}_{world_count}']
             bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']

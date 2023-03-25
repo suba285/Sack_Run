@@ -133,8 +133,9 @@ class World:
         self.bridge_collapse_cooldown = 10
         self.bridge_debris_list = []
         self.wood_particles = []
-        self.mush_particles = []
         self.gem_particles = []
+        self.shock_mush_part_anim_count = 0
+        self.shock_mush_part_frame_len_count = 0
 
         self.key_press_counter = 0
 
@@ -226,6 +227,13 @@ class World:
         # shockwave mushroom tile images -------------------------------------------------------------------------------
         self.shockwave_mushroom = img_loader('data/images/shockwave_mushroom.PNG', tile_size, tile_size / 2)
         self.shockwave_mushroom_dark = img_loader('data/images/shockwave_mushroom_dark.PNG', tile_size, tile_size / 2)
+        # shockwave mushroom particle animation
+        self.mush_part_anim_left = []
+        self.mush_part_anim_right = []
+        for frame in range(1, 9):
+            img = img_loader(f'data/images/mush_part_animation/mushroom_particles{frame}.PNG', 16, 8)
+            self.mush_part_anim_left.append(img)
+            self.mush_part_anim_right.append(pygame.transform.flip(img, True, False))
 
         # green mushroom -----------------------------------------------------------------------------------------------
         self.green_mushroom = img_loader('data/images/green_mushroom.PNG', tile_size / 2, tile_size / 2)
@@ -546,6 +554,7 @@ class World:
                         local_list.append(rect)
                     self.wheat_list.append(local_list)
                 if tile == 19:
+                    # bridge
                     tile = img_rect_pos(self.bridge_section, column_count, row_count, pov_offset)
                     self.tile_list.append(tile)
                 if tile == 20:
@@ -1282,6 +1291,28 @@ class World:
                         squash = 2
                         trigger = True
 
+                    # particle animation
+                    particle_animation = True
+                    if tile[2] > 12:
+                        frame = 1
+                    elif tile[2] > 10:
+                        frame = 2
+                    elif tile[2] > 8:
+                        frame = 3
+                    elif tile[2] > 6:
+                        frame = 4
+                    elif tile[2] > 4:
+                        frame = 5
+                    elif tile[2] > 2:
+                        frame = 6
+                    elif tile[2] > 0:
+                        frame = 7
+                    elif tile[2] > -2:
+                        frame = 8
+                    else:
+                        particle_animation = False
+                        frame = 1
+
                     if squash > 0:
                         img = pygame.transform.scale(self.shockwave_mushroom,
                                                      (tile_size + squash, tile_size / 2 - squash))
@@ -1294,6 +1325,12 @@ class World:
                     shockwave_center = (tile[1][0] + tile_size / 2, tile[1][1] + 10)
                     radius = tile[4].update_shockwave((shockwave_center[0], shockwave_center[1]),
                                                       fps_adjust, trigger)
+
+                    if particle_animation:
+                        screen.blit(self.mush_part_anim_left[frame - 1],
+                                    (shockwave_center[0] - tile_size, shockwave_center[1] - 4))
+                        screen.blit(self.mush_part_anim_right[frame - 1],
+                                    (shockwave_center[0] + tile_size/2, shockwave_center[1] - 4))
 
                     self.shockwave_center_list.append((shockwave_center[0], shockwave_center[1], radius))
 
