@@ -56,6 +56,7 @@ except FileNotFoundError:
         'resolution': 1,
         'pov': 1,
         'hitbox': 1,
+        'speedrun': 1,
         'music_volume': 2,
         'sounds': 2
     }
@@ -900,7 +901,8 @@ while run:
             adjust_resolution,\
             settings_counters,\
             calibrated_press = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, settings_events,
-                                                                fps_adjust, joystick_connected, joysticks)
+                                                                fps_adjust, joystick_connected, joysticks,
+                                                                game_paused)
 
         if performance_counter == 1:
             slow_computer = False

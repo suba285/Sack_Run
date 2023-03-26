@@ -110,6 +110,66 @@ class Gradient:
             screen.blit(self.stripe, (self.position[0], self.position[1] + self.y))
 
 
+class SpeedRunClock:
+    def __init__(self):
+        text = Text()
+        self.char_width = 3
+        self.gap = 1
+        self.time_string = ''
+        self.x = (swidth / 2) - (24 + self.gap * 5)
+        self.y = 30
+        self.time_counter = 0
+        self.number_imgs = []
+        for num in range(0, 10):
+            img = text.make_text([str(num)])
+            self.number_imgs.append(img)
+        self.colon = text.make_text([':'])
+
+    def update_clock(self, fps_adjust, screen):
+        self.time_counter += 1/60 * fps_adjust
+
+        hours = round(self.time_counter / 3600)
+        minutes = round((self.time_counter - hours * 3600) / 60)
+        seconds = round(self.time_counter - hours * 3600 - minutes * 60)
+
+        hours1 = str(hours)[0]
+        hours2 = str(hours)[1]
+        minutes1 = str(minutes)[0]
+        minutes2 = str(minutes)[1]
+        seconds1 = str(seconds)[0]
+        seconds2 = str(seconds)[1]
+
+        self.time_string = f'{hours}:{minutes}:{seconds}'
+
+        x = self.x
+
+        screen.blit(hours1, (x, self.y))
+        x += self.gap + self.char_width
+        screen.blit(hours2, (x, self.y))
+        x += self.gap + self.char_width
+        screen.blit(self.colon, (x, self.y))
+        x += self.char_width
+        screen.blit(minutes1, (x, self.y))
+        x += self.gap + self.char_width
+        screen.blit(minutes2, (x, self.y))
+        x += self.gap + self.char_width
+        screen.blit(self.colon, (x, self.y))
+        x += self.char_width
+        screen.blit(seconds1, (x, self.y))
+        x += self.gap + self.char_width
+        screen.blit(seconds2, (x, self.y))
+
+    def save(self, world_count):
+        try:
+            with open('data/times.json', 'r') as json_file:
+                times_data = json.load(json_file)
+            with open('data/times.json', 'w') as json_file:
+                times_data[world_count - 1] = self.time_string
+                json.dump(times_data, json_file)
+        except FileNotFoundError:
+            pass
+
+
 class Dialogue:
     def __init__(self, input_text, text):
         self.text_letters = []
