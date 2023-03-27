@@ -633,9 +633,10 @@ while run:
 
         if world_completed:
             lvl_selection_press = main_game.world_completed_screen(screen, events, fps_adjust, joysticks,
-                                                                   controller_calibration)
+                                                                   controller_calibration, world_count)
             world_completed_transition_counter = 255
             if lvl_selection_press:
+                level_select.update_times()
                 events = {
                     'quit': False,
                     'keydown': False,
@@ -816,13 +817,16 @@ while run:
             level_selection_sounds = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
                                                                        lvl_selection_events,
                                                                        controls, joysticks, fps_adjust, world_count,
-                                                                       new_world_unlocked)
+                                                                       new_world_unlocked,
+                                                                       settings_counters['speedrun'])
         sound_triggers.update(level_selection_sounds)
 
         if play_press and (joystick_configured or not joystick_connected):
             if world_count != 1:
                 level_count = level_counters[world_count - 1]
             else:
+                level_count = 1
+            if settings_counters['speedrun'] == 2:
                 level_count = 1
             opening_scene = True
             world_data = level_dictionary[f'level{level_count}_{world_count}']

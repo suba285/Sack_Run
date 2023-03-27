@@ -13,6 +13,7 @@ tile_size = 32
 class LevelSelection:
     def __init__(self, world_count):
         text = Text()
+        self.text = Text()
 
         button_size = tile_size * 0.75
 
@@ -22,6 +23,27 @@ class LevelSelection:
 
         except FileNotFoundError:
             self.world_status = [True, False, False, False]
+
+        try:
+            with open('data/times.json', 'r') as json_file:
+                times_data = json.load(json_file)
+                time1 = text.make_text([times_data['1']])
+                time2 = text.make_text([times_data['2']])
+                time3 = text.make_text([times_data['3']])
+                time4 = text.make_text([times_data['4']])
+        except FileNotFoundError:
+            no_data_txt = text.make_text(['no data'])
+            time1 = no_data_txt
+            time2 = no_data_txt
+            time3 = no_data_txt
+            time4 = no_data_txt
+
+        self.times = {
+            '1': time1,
+            '2': time2,
+            '3': time3,
+            '4': time4
+        }
 
         self.world_count = world_count
 
@@ -141,8 +163,37 @@ class LevelSelection:
 
         self.lock_sound_played = False
 
+    def update_times(self):
+        try:
+            with open('data/unlocked_worlds.json', 'r') as json_file:
+                self.world_status = json.load(json_file)
+
+        except FileNotFoundError:
+            self.world_status = [True, False, False, False]
+
+        try:
+            with open('data/times.json', 'r') as json_file:
+                times_data = json.load(json_file)
+                time1 = self.text.make_text([times_data['1']])
+                time2 = self.text.make_text([times_data['2']])
+                time3 = self.text.make_text([times_data['3']])
+                time4 = self.text.make_text([times_data['4']])
+        except FileNotFoundError:
+            no_data_txt = self.text.make_text(['no data'])
+            time1 = no_data_txt
+            time2 = no_data_txt
+            time3 = no_data_txt
+            time4 = no_data_txt
+
+        self.times = {
+            '1': time1,
+            '2': time2,
+            '3': time3,
+            '4': time4
+        }
+
     def draw_level_selection(self, level_screen, mouse_adjustment, events, controls, joysticks, fps_adjust,
-                             world_count, new_world_unlocked):
+                             world_count, new_world_unlocked, speedrun_mode):
 
         level_screen.blit(self.menu_background, (0, 0))
         self.new_world_dim_surf.fill((0, 0, 0))
@@ -240,6 +291,7 @@ class LevelSelection:
 
         description = self.descriptions[self.world_count - 1]
         title = self.titles[self.world_count - 1]
+        time = self.times[str(self.world_count)]
 
         if self.object_wobble_counter > 0:
             object_wobble = math.sin((self.text_wobble_default_value - self.object_wobble_counter)) * 3
@@ -247,6 +299,8 @@ class LevelSelection:
             object_wobble = 0
 
         level_screen.blit(title, (swidth / 2 - title.get_width() / 2 + object_wobble, self.button_y + 6))
+        if speedrun_mode == 2:
+            level_screen.blit(time, (swidth / 2 - time.get_width() / 2, 50))
         if self.world_status[self.world_count - 1] and self.new_world_animation_counter > 0:
             level_screen.blit(description, (swidth / 2 - description.get_width() / 2, self.button_y + 40))
 

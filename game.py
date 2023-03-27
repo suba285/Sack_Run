@@ -110,15 +110,34 @@ class Gradient:
             screen.blit(self.stripe, (self.position[0], self.position[1] + self.y))
 
 
+def time_unpacker(string_time):
+    multer = 3600
+    digiter = 10
+    out_time = 0
+    for char in string_time:
+        if char != ':':
+            out_time += int(char) * multer * digiter
+            if digiter == 1:
+                multer /= 60
+            if digiter == 10:
+                digiter = 1
+            else:
+                digiter = 10
+    return out_time
+
+
 class SpeedRunClock:
     def __init__(self):
         text = Text()
-        self.char_width = 3
+        self.char_width = 5
         self.gap = 1
         self.time_string = ''
-        self.x = (swidth / 2) - (24 + self.gap * 5)
-        self.y = 30
+        self.x = (swidth / 2) - (40 + self.gap * 5) / 2
+        self.y = 15
         self.time_counter = 0
+        self.minutes = 0
+        self.seconds = 0
+        self.miliseconds = 0
         self.number_imgs = []
         for num in range(0, 10):
             img = text.make_text([str(num)])
@@ -128,27 +147,41 @@ class SpeedRunClock:
     def update_clock(self, fps_adjust, screen):
         self.time_counter += 1/60 * fps_adjust
 
-        hours = round(self.time_counter / 3600)
-        minutes = round((self.time_counter - hours * 3600) / 60)
-        seconds = round(self.time_counter - hours * 3600 - minutes * 60)
+        self.miliseconds += 1 * fps_adjust
+        if self.miliseconds >= 60:
+            self.miliseconds = 0
+            self.seconds += 1
+        if self.seconds >= 60:
+            self.seconds = 0
+            self.minutes += 1
 
-        hours1 = str(hours)[0]
-        hours2 = str(hours)[1]
-        minutes1 = str(minutes)[0]
-        minutes2 = str(minutes)[1]
-        seconds1 = str(seconds)[0]
-        seconds2 = str(seconds)[1]
+        minutes = self.minutes
+        seconds = self.seconds
+        miliseconds = round(self.miliseconds)
 
-        self.time_string = f'{hours}:{minutes}:{seconds}'
+        if minutes > 9:
+            minutes1 = self.number_imgs[int(str(minutes)[0])]
+            minutes2 = self.number_imgs[int(str(minutes)[1])]
+        else:
+            minutes2 = self.number_imgs[int(str(minutes)[0])]
+            minutes1 = self.number_imgs[0]
+        if seconds > 9:
+            seconds1 = self.number_imgs[int(str(seconds)[0])]
+            seconds2 = self.number_imgs[int(str(seconds)[1])]
+        else:
+            seconds2 = self.number_imgs[int(str(seconds)[0])]
+            seconds1 = self.number_imgs[0]
+        if miliseconds > 9:
+            miliseconds1 = self.number_imgs[int(str(miliseconds)[0])]
+            miliseconds2 = self.number_imgs[int(str(miliseconds)[1])]
+        else:
+            miliseconds2 = self.number_imgs[int(str(miliseconds)[0])]
+            miliseconds1 = self.number_imgs[0]
+
+        self.time_string = f'{minutes}:{seconds}:{miliseconds}'
 
         x = self.x
 
-        screen.blit(hours1, (x, self.y))
-        x += self.gap + self.char_width
-        screen.blit(hours2, (x, self.y))
-        x += self.gap + self.char_width
-        screen.blit(self.colon, (x, self.y))
-        x += self.char_width
         screen.blit(minutes1, (x, self.y))
         x += self.gap + self.char_width
         screen.blit(minutes2, (x, self.y))
@@ -158,14 +191,29 @@ class SpeedRunClock:
         screen.blit(seconds1, (x, self.y))
         x += self.gap + self.char_width
         screen.blit(seconds2, (x, self.y))
+        x += self.gap + self.char_width
+        screen.blit(self.colon, (x, self.y))
+        x += self.char_width
+        screen.blit(miliseconds1, (x, self.y))
+        x += self.gap + self.char_width
+        screen.blit(miliseconds2, (x, self.y))
+
+        return self.time_string
 
     def save(self, world_count):
         try:
             with open('data/times.json', 'r') as json_file:
                 times_data = json.load(json_file)
-            with open('data/times.json', 'w') as json_file:
-                times_data[world_count - 1] = self.time_string
-                json.dump(times_data, json_file)
+            if times_data[str(world_count)] != 'no data':
+                prev_time = time_unpacker(times_data[str(world_count)])
+                current_time = time_unpacker(self.time_string)
+            else:
+                prev_time = 1
+                current_time = 0
+            if current_time < prev_time:
+                with open('data/times.json', 'w') as json_file:
+                    times_data[str(world_count)] = self.time_string
+                    json.dump(times_data, json_file)
         except FileNotFoundError:
             pass
 
@@ -227,14 +275,23 @@ class Game:
         self.world_data = world_data
         self.bg_data = bg_data
 
+        text = Text()
+        self.text = Text()
+
+        if settings_counters['speedrun'] == 1:
+            self.speedrun_mode = False
+        else:
+            self.speedrun_mode = True
+        self.speedrun_clock = SpeedRunClock()
+        self.speedrun_time = ''
+        self.speedrun_time_surf = text.make_text(['00:00:00'])
+
         self.game_screen = pygame.Surface((swidth, sheight))
         self.game_screen.set_colorkey((0, 0, 255))
 
         self.cave_background_colour = (35, 29, 39)
         self.sky_background_colour = (100, 63, 102)
         self.bg_transition_colour = [0, 0, 0]
-
-        text = Text()
 
         # loading in images --------------------------------------------------------------------------------------------
         home_button_img = img_loader('data/images/button_pause.PNG', tile_size * 0.75, tile_size * 0.75)
@@ -439,6 +496,8 @@ class Game:
         self.world_completed_text_anim_count = 0
         self.fade_counter = 255
 
+        self.new_best = False
+
         # opening scene variables --------------------------------------------------------------------------------------
         self.opening_scene = False
         self.opening_scene_done = False
@@ -638,11 +697,30 @@ class Game:
         return world_data_level_checker, bg_data
 
 # WORLD COMPLETED ======================================================================================================
-    def world_completed_screen(self, screen, events, fps_adjust, joysticks, joystick_calibration):
+    def world_completed_screen(self, screen, events, fps_adjust, joysticks, joystick_calibration, world_count):
         screen.fill((0, 0, 0))
 
         menu_press = False
         end_screen = False
+
+        if self.world_completed_text_anim_count == 0:
+            try:
+                with open('data/times.json', 'r') as json_file:
+                    times_data = json.load(json_file)
+                if times_data[str(world_count)] != 'no data':
+                    prev_time = time_unpacker(times_data[str(world_count)])
+                    current_time = time_unpacker(self.speedrun_time)
+                    if current_time < prev_time:
+                        self.new_best = True
+                else:
+                    self.new_best = True
+            except FileNotFoundError:
+                pass
+            if self.new_best:
+                addon = 'New best time!: '
+            else:
+                addon = ''
+            self.speedrun_time_surf = self.text.make_text([f'{addon} {self.speedrun_time}'])
 
         if joystick_calibration:
             events = {
@@ -677,6 +755,7 @@ class Game:
         text = self.world_completed_text
         if 0 <= self.world_completed_text_alpha <= 255:
             text.set_alpha(self.world_completed_text_alpha)
+            self.speedrun_time_surf.set_alpha(self.world_completed_text_alpha)
 
         if joysticks:
             if self.controller_type == 'xbox':
@@ -705,9 +784,13 @@ class Game:
             congrats_text.set_alpha(self.world_completed_text_alpha)
 
         screen.blit(text, (swidth / 2 - text.get_width() / 2, sheight / 2 - text.get_height() / 2 + 10))
+        screen.blit(self.speedrun_time_surf, (swidth / 2 - self.speedrun_time_surf.get_width() / 2, 50))
         screen.blit(congrats_text, (swidth / 2 - tile_size * 2, sheight / 2 - 60))
         if self.fade_counter == 255:
             screen.blit(btn_img, (swidth / 2 - btn_img.get_width() / 2, sheight / 2 - text.get_height() / 2 + 35))
+
+        if menu_press:
+            self.speedrun_clock.save(world_count)
 
         if self.fade_counter <= 0:
             end_screen = True
@@ -844,7 +927,7 @@ class Game:
             self.move = False
 
         # setting tutorial on or off
-        if world_count == 1:
+        if world_count == 1 and not self.speedrun_mode:
             tutorial = True
         else:
             tutorial = False
@@ -969,6 +1052,10 @@ class Game:
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 
+        # speedrun clock -----------------------------------------------------------------------------------------------
+        if self.speedrun_mode:
+            self.speedrun_time = self.speedrun_clock.update_clock(fps_adjust, self.game_screen)
+
         # blitting the game screen onto the main screen ----------------------------------------------------------------
         if screen_shake:
             screen.blit(self.game_screen, (random.choice([-3, 0, 3]), random.choice([-3, 0, 3])))
@@ -1011,7 +1098,7 @@ class Game:
             joystick_over = False
 
         # controls popup
-        if self.popup_window_controls:
+        if self.popup_window_controls and not self.speedrun_mode:
             self.move = False
             if 3 > self.level_duration_counter > 2.75:
                 scaling = self.level_duration_counter - 2.75
@@ -1047,7 +1134,7 @@ class Game:
                 self.popup_window_controls = False
 
         # bee info popup
-        elif self.bee_info_popup and not self.bee_info_popup_done:
+        elif self.bee_info_popup and not self.bee_info_popup_done and not self.speedrun_mode:
             popup_bees_press = Game.popup_window(self, self.bees_popup, screen, self.ok_bee_btn,
                                                  mouse_adjustment, events, joystick_over)
             if self.level_duration_counter > 1.45:
@@ -1065,7 +1152,7 @@ class Game:
                 self.bee_info_popup_done = True
 
         # dash info popup
-        elif self.dash_info_popup and not self.dash_info_popup_done:
+        elif self.dash_info_popup and not self.dash_info_popup_done and not self.speedrun_mode:
             popup_dash_press = Game.popup_window(self, self.dash_popup, screen, self.ok_dash_btn,
                                                  mouse_adjustment, events, joystick_over)
             if self.level_duration_counter > 1.45:
