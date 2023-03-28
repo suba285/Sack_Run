@@ -33,7 +33,8 @@ level_dictionary = {
     "level2_3": level2_3,
     "level3_3": level3_3,
     "level4_3": level4_3,
-    "level5_3": level5_3
+    "level5_3": level5_3,
+    "level6_3": level6_3
 }
 
 level_bg_dictionary = {
@@ -54,6 +55,7 @@ level_bg_dictionary = {
     "level3_3_bg": level3_3_bg,
     "level4_3_bg": level4_3_bg,
     "level5_3_bg": level5_3_bg,
+    "level6_3_bg": level6_3_bg
 }
 
 level_pos_dictionary = {
@@ -73,7 +75,8 @@ level_pos_dictionary = {
     "level2_3": (3, -4),
     "level3_3": (-2, -5),
     "level4_3": (4, -4),
-    "level5_3": (3, -4)
+    "level5_3": (3, -4),
+    "level6_3": (2, -4)
 }
 
 level_card_dictionary = {
@@ -84,7 +87,7 @@ level_card_dictionary = {
 world_ending_levels = {
     1: 3,
     2: 9,
-    3: 7,
+    3: 9,
     4: 5
 }
 
@@ -129,7 +132,10 @@ def time_unpacker(string_time):
 class SpeedRunClock:
     def __init__(self):
         text = Text()
+        self.cooldown = 70
         self.char_width = 5
+        self.box = popup_bg_generator((56, 15))
+        self.box_width = self.box.get_width()
         self.gap = 1
         self.time_string = ''
         self.x = (swidth / 2) - (40 + self.gap * 5) / 2
@@ -146,14 +152,16 @@ class SpeedRunClock:
 
     def update_clock(self, fps_adjust, screen):
         self.time_counter += 1/60 * fps_adjust
+        self.cooldown -= 1 * fps_adjust
 
-        self.miliseconds += 1 * fps_adjust
-        if self.miliseconds >= 60:
-            self.miliseconds = 0
-            self.seconds += 1
-        if self.seconds >= 60:
-            self.seconds = 0
-            self.minutes += 1
+        if self.cooldown < 0:
+            self.miliseconds += 1 * fps_adjust
+            if self.miliseconds >= 60:
+                self.miliseconds = 0
+                self.seconds += 1
+            if self.seconds >= 60:
+                self.seconds = 0
+                self.minutes += 1
 
         minutes = self.minutes
         seconds = self.seconds
@@ -181,6 +189,8 @@ class SpeedRunClock:
         self.time_string = f'{minutes}:{seconds}:{miliseconds}'
 
         x = self.x
+
+        screen.blit(self.box, (swidth / 2 - self.box_width / 2, self.y - 7))
 
         screen.blit(minutes1, (x, self.y))
         x += self.gap + self.char_width
@@ -784,7 +794,8 @@ class Game:
             congrats_text.set_alpha(self.world_completed_text_alpha)
 
         screen.blit(text, (swidth / 2 - text.get_width() / 2, sheight / 2 - text.get_height() / 2 + 10))
-        screen.blit(self.speedrun_time_surf, (swidth / 2 - self.speedrun_time_surf.get_width() / 2, 50))
+        if self.speedrun_mode:
+            screen.blit(self.speedrun_time_surf, (swidth / 2 - self.speedrun_time_surf.get_width() / 2, 50))
         screen.blit(congrats_text, (swidth / 2 - tile_size * 2, sheight / 2 - 60))
         if self.fade_counter == 255:
             screen.blit(btn_img, (swidth / 2 - btn_img.get_width() / 2, sheight / 2 - text.get_height() / 2 + 35))
@@ -1014,7 +1025,7 @@ class Game:
         if bridge_screen_shake:
             screen_shake = True
 
-        # drawing the  player ------------------------------------------------------------------------------------------
+        # drawing the player -------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)
 
         # updating level border positions ------------------------------------------------------------------------------
@@ -1051,6 +1062,9 @@ class Game:
                                                    self.camera_move_y, self.health, self.player_moved)
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
+
+        # drawing the bat ----------------------------------------------------------------------------------------------
+        self.world.draw_bat(sack_rect, self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
 
         # speedrun clock -----------------------------------------------------------------------------------------------
         if self.speedrun_mode:

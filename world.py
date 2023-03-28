@@ -5,6 +5,7 @@ from plant_spit import PlantSpit
 from image_loader import img_loader
 from font_manager import Text
 from shockwave import Shockwave
+from bat import Bat
 from screen_info import swidth, sheight
 import random
 import math
@@ -107,6 +108,7 @@ class World:
         self.set_lava_list = []
         self.hot_lava_list = []
         self.bridge_list = []
+        self.bat_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -371,6 +373,8 @@ class World:
         self.set_lava_right = pygame.transform.flip(self.set_lava_left, True, False)
         self.molten_lava = pygame.Surface((tile_size, tile_size - 7)).convert()
         self.molten_lava.fill((66, 3, 3))
+        self.set_lava_img_list = []
+        self.set_lava_rect = self.set_lava.get_rect()
 
         # greenhouse ---------------------------------------------------------------------------------------------------
         self.greenhouse = img_loader('data/images/greenhouse.PNG', tile_size * 3, tile_size * 2)
@@ -416,6 +420,7 @@ class World:
         self.set_lava_list = []
         self.hot_lava_list = []
         self.bridge_list = []
+        self.bat_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -456,7 +461,7 @@ class World:
         # 14 - free tile
         # 15 - free tile
         # 16 - free tile
-        # 17 - free tile
+        # 17 - bat spawn
         # 18 - wheat
         # 19 - bridge
         # 20 - portal
@@ -543,6 +548,11 @@ class World:
                     self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                     self.tile_list.append(tile)
+                if tile == 17:
+                    # bat spawn
+                    bat = Bat(((column_count - start_x) * tile_size + 18, (row_count - start_y) * tile_size + 11))
+                    self.bat_list.append(bat)
+
                 if tile == 18:
                     # wheat
                     wheat_spacer = 4
@@ -850,6 +860,10 @@ class World:
         self.tile_surface_bg = pygame.Surface((self.level_length * tile_size, self.level_height * tile_size))
         self.tile_surface_bg.set_colorkey((0, 0, 0))
 
+        self.set_lava_img_list = [self.set_lava, self.set_lava2, pygame.transform.flip(self.set_lava, True, False),
+                                  pygame.transform.flip(self.set_lava2, True, False), self.set_lava_left,
+                                  self.set_lava_right]
+
         temp_tile_list = []
 
         for tile in self.tile_list:
@@ -1093,7 +1107,8 @@ class World:
                         screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
 
             # set lava -------------------------------------------------------------------------------------------------
-            if tile[0] in [self.set_lava, self.set_lava2, self.set_lava_left, self.set_lava_right]:
+            if (tile[1].width == self.set_lava_rect.width and tile[1].height == self.set_lava_rect.height) or \
+                    tile[0] in [self.set_lava_left, self.set_lava_right]:
                 if -tile_size < tile[1][0] < swidth:
                     if tile[1].colliderect(sack_rect):
                         harm = True
@@ -1353,6 +1368,12 @@ class World:
                                 self.bee_harm = True
 
         return self.bee_harm
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def draw_bat(self, sack_pos, screen, fps_adjust, camera_move_x, camera_move_y):
+        for bat in self.bat_list:
+            bat.update_bat(sack_pos, fps_adjust, screen, camera_move_x, camera_move_y)
 
     # ------------------------------------------------------------------------------------------------------------------
 

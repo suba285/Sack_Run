@@ -611,7 +611,7 @@ while run:
             world_completed_sound_played = False
             play = False
 
-        if not (world_count == 1 and level_count == 1):
+        if not (world_count == 1 and level_count == 1) or settings_counters['speedrun'] == 2:
             opening_scene = False
 
         run_menu = False
