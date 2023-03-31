@@ -1371,9 +1371,14 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_bat(self, sack_pos, screen, fps_adjust, camera_move_x, camera_move_y):
+    def draw_bat(self, sack_rect, screen, fps_adjust, camera_move_x, camera_move_y, moved):
+        bat_harm = False
         for bat in self.bat_list:
-            bat.update_bat(sack_pos, fps_adjust, screen, camera_move_x, camera_move_y)
+            harm = bat.update_bat(sack_rect, fps_adjust, screen, camera_move_x, camera_move_y, moved)
+            if harm:
+                bat_harm = True
+
+        return bat_harm
 
     # ------------------------------------------------------------------------------------------------------------------
 

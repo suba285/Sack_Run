@@ -560,6 +560,7 @@ class Game:
         self.spit_harm_up = False
         self.set_lava_harm = False
         self.hot_lava_harm = False
+        self.bat_harm = False
 
         self.health = 2
         self.harm = False
@@ -944,7 +945,7 @@ class Game:
             tutorial = False
 
         # dealing with harm
-        if self.tile_harm or self.hot_lava_harm or self.trap_harm or self.bee_harm:
+        if self.tile_harm or self.hot_lava_harm or self.trap_harm or self.bee_harm or self.bat_harm:
             self.harm = True
         else:
             self.harm = False
@@ -1064,7 +1065,8 @@ class Game:
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 
         # drawing the bat ----------------------------------------------------------------------------------------------
-        self.world.draw_bat(sack_rect, self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y)
+        self.bat_harm = self.world.draw_bat(sack_rect, self.game_screen, fps_adjust, self.camera_move_x,
+                                            self.camera_move_y, self.player_moved)
 
         # speedrun clock -----------------------------------------------------------------------------------------------
         if self.speedrun_mode:
