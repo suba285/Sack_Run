@@ -34,7 +34,8 @@ level_dictionary = {
     "level3_3": level3_3,
     "level4_3": level4_3,
     "level5_3": level5_3,
-    "level6_3": level6_3
+    "level6_3": level6_3,
+    "level7_3": level7_3,
 }
 
 level_bg_dictionary = {
@@ -55,7 +56,8 @@ level_bg_dictionary = {
     "level3_3_bg": level3_3_bg,
     "level4_3_bg": level4_3_bg,
     "level5_3_bg": level5_3_bg,
-    "level6_3_bg": level6_3_bg
+    "level6_3_bg": level6_3_bg,
+    "level7_3_bg": level7_3_bg
 }
 
 level_pos_dictionary = {
@@ -76,7 +78,8 @@ level_pos_dictionary = {
     "level3_3": (-2, -5),
     "level4_3": (4, -4),
     "level5_3": (3, -4),
-    "level6_3": (2, -4)
+    "level6_3": (3, -8),
+    "level7_3": (2, -4),
 }
 
 level_card_dictionary = {
@@ -1065,8 +1068,12 @@ class Game:
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 
         # drawing the bat ----------------------------------------------------------------------------------------------
-        self.bat_harm = self.world.draw_bat(sack_rect, self.game_screen, fps_adjust, self.camera_move_x,
-                                            self.camera_move_y, self.player_moved)
+        if world_count == 3:
+            self.bat_harm, bat_screen_shake = self.world.draw_bat(sack_rect, self.game_screen, fps_adjust,
+                                                                  self.camera_move_x, self.camera_move_y,
+                                                                  self.player_moved, self.health)
+            if bat_screen_shake:
+                screen_shake = True
 
         # speedrun clock -----------------------------------------------------------------------------------------------
         if self.speedrun_mode:

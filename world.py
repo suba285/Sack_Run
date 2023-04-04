@@ -317,6 +317,10 @@ class World:
         self.bush = img_loader('data/images/bush1.PNG', 2 * tile_size, 2 * tile_size)
         self.bush_img = self.bush
 
+        # rock tiles ---------------------------------------------------------------------------------------------------
+        self.rock1 = img_loader('data/images/rock1.PNG', tile_size, tile_size)
+        self.rock2 = img_loader('data/images/rock2.PNG', tile_size, tile_size)
+
         # tree tiles ---------------------------------------------------------------------------------------------------
         self.tree = img_loader('data/images/tree.PNG', 2 * tile_size, 2 * tile_size)
         self.birch_tree = img_loader('data/images/tree_birch.PNG', tile_size, tile_size * 3)
@@ -458,10 +462,10 @@ class World:
         # 11 - dirt
         # 12 - stone
         # 13 - free tile
-        # 14 - free tile
-        # 15 - free tile
-        # 16 - free tile
-        # 17 - bat spawn
+        # 14 - rocks 1
+        # 15 - rocks 2
+        # 16 - charge bat spawn
+        # 17 - laser bat spawn
         # 18 - wheat
         # 19 - bridge
         # 20 - portal
@@ -548,10 +552,19 @@ class World:
                     self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                     self.tile_list.append(tile)
-                if tile == 17:
+                if tile == 14:
+                    # rock 1
+                    tile = img_rect_pos(self.rock1, column_count, row_count, pov_offset)
+                    self.bg_decoration_list.append(tile)
+                if tile == 15:
+                    # rock 2
+                    tile = img_rect_pos(self.rock2, column_count, row_count, pov_offset)
+                    self.bg_decoration_list.append(tile)
+                if tile in [16, 17]:
                     # bat spawn
-                    bat = Bat(((column_count - start_x) * tile_size + 18, (row_count - start_y) * tile_size + 11))
-                    self.bat_list.append(bat)
+                    bat = Bat((column_count * tile_size + 18, row_count * tile_size + 11))
+                    bat_pack = [bat, tile]
+                    self.bat_list.append(bat_pack)
 
                 if tile == 18:
                     # wheat
@@ -1371,14 +1384,23 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_bat(self, sack_rect, screen, fps_adjust, camera_move_x, camera_move_y, moved):
+    def draw_bat(self, sack_rect, screen, fps_adjust, camera_move_x, camera_move_y, moved, health):
         bat_harm = False
+        screen_shake = False
+        dead = False
+        if health == 0:
+            dead = True
         for bat in self.bat_list:
-            harm = bat.update_bat(sack_rect, fps_adjust, screen, camera_move_x, camera_move_y, moved)
+            if bat[1] == 17:
+                harm, screen_shake = bat[0].update_bat_laser(sack_rect, fps_adjust, screen, camera_move_x,
+                                                             camera_move_y, moved, dead)
+            else:
+                harm, screen_shake = bat[0].update_bat_charge(sack_rect, fps_adjust, screen, camera_move_x,
+                                                              camera_move_y, moved, dead)
             if harm:
                 bat_harm = True
 
-        return bat_harm
+        return bat_harm, screen_shake
 
     # ------------------------------------------------------------------------------------------------------------------
 
