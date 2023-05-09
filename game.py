@@ -79,7 +79,7 @@ level_pos_dictionary = {
     "level4_3": (4, -4),
     "level5_3": (3, -4),
     "level6_3": (3, -8),
-    "level7_3": (2, -4),
+    "level7_3": (2, -8),
 }
 
 level_card_dictionary = {
@@ -281,6 +281,37 @@ class Dialogue:
         return self.done, sound
 
 
+leaf_brown_img = img_loader('data/images/leaf_brown.PNG', 6, 6)
+leaf_green_img = img_loader('data/images/leaf_green.PNG', 6, 6)
+
+
+def update_leaves(leaf_list, screen, camera_move_x, camera_move_y, fps_adjust, cave_transition):
+    for leaf in leaf_list:
+        leaf[0][0] += (-leaf[2] / 10 + camera_move_x) * fps_adjust
+        leaf[0][1] += (leaf[2] / 30 + camera_move_y) * fps_adjust
+        leaf[4] += 3 * fps_adjust
+        leaf[1] += 1 * fps_adjust
+        offset = math.sin(leaf[1]/(leaf[3] * 10)) * (8 + leaf[3])
+        # infinite particles
+        if leaf[0][0] < -6 and not cave_transition:
+            leaf[0][0] = swidth - 2
+            leaf[0][1] = random.randrange(0, sheight)
+        if leaf[0][0] > swidth:
+            leaf[0][0] = -4
+            leaf[0][1] = random.randrange(0, sheight)
+        if leaf[0][1] > sheight + 20:
+            leaf[0][1] = 0
+            leaf[0][0] = random.randrange(0, swidth)
+        if leaf[0][1] < -20 and not cave_transition:
+            leaf[0][1] = sheight + 2
+            leaf[0][0] = random.randrange(0, swidth)
+        if leaf[5] == 1:
+            img = pygame.transform.rotate(leaf_brown_img, leaf[4])
+        else:
+            img = pygame.transform.rotate(leaf_green_img, leaf[4])
+        screen.blit(img, (leaf[0][0], leaf[0][1] + offset))
+
+
 class Game:
     def __init__(self, slow_computer, world_data, bg_data, controls, world_count, settings_counters,
                  joystick_connected):
@@ -324,6 +355,18 @@ class Game:
         # buttons ------------------------------------------------------------------------------------------------------
         self.home_button = Button(swidth - tile_size + (tile_size - home_button_down.get_width()) / 2, 3,
                                   home_button_img, home_button_press, home_button_down)
+
+        # background particles -----------------------------------------------------------------------------------------
+        self.particle_leaves = []
+        for num in range(6):
+            counter = random.randrange(0, 10)
+            pos = [random.randrange(0, swidth), random.randrange(0, sheight)]
+            sin_speed = random.randrange(4, 6)
+            speed = random.randrange(5, 7)
+            rotation = random.randrange(0, 360)
+            colour = random.randint(1, 2)
+            part = [pos, counter, speed, sin_speed, rotation, colour]
+            self.particle_leaves.append(part)
 
         # POPUP WINDOWS ================================================================================================
 
@@ -1051,6 +1094,17 @@ class Game:
                 self.level_check = level_count
                 self.player_moved = False
                 self.level_duration_counter = 0
+            # restarting leaves
+            self.particle_leaves = []
+            for num in range(6):
+                counter = random.randrange(0, 10)
+                pos = [random.randrange(0, swidth), random.randrange(0, sheight)]
+                sin_speed = random.randrange(4, 6)
+                speed = random.randrange(5, 7)
+                rotation = random.randrange(0, 360)
+                colour = random.randint(1, 2)
+                part = [pos, counter, speed, sin_speed, rotation, colour]
+                self.particle_leaves.append(part)
 
         # --------------------------------------------------------------------------------------------------------------
         if world_count == 3:
@@ -1066,6 +1120,16 @@ class Game:
                                                    self.camera_move_y, self.health, self.player_moved)
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
+
+        if world_count in [1, 2, 4]:
+            update_leaves(self.particle_leaves, self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust,
+                          False)
+        if world_count == 3 and level_count == 1:
+            leaves_transition = True
+            if not self.player_moved:
+                leaves_transition = False
+            update_leaves(self.particle_leaves, self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust,
+                          leaves_transition)
 
         # drawing the bat ----------------------------------------------------------------------------------------------
         if world_count == 3:

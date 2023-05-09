@@ -220,6 +220,15 @@ class Player:
         # bridge
         self.bridge_section = img_loader('data/images/bridge_section.PNG', tile_size, 7)
 
+        # mid-air jump shockwave
+        jump_shock_template = img_loader('data/images/jump_shockwave.PNG', 64, 16)
+        jump_shock_template.set_colorkey((0, 0, 0))
+        self.jump_shock_frames = {}
+        for frame in range(1, 9):
+            surf = pygame.transform.scale(jump_shock_template, (8 * frame, 2 * frame))
+            surf.set_alpha(40 * (9 - frame))
+            self.jump_shock_frames[frame] = surf
+
         # respawn instruction images and variables ---------------------------------------------------------------------
         self.respawn_text = []
         self.respawn_text.append([text.make_text(['R']), 0])
@@ -296,6 +305,8 @@ class Player:
         self.init_flash = False
         self.lowering_cooldown = 15
         self.surface_type = 'grass'
+        self.jump_shock_counter = 100
+        self.jump_shock_pos = [0, 0]
 
         self.screen_shake_counter = 0
 
@@ -400,6 +411,8 @@ class Player:
         self.screen_shake_counter -= 1 * fps_adjust
 
         self.squash_counter_y += 0.5 * fps_adjust
+
+        self.jump_shock_counter += 1 * fps_adjust
 
         if self.airborn:
             self.slide = 0.2
@@ -609,6 +622,8 @@ class Player:
                         self.mid_air_jump_counter += 1
                         self.screen_shake_counter = 10
                         sounds['mid_air_jump'] = True
+                        self.jump_shock_counter = 5
+                        self.jump_shock_pos = [self.sack_rect.x + 10, self.sack_rect.y + 20]
                     if self.mid_air_jump:
                         self.vel_y = -11
                     else:
@@ -984,6 +999,15 @@ class Player:
 
         self.power_particle_surface.set_colorkey((0, 0, 0))
         screen.blit(self.power_particle_surface, (0, 0))
+
+        # mid-air jump shockwave
+        self.jump_shock_pos[0] += self.camera_movement_x
+        self.jump_shock_pos[1] += self.camera_movement_y
+        frame_count = round(self.jump_shock_counter / 3)
+        if 0 < frame_count < 9:
+            frame = self.jump_shock_frames[frame_count]
+            screen.blit(frame, (self.jump_shock_pos[0] - frame.get_width() / 2,
+                                self.jump_shock_pos[1] - frame.get_height() / 2))
 
         # landing squash
         if -3 <= self.squash_counter_y <= 3:

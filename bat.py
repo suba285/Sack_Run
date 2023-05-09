@@ -143,13 +143,15 @@ class Bat:
         dx = math.cos(angle) * ((current_radius - self.halt_radius) / 20) * fps_adjust
         dy = math.sin(angle) * ((current_radius - self.halt_radius) / 20) * fps_adjust
 
-        if not (sack_rect.y - 3 < self.y < sack_rect.y + 3) and self.dash < 0 and moved:
-            if self.y > sack_rect.y:
+        sack_y = sack_rect.y + 10
+
+        if not (sack_y - 1 < self.y < sack_y + 1) and self.dash < 0 and moved:
+            if self.y > sack_y:
                 dy -= 1 * fps_adjust
-            if self.y < sack_rect.y:
+            if self.y < sack_y:
                 dy += 1 * fps_adjust
-        if sack_rect.y - 4 < self.y < sack_rect.y + 4 and moved and self.dash < - 40 and not dead:
-            self.dash = 40
+        if sack_y - 2 < self.y < sack_y + 2 and moved and self.dash < - 40 and not dead:
+            self.dash = 50
             if sack_rect.x > self.x:
                 self.dash_direction = 1
             else:
@@ -157,8 +159,12 @@ class Bat:
 
         # updating bat position
         if self.dash > 0:
-            if self.dash < 35:
+            if self.dash < 45:
                 self.x += 6 * self.dash_direction * fps_adjust + camera_move_x
+            else:
+                self.x += camera_move_x
+            self.y += camera_move_y
+
         else:
             self.x += dx + camera_move_x
             self.y += dy + camera_move_y
@@ -186,7 +192,7 @@ class Bat:
         # drawing the bat onto the screen
         screen.blit(bat_img, (self.x - 18, self.y - 11))
 
-        if self.dash > 20:
+        if 45 > self.dash > 25:
             screen_shake = True
         else:
             screen_shake = False
