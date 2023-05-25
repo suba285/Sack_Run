@@ -987,8 +987,6 @@ while run:
                 'cards': controls_nums[f"cards{settings_counters['cards']}"],
             }
 
-            print(controls['jump'])
-
             pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
     # displaying fps ---------------------------------------------------------------------------------------------------

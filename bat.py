@@ -10,14 +10,13 @@ class Bat:
         for frame in range(1, 6):
             self.bat_frames[frame] = img_loader(f'data/images/bat/bat_{frame}.PNG', 36, 22)
         self.bat_dash_img_right = img_loader('data/images/bat/bat_dash.PNG', 36, 22)
+        self.silhouette_right = pygame.mask.Mask.to_surface(pygame.mask.from_surface(self.bat_dash_img_right),
+                                                            setcolor=(255, 255, 255), unsetcolor=(0, 0, 0)).convert()
+        self.silhouette_right.set_colorkey((0, 0, 0))
         self.bat_dash_img_left = pygame.transform.flip(self.bat_dash_img_right, True, False)
-        self.outline_surf_right = pygame.Surface((36, 22))
-        self.outline_surf_right.set_colorkey((0, 0, 0))
-        bat_dash_mask = pygame.mask.from_surface(self.bat_dash_img_right)
-        outline = bat_dash_mask.outline()
-        for point in outline:
-            self.outline_surf_right.set_at(point, (255, 0, 0))
-        self.outline_surf_left = pygame.transform.flip(self.outline_surf_right, True, False)
+        self.silhouette_left = pygame.transform.flip(self.silhouette_right, True, False)
+        self.trace_silh = []
+
         self.frame_counter = 1
         self.frame_duration = 6
         self.max_speed = 2
@@ -33,6 +32,10 @@ class Bat:
         self.dash = 0
         self.dash_direction = 1
         self.flash_duration = 2
+
+        self.charge_default_flash_count = 2  # length of bat flash when it's charging the sack
+        self.charge_flash_count = self.charge_default_flash_count
+        self.charge_flash_on = False
 
     def update_bat_laser(self, sack_rect, fps_adjust, screen, camera_move_x, camera_move_y, moved, dead):
         harm = False
@@ -130,7 +133,8 @@ class Bat:
 
         dx = 0
         dy = 0
-        outline = self.outline_surf_left
+
+        set_silhouette = False
 
         self.dash -= 1 * fps_adjust
 
@@ -169,6 +173,16 @@ class Bat:
             self.x += dx + camera_move_x
             self.y += dy + camera_move_y
 
+        if self.dash > 0:
+            self.charge_flash_count -= 1 * fps_adjust
+            if self.charge_flash_count < 0:
+                if 25 < self.dash < 45:
+                    self.charge_flash_on = not self.charge_flash_on
+                self.charge_flash_count = self.charge_default_flash_count
+                set_silhouette = True
+            if self.dash <= 25:
+                self.charge_flash_on = True
+
         # animation frames
         self.frame_duration -= 1 * fps_adjust
         if self.frame_duration < 0:
@@ -179,17 +193,46 @@ class Bat:
         bat_img = self.bat_frames[self.frame_counter]
         if self.dash > 0:
             if self.dash_direction == -1:
-                bat_img = self.bat_dash_img_left
-                outline = self.outline_surf_left
+                if self.charge_flash_on:
+                    bat_img = self.silhouette_left
+                else:
+                    bat_img = self.bat_dash_img_left
             else:
-                bat_img = self.bat_dash_img_right
-                outline = self.outline_surf_right
+                if self.charge_flash_on:
+                    bat_img = self.silhouette_right
+                else:
+                    bat_img = self.bat_dash_img_right
+
+        # trace of bat silhouettes
+        if set_silhouette:
+            pos = [self.x, self.y]
+            alpha = 150
+            if self.dash_direction == -1:
+                img = self.silhouette_left.copy()
+            else:
+                img = self.silhouette_right.copy()
+            img.set_alpha(alpha)
+            package = [img, pos, alpha]
+            self.trace_silh.append(package)
 
         # harm
         if sack_rect.colliderect(self.x - 5, self.y - 4, 10, 8):
             harm = True
 
         # drawing the bat onto the screen
+        removal = []
+        for silh in self.trace_silh:
+            silh[1][0] += camera_move_x
+            silh[1][1] += camera_move_y
+            silh[2] -= 17
+            if silh[2] <= 0:
+                removal.append(silh)
+            else:
+                screen.blit(silh[0], (silh[1][0] - 18, silh[1][1] - 11))
+                silh[0].set_alpha(silh[2])
+        for trash in removal:
+            self.trace_silh.remove(trash)
+        # the actual bit
         screen.blit(bat_img, (self.x - 18, self.y - 11))
 
         if 45 > self.dash > 25:

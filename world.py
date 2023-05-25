@@ -326,7 +326,7 @@ class World:
         self.birch_tree = img_loader('data/images/tree_birch.PNG', tile_size, tile_size * 3)
 
         # bridge tiles -------------------------------------------------------------------------------------------------
-        self.bridge_section = img_loader('data/images/bridge_section.PNG', tile_size, 7)
+        self.bridge_section = img_loader('data/images/platform.PNG', tile_size, tile_size)
         self.bridge_support_left = img_loader('data/images/bridge_support.PNG', tile_size, tile_size)
         self.bridge_support_right = pygame.transform.flip(self.bridge_support_left, True, False)
 
@@ -907,12 +907,7 @@ class World:
                 except KeyError:
                     tile[0] = self.stone_tile
             if tile[0] == self.bridge_section:
-                if tile_edge_data[1] and not tile_edge_data[3]:
-                    tile.append('right')
-                elif tile_edge_data[3] and not tile_edge_data[1]:
-                    tile.append('left')
-                else:
-                    tile.append('none')
+                tile.append('none')
                 self.bridge_list.append(tile)
             else:
                 self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,

@@ -312,6 +312,17 @@ def update_leaves(leaf_list, screen, camera_move_x, camera_move_y, fps_adjust, c
         screen.blit(img, (leaf[0][0], leaf[0][1] + offset))
 
 
+def update_clouds(cloud_list, screen, camera_move_x, camera_move_y, fps_adjust):
+    for cloud in cloud_list:
+        cloud[1][0] += (camera_move_x * cloud[2]) - cloud[3] * fps_adjust
+        cloud[1][1] += camera_move_y * cloud[2]
+        if cloud[1][0] < -110:
+            cloud[1][0] += swidth + 100
+        if cloud[1][0] > swidth:
+            cloud[1][0] -= (swidth + 100)
+        screen.blit(cloud[0], cloud[1])
+
+
 class Game:
     def __init__(self, slow_computer, world_data, bg_data, controls, world_count, settings_counters,
                  joystick_connected):
@@ -337,6 +348,9 @@ class Game:
         self.sky_background_colour = (100, 63, 102)
         self.bg_transition_colour = [0, 0, 0]
 
+        self.bg_cloud1_pos = [0, 100]
+        self.bg_cloud2_pos = [0, 130]
+
         # loading in images --------------------------------------------------------------------------------------------
         home_button_img = img_loader('data/images/button_pause.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_press = img_loader('data/images/button_pause_press.PNG', tile_size * 0.75, tile_size * 0.75)
@@ -351,6 +365,15 @@ class Game:
 
         self.space_button_img = img_loader('data/images/buttons/key_space.PNG', tile_size, tile_size / 2)
         self.space_button_press = img_loader('data/images/buttons/key_space_press.PNG', tile_size, tile_size / 2)
+
+        self.bg_cloud1 = img_loader('data/images/clouds/cloud_background1.PNG', 500, 190)
+        self.bg_cloud2 = img_loader('data/images/clouds/cloud_background2.PNG', 500, 190)
+
+        self.cloud_imgs = []
+        for i in range(3):
+            self.cloud_imgs.append(img_loader(f'data/images/clouds/cloud_big{i + 1}.PNG', 100, 30))
+        for i in range(3):
+            self.cloud_imgs.append(img_loader(f'data/images/clouds/cloud_small{i + 1}.PNG', 50, 20))
 
         # buttons ------------------------------------------------------------------------------------------------------
         self.home_button = Button(swidth - tile_size + (tile_size - home_button_down.get_width()) / 2, 3,
@@ -652,6 +675,15 @@ class Game:
 
         self.bridge_collapsing = False
 
+        self.clouds = []
+        for cloud in range(1, 11):
+            img = random.choice(self.cloud_imgs)
+            perspective = (random.randrange(11, 14)) / 10
+            pos = [random.randrange(-50, swidth), random.randrange(170, sheight)]
+            speed = (random.randrange(2, 3)) / 10
+            package = [img, pos, perspective, speed]
+            self.clouds.append(package)
+
         # initiating classes -------------------------------------------------------------------------------------------
         self.world = World(world_data, self.game_screen, slow_computer, bg_data,
                            settings_counters, world_count)
@@ -938,6 +970,24 @@ class Game:
 
         return self.opening_scene_done, sounds
 
+
+    def update_cloud_bg(self):
+        self.game_screen.fill(self.sky_background_colour)
+        self.bg_cloud1_pos[0] += self.camera_move_x / 4
+        self.bg_cloud2_pos[0] += self.camera_move_x / 3
+        self.bg_cloud1_pos[1] += self.camera_move_y / 4
+        self.bg_cloud2_pos[1] += self.camera_move_y / 3
+        self.game_screen.blit(self.bg_cloud1, self.bg_cloud1_pos)
+        self.game_screen.blit(self.bg_cloud2, self.bg_cloud2_pos)
+        if self.bg_cloud1_pos[0] > 0:
+            self.game_screen.blit(self.bg_cloud1, (self.bg_cloud1_pos[0] - 500, self.bg_cloud1_pos[1]))
+        if self.bg_cloud2_pos[0] > 0:
+            self.game_screen.blit(self.bg_cloud2, (self.bg_cloud2_pos[0] - 500, self.bg_cloud2_pos[1]))
+        if self.bg_cloud1_pos[0] < 500 - swidth:
+            self.game_screen.blit(self.bg_cloud1, (self.bg_cloud1_pos[0] + 500, self.bg_cloud1_pos[1]))
+        if self.bg_cloud2_pos[0] < 500 - swidth:
+            self.game_screen.blit(self.bg_cloud2, (self.bg_cloud2_pos[0] + 500, self.bg_cloud2_pos[1]))
+
 # THE GAME =============================================================================================================
     def game(self, screen, level_count, fps_adjust, draw_hitbox, mouse_adjustment, events,
              game_counter, world_count, controls, joystick_calibration, joysticks,
@@ -1045,7 +1095,7 @@ class Game:
 
         # blitting tiles and images in the background ------------------------------------------------------------------
         if world_count in [1, 2, 4]:
-            self.game_screen.fill(self.sky_background_colour)
+            Game.update_cloud_bg(self)
         else:
             if level_count == 1:
                 if self.world.bg_border == 0:
@@ -1059,6 +1109,7 @@ class Game:
                         self.game_screen.fill(self.bg_transition_colour)
                     else:
                         self.game_screen.fill(self.sky_background_colour)
+                        Game.update_cloud_bg(self)
                         self.bg_transition_colour = list(self.sky_background_colour)
             else:
                 self.game_screen.fill(self.cave_background_colour)
@@ -1094,7 +1145,7 @@ class Game:
                 self.level_check = level_count
                 self.player_moved = False
                 self.level_duration_counter = 0
-            # restarting leaves
+            # resetting leaves
             self.particle_leaves = []
             for num in range(6):
                 counter = random.randrange(0, 10)
@@ -1105,6 +1156,9 @@ class Game:
                 colour = random.randint(1, 2)
                 part = [pos, counter, speed, sin_speed, rotation, colour]
                 self.particle_leaves.append(part)
+            # resetting clouds
+            self.bg_cloud1_pos = [0, 100]
+            self.bg_cloud2_pos = [0, 130]
 
         # --------------------------------------------------------------------------------------------------------------
         if world_count == 3:
