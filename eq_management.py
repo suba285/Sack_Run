@@ -501,6 +501,7 @@ class eqManager:
             self.animate_card_jump = True
             self.card_jump_animation_done = True
             self.card_vel_y = -7
+            self.card_checked = False
 
         if over and joystick_use_press and not gem_equipped:
             self.no_gem_counter = self.default_no_gem_counter
@@ -573,7 +574,7 @@ class eqManager:
                     tutorial_x += (img2.get_width() + gap)
                     screen.blit(self.info_text_caps, (tutorial_x, center_height + 5))
 
-            elif (not self.card_checked or gem_equipped) and player_moved and tutorial:
+            elif (not self.card_checked or (gem_equipped and not self.card_checked)) and player_moved and tutorial:
                 if not joysticks and self.eq_controls['cards'] == 'mouse':
                     if self.press_counter >= 60:
                         mouse_img = self.mouse0

@@ -36,6 +36,7 @@ level_dictionary = {
     "level5_3": level5_3,
     "level6_3": level6_3,
     "level7_3": level7_3,
+    "level8_3": level8_3
 }
 
 level_bg_dictionary = {
@@ -57,7 +58,8 @@ level_bg_dictionary = {
     "level4_3_bg": level4_3_bg,
     "level5_3_bg": level5_3_bg,
     "level6_3_bg": level6_3_bg,
-    "level7_3_bg": level7_3_bg
+    "level7_3_bg": level7_3_bg,
+    "level8_3_bg": level8_3_bg
 }
 
 level_pos_dictionary = {
@@ -78,8 +80,9 @@ level_pos_dictionary = {
     "level3_3": (-2, -5),
     "level4_3": (4, -4),
     "level5_3": (3, -4),
-    "level6_3": (3, -8),
-    "level7_3": (2, -8),
+    "level6_3": (-23, 0),
+    "level7_3": (3, -8),
+    "level8_3": (2, -8),
 }
 
 level_card_dictionary = {

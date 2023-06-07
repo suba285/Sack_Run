@@ -654,6 +654,7 @@ class Player:
                     self.player_moved = True
                     if self.speed_dash and not self.speed_dash_activated:
                         self.speed_dash_activated = True
+                        sounds['jump'] = True
                         gem_equipped = False
                         self.screen_shake_counter = 10
                         self.vel_y = 0
