@@ -61,6 +61,11 @@ except FileNotFoundError:
         'sounds': 2
     }
 
+if settings_counters['speedrun'] == 1:
+    speedrun_mode = False
+else:
+    speedrun_mode = True
+
 # creating the window and setting the resolution -----------------------------------------------------------------------
 
 resolutions = {
@@ -743,17 +748,18 @@ while run:
             paused = False
             screen_alpha = 0
             main_game.update_controller_type(controls['configuration'], settings_counters)
-            try:
-                with open('data/level_count.json', 'w') as json_file:
-                    if level_count == world_level_nums[world_count]:
-                        level_count = 1
-                    else:
-                        pass
-                    level_counters[world_count - 1] = level_count
-                    json.dump(level_counters, json_file)
+            if not speedrun_mode:
+                try:
+                    with open('data/level_count.json', 'w') as json_file:
+                        if level_count == world_level_nums[world_count]:
+                            level_count = 1
+                        else:
+                            pass
+                        level_counters[world_count - 1] = level_count
+                        json.dump(level_counters, json_file)
 
-            except FileNotFoundError:
-                pass
+                except FileNotFoundError:
+                    pass
 
         if restart_level:
             resume = True
@@ -954,6 +960,11 @@ while run:
             else:
                 paused = False
                 run_menu = True
+
+            if settings_counters['speedrun'] == 1:
+                speedrun_mode = False
+            else:
+                speedrun_mode = True
 
             if settings_counters['music_volume'] > 1:
                 pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])

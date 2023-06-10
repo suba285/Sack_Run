@@ -882,7 +882,7 @@ class Game:
         if self.fade_counter == 255:
             screen.blit(btn_img, (swidth / 2 - btn_img.get_width() / 2, sheight / 2 - text.get_height() / 2 + 35))
 
-        if menu_press:
+        if menu_press and self.speedrun_mode:
             self.speedrun_clock.save(world_count)
 
         if self.fade_counter <= 0:
