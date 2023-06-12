@@ -109,6 +109,7 @@ class World:
         self.hot_lava_list = []
         self.bridge_list = []
         self.bat_list = []
+        self.passage_list_bg = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -216,31 +217,62 @@ class World:
         }
 
         self.brick_tile = img_loader('data/images/tile_brick.PNG', tile_size, tile_size)
-        brick_tile_right_edge = img_loader('data/images/tile_brick_edge.PNG', tile_size, tile_size)
-        brick_tile_left_edge = pygame.transform.flip(brick_tile_right_edge, True, False)
-        brick_tile_left = img_loader('data/images/tile_brick_corner.PNG', tile_size, tile_size)
-        brick_tile_right = pygame.transform.flip(brick_tile_left, True, False)
-        brick_tile_corner = img_loader('data/images/tile_brick_corner_bottom.PNG', tile_size, tile_size)
+        self.brick_tile_right_ext_edge = img_loader('data/images/tile_brick_ext_edge.PNG', tile_size, tile_size)
+        self.brick_tile_left_ext_edge = pygame.transform.flip(self.brick_tile_right_ext_edge, True, False)
+        brick_tile_floor_left = img_loader('data/images/tile_brick_floor_corner.PNG', tile_size, tile_size)
+        brick_tile_floor_right = pygame.transform.flip(brick_tile_floor_left, True, False)
+        brick_tile_corner = img_loader('data/images/tile_brick_corner.PNG', tile_size, tile_size)
         brick_tile_btm_right = pygame.transform.flip(brick_tile_corner, False, True)
         brick_tile_btm_left = pygame.transform.flip(brick_tile_btm_right, True, False)
+        brick_tile_right_edge = img_loader('data/images/tile_brick_edge.PNG', tile_size, tile_size)
+        brick_tile_left_edge = pygame.transform.flip(brick_tile_right_edge, True, False)
         brick_tile_top_edge = img_loader('data/images/tile_brick_top_edge.PNG', tile_size, tile_size)
-        brick_tile_btm_edge = img_loader('data/images/tile_brick_ceiling.PNG', tile_size, tile_size)
-        brick_tile_two_corners = img_loader('data/images/tile_brick_two_corners.PNG', tile_size, tile_size)
+        brick_tile_btm_edge = pygame.transform.rotate(brick_tile_right_edge, 270)
         brick_tile_two_edges = img_loader('data/images/tile_brick_two_edges.PNG', tile_size, tile_size)
+        brick_tile_two_bottom_corners = pygame.transform.flip(img_loader('data/images/tile_brick_two_corners.PNG',
+                                                                         tile_size, tile_size), False, True)
+
+        brick_pass_right = img_loader('data/images/brick_passage_right_fg.PNG', tile_size, tile_size)
+        brick_pass_right_bg = img_loader('data/images/brick_passage_right_bg.PNG', tile_size, tile_size)
+        brick_pass_left = img_loader('data/images/brick_passage_left_fg.PNG', tile_size, tile_size)
+        brick_pass_left_bg = img_loader('data/images/brick_passage_left_bg.PNG', tile_size, tile_size)
+        self.brick_pass = brick_pass_right
+
+        self.foundations_floor = img_loader('data/images/tile_foundations_floor.PNG', tile_size, tile_size)
+        self.foundations = img_loader('data/images/tile_foundations.PNG', tile_size, tile_size)
 
         self.brick_tiles = {
             (True, True, True, True): self.brick_tile,
             (False, True, True, True): brick_tile_top_edge,
             (True, False, True, True): brick_tile_right_edge,
-            (True, True, False, True): self.brick_tile,
+            (True, True, False, True): brick_tile_btm_edge,
             (True, True, True, False): brick_tile_left_edge,
-            (False, True, True, False): brick_tile_left,
-            (False, False, True, True): brick_tile_right,
-            (True, False, False, True): brick_tile_right_edge,
-            (True, True, False, False): brick_tile_left_edge,
+            (False, True, True, False): brick_tile_floor_left,
+            (False, False, True, True): brick_tile_floor_right,
+            (True, False, False, True): brick_tile_btm_right,
+            (True, True, False, False): brick_tile_btm_left,
             (True, False, True, False): brick_tile_two_edges,
-            (False, False, True, False): brick_tile_two_corners,
+            (True, False, False, False): brick_tile_two_bottom_corners,
+            (True, False, False, False): brick_tile_two_edges,
         }
+
+        self.passage_brick_tiles_bg = {
+            'left': brick_pass_left_bg,
+            'right': brick_pass_right_bg
+        }
+
+        self.passage_brick_tiles_fg = {
+            'left': brick_pass_left,
+            'right': brick_pass_right,
+        }
+
+        self.roof_tiles = img_loader('data/images/tile_roof.PNG', tile_size, tile_size)
+        self.roof_tiles_left = img_loader('data/images/tile_roof_corner_left.PNG', tile_size, tile_size)
+        self.roof_tiles_right = img_loader('data/images/tile_roof_corner_right.PNG', tile_size, tile_size)
+
+        #    0
+        # 3 [] 1
+        #   2
 
         # bear trap tile images ----------------------------------------------------------------------------------------
         self.bear_trap_shut_img = img_loader('data/images/bear_trap_shut.PNG', tile_size, tile_size / 2)
@@ -458,6 +490,7 @@ class World:
         self.hot_lava_list = []
         self.bridge_list = []
         self.bat_list = []
+        self.passage_list_bg = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -490,6 +523,10 @@ class World:
         self.bg_data = bg_data
 
         # TILE DATA ENCODING SYSTEM ====================================================================================
+        # 5 - exterior bricks
+        # 6 - roof
+        # 7 - foundations
+        # 8 - brick wall passage
         # 9 - background transition border
         # 10 - gem
         # 11 - dirt
@@ -552,6 +589,35 @@ class World:
                 if tile == 9:
                     # background transition border
                     self.bg_border = row_count * tile_size
+                if tile == 5:
+                    # exterior bricks
+                    tile = img_rect_pos(self.brick_tile_right_ext_edge, column_count, row_count, pov_offset)
+                    tile.append('rock')
+                    self.tile_list.append(tile)
+                    self.tile_pos_list.append([tile[1].x, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
+                if tile == 6:
+                    # roof tiles
+                    tile = img_rect_pos(self.roof_tiles, column_count, row_count, pov_offset)
+                    tile.append('rock')
+                    self.tile_list.append(tile)
+                    self.tile_pos_list.append([tile[1].x, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
+                if tile == 7:
+                    # brick foundations
+                    tile = img_rect_pos(self.foundations_floor, column_count, row_count, pov_offset)
+                    tile.append('wood')
+                    self.tile_list.append(tile)
+                    self.tile_pos_list.append([tile[1].x, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
+                if tile == 8:
+                    # brick wall passage
+                    tile = img_rect_pos(self.brick_pass, column_count, row_count, pov_offset)
+                    tile.append('rock')
+                    self.tile_list.append(tile)
+                    self.tile_pos_list.append([tile[1].x, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
+                    # added to the tile list temporarily so the tiles around get adjusted
                 if tile == 10:
                     # gem
                     if level_count == 5 and self.world_count == 3:
@@ -920,6 +986,7 @@ class World:
                                   self.set_lava_right]
 
         temp_tile_list = []
+        removal_list = []
 
         for tile in self.tile_list:
             #    0
@@ -939,6 +1006,8 @@ class World:
             if [tile[1].x, tile[1].y + tile_size] not in self.tile_pos_list:
                 tile_edge_data[2] = False
 
+            index = tuple(tile_edge_data)
+
             if tile[0] != self.dirt_tile:
                 if tile[1].x == start_x * tile_size:
                     tile_edge_data[3] = True
@@ -951,19 +1020,40 @@ class World:
 
             if tile[0] == self.dirt_tile:
                 try:
-                    tile[0] = self.dirt_tiles[tuple(tile_edge_data)]
+                    tile[0] = self.dirt_tiles[index]
                 except KeyError:
                     tile[0] = self.dirt_tile
             if tile[0] == self.stone_tile:
                 try:
-                    tile[0] = self.stone_tiles[tuple(tile_edge_data)]
+                    tile[0] = self.stone_tiles[index]
                 except KeyError:
                     tile[0] = self.stone_tile
             if tile[0] == self.brick_tile:
                 try:
-                    tile[0] = self.brick_tiles[tuple(tile_edge_data)]
+                    tile[0] = self.brick_tiles[index]
                 except KeyError:
                     tile[0] = self.brick_tile
+            if tile[0] == self.brick_pass:
+                if not tile_edge_data[1]:
+                    pass_tile_dir = 'right'
+                else:
+                    pass_tile_dir = 'left'
+                fg_img = self.passage_brick_tiles_fg[pass_tile_dir]
+                self.decoration_list.append([fg_img, tile[1], tile[2]])
+                bg_img = self.passage_brick_tiles_bg[pass_tile_dir]
+                self.passage_list_bg.append([bg_img, tile[1], tile[2]])
+                removal_list.append(tile)
+            if tile[0] == self.foundations_floor:
+                if tile_edge_data[0]:
+                    tile[0] = self.foundations
+            if tile[0] == self.roof_tiles:
+                if not tile_edge_data[1]:
+                    tile[0] = self.roof_tiles_right
+                elif not tile_edge_data[3]:
+                    tile[0] = self.roof_tiles_left
+            if tile[0] == self.brick_tile_right_ext_edge:
+                if not tile_edge_data[3]:
+                    tile[0] = self.brick_tile_left_ext_edge
             if tile[0] == self.bridge_section:
                 self.bridge_list.append(tile)
             else:
@@ -979,6 +1069,9 @@ class World:
             self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset + tile[-1],
                                                 tile[1][1] - start_y * tile_size))
         self.tile_list = temp_tile_list
+        # removing brick passage tiles from the tile list
+        for tile in removal_list:
+            self.tile_list.remove(tile)
 
         # background tiles ---------------------------------------------------------------------------------------------
 
@@ -1053,6 +1146,9 @@ class World:
 
             self.tile_surface_bg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
+
+        self.bg_decoration_list += self.passage_list_bg
+
         for tile in self.bg_decoration_list:
             self.tile_surface_bg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))

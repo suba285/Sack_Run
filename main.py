@@ -166,18 +166,21 @@ try:
         unlocked_worlds_data = json.load(json_file)
         counter = 1
         for value in unlocked_worlds_data:
+            print(counter)
             if value:
-                world_count = counter
+                world_count = counter - 1
             counter += 1
 except FileNotFoundError:
     world_count = 1
+
 
 level_count = level_counters[world_count]
 
 world_level_nums = {
     1: 3,
     2: 9,
-    3: 7
+    3: 9,
+    4: 6
 }
 
 nums_to_unlocked_world_data = {

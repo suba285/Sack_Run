@@ -36,7 +36,8 @@ level_dictionary = {
     "level5_3": level5_3,
     "level6_3": level6_3,
     "level7_3": level7_3,
-    "level8_3": level8_3
+    "level8_3": level8_3,
+    "level1_4": level1_4,
 }
 
 level_bg_dictionary = {
@@ -59,7 +60,8 @@ level_bg_dictionary = {
     "level5_3_bg": level5_3_bg,
     "level6_3_bg": level6_3_bg,
     "level7_3_bg": level7_3_bg,
-    "level8_3_bg": level8_3_bg
+    "level8_3_bg": level8_3_bg,
+    "level1_4_bg": level1_4_bg,
 }
 
 level_pos_dictionary = {
@@ -83,6 +85,7 @@ level_pos_dictionary = {
     "level6_3": (-23, 0),
     "level7_3": (3, -8),
     "level8_3": (2, -8),
+    "level1_4": (5, -7),
 }
 
 level_card_dictionary = {
@@ -94,7 +97,7 @@ world_ending_levels = {
     1: 3,
     2: 9,
     3: 9,
-    4: 5
+    4: 8
 }
 
 
@@ -347,7 +350,7 @@ class Game:
         self.game_screen = pygame.Surface((swidth, sheight))
         self.game_screen.set_colorkey((0, 0, 255))
 
-        self.cave_background_colour = (35, 29, 39)
+        self.cave_background_colour = (46, 27, 47)
         self.sky_background_colour = (100, 63, 102)
         self.bg_transition_colour = [0, 0, 0]
 
