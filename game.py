@@ -19,7 +19,6 @@ particle_num = 12
 level_dictionary = {
     "level1_1": level1_1,
     "level2_1": level2_1,
-    "level3_1": level3_1,
     "level1_2": level1_2,
     "level2_2": level2_2,
     "level3_2": level3_2,
@@ -28,7 +27,6 @@ level_dictionary = {
     "level6_2": level6_2,
     "level7_2": level7_2,
     "level8_2": level8_2,
-    "level9_2": level9_2,
     "level1_3": level1_3,
     "level2_3": level2_3,
     "level3_3": level3_3,
@@ -43,7 +41,6 @@ level_dictionary = {
 level_bg_dictionary = {
     "level1_1_bg": level1_1_bg,
     "level2_1_bg": level2_1_bg,
-    "level3_1_bg": level3_1_bg,
     "level1_2_bg": level1_2_bg,
     "level2_2_bg": level2_2_bg,
     "level3_2_bg": level3_2_bg,
@@ -52,7 +49,6 @@ level_bg_dictionary = {
     "level6_2_bg": level6_2_bg,
     "level7_2_bg": level7_2_bg,
     "level8_2_bg": level8_2_bg,
-    "level9_2_bg": level9_2_bg,
     "level1_3_bg": level1_3_bg,
     "level2_3_bg": level2_3_bg,
     "level3_3_bg": level3_3_bg,
@@ -758,16 +754,13 @@ class Game:
         # calculated by tiles from the center of the mould (tiles fitting in the window)
 
         max_level = 9
-        max_world = 3
+        max_world = 4
         if level_count >= max_level:
             level_count = max_level
         if world_count >= max_world:
             world_count = max_world
 
         # popup windows
-        if (world_count == 1 and level_count == 3) or (world_count == 2 and level_count == 9):
-            self.lvl_completed_popup = True
-
         if world_count == 2 and level_count == 6:
             self.bee_info_popup = True
 
@@ -975,7 +968,6 @@ class Game:
         screen.blit(self.dialogue_surface, (0, 10))
 
         return self.opening_scene_done, sounds
-
 
     def update_cloud_bg(self):
         self.game_screen.fill(self.sky_background_colour)

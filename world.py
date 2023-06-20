@@ -27,6 +27,14 @@ def img_rect_pos(img, col_count, row_count, offset):
     return tile
 
 
+def bg_img_rect_pos(img, col_count, row_count, offset):
+    rect = img.get_rect()
+    rect.x = col_count * tile_size / 2 - offset
+    rect.y = row_count * tile_size / 2
+    tile = [img, rect]
+    return tile
+
+
 def key_animation(img1, img2, counter, fps_adjust):
     counter += 1*fps_adjust
     if counter >= 30:
@@ -314,58 +322,40 @@ class World:
         self.gem_mask_surf.set_colorkey((255, 0, 0))
 
         # background dirt tiles ----------------------------------------------------------------------------------------
-        self.bg_dirt_tile = img_loader('data/images/tile_bg.PNG', tile_size, tile_size)
-        bg_dirt_tile_left = img_loader('data/images/tile_bg_corner.PNG', tile_size, tile_size)
-        bg_dirt_tile_top_edge = img_loader('data/images/tile_bg_edge.PNG', tile_size, tile_size)
-        bg_dirt_tile_two_edges = img_loader('data/images/tile_bg_edge.PNG', tile_size, tile_size)
-        bg_dirt_tile_btm_edge = pygame.transform.flip(bg_dirt_tile_top_edge, False, True)
-        bg_dirt_tile_right_edge = pygame.transform.rotate(bg_dirt_tile_top_edge, 270)
-        bg_dirt_tile_left_edge = pygame.transform.rotate(bg_dirt_tile_top_edge, 90)
-        bg_dirt_tile_right = pygame.transform.flip(bg_dirt_tile_left, True, False)
-        bg_dirt_tile_btm_left = pygame.transform.flip(bg_dirt_tile_left, False, True)
-        bg_dirt_tile_btm_right = pygame.transform.flip(bg_dirt_tile_right, False, True)
-        bg_dirt_tile_two_corners = img_loader('data/images/tile_bg_two_corners.PNG', tile_size, tile_size)
+        self.bg_tile = img_loader('data/images/bg_tile.PNG', tile_size / 2, tile_size / 2)
+        bg_tile_edge = img_loader('data/images/bg_tile_edge.PNG', tile_size / 2, tile_size / 2)
+        bg_tile_corner = img_loader('data/images/bg_tile_corner.PNG', tile_size / 2, tile_size / 2)
+
+        #    0
+        # 3 [] 1
+        #   2
 
         self.bg_dirt_tiles = {
-            (True, True, True, True): self.bg_dirt_tile,
-            (False, False, False, False): self.bg_dirt_tile,
-            (False, True, True, True): bg_dirt_tile_top_edge,
-            (True, False, True, True): bg_dirt_tile_right_edge,
-            (True, True, False, True): bg_dirt_tile_btm_edge,
-            (True, True, True, False): bg_dirt_tile_left_edge,
-            (False, True, True, False): bg_dirt_tile_left,
-            (False, False, True, True): bg_dirt_tile_right,
-            (True, False, False, True): bg_dirt_tile_btm_right,
-            (True, True, False, False): bg_dirt_tile_btm_left,
-            (True, False, True, False): bg_dirt_tile_two_edges,
-            (False, False, True, False): bg_dirt_tile_two_corners,
+            (True, True, True, True): self.bg_tile,
+            (False, True, True, True): bg_tile_edge,
+            (True, False, True, True): pygame.transform.rotate(bg_tile_edge, 270),
+            (True, True, False, True): pygame.transform.rotate(bg_tile_edge, 180),
+            (True, True, True, False): pygame.transform.rotate(bg_tile_edge, 90),
+            (False, False, True, True): pygame.transform.flip(bg_tile_corner, True, False),
+            (True, False, False, True): pygame.transform.rotate(bg_tile_corner, 180),
+            (True, True, False, False): pygame.transform.flip(bg_tile_corner, False, True),
+            (False, True, True, False): bg_tile_corner,
         }
 
-        self.bg_dark_tile = img_loader('data/images/tile_bg_dark.PNG', tile_size, tile_size)
-        bg_dark_tile_left = img_loader('data/images/tile_bg_dark_corner.PNG', tile_size, tile_size)
-        bg_dark_tile_top_edge = img_loader('data/images/tile_bg_dark_edge.PNG', tile_size, tile_size)
-        bg_dark_tile_two_edges = img_loader('data/images/tile_bg_dark_edge.PNG', tile_size, tile_size)
-        bg_dark_tile_btm_edge = pygame.transform.flip(bg_dark_tile_top_edge, False, True)
-        bg_dark_tile_right_edge = pygame.transform.rotate(bg_dark_tile_top_edge, 270)
-        bg_dark_tile_left_edge = pygame.transform.rotate(bg_dark_tile_top_edge, 90)
-        bg_dark_tile_right = pygame.transform.flip(bg_dark_tile_left, True, False)
-        bg_dark_tile_btm_left = pygame.transform.flip(bg_dark_tile_left, False, True)
-        bg_dark_tile_btm_right = pygame.transform.flip(bg_dark_tile_right, False, True)
-        bg_dark_tile_two_corners = img_loader('data/images/tile_bg_dark_two_corners.PNG', tile_size, tile_size)
+        self.bg_dark_tile = img_loader('data/images/bg_dark_tile.PNG', tile_size / 2, tile_size / 2)
+        bg_dark_tile_edge = img_loader('data/images/bg_dark_tile_edge.PNG', tile_size / 2, tile_size / 2)
+        bg_dark_tile_corner = img_loader('data/images/bg_dark_tile_corner.PNG', tile_size / 2, tile_size / 2)
 
         self.bg_dark_tiles = {
             (True, True, True, True): self.bg_dark_tile,
-            (False, False, False, False): self.bg_dark_tile,
-            (False, True, True, True): bg_dark_tile_top_edge,
-            (True, False, True, True): bg_dark_tile_right_edge,
-            (True, True, False, True): bg_dark_tile_btm_edge,
-            (True, True, True, False): bg_dark_tile_left_edge,
-            (False, True, True, False): bg_dark_tile_left,
-            (False, False, True, True): bg_dark_tile_right,
-            (True, False, False, True): bg_dark_tile_btm_right,
-            (True, True, False, False): bg_dark_tile_btm_left,
-            (True, False, True, False): bg_dark_tile_two_edges,
-            (False, False, True, False): bg_dark_tile_two_corners,
+            (False, True, True, True): bg_dark_tile_edge,
+            (True, False, True, True): pygame.transform.rotate(bg_dark_tile_edge, 270),
+            (True, True, False, True): pygame.transform.rotate(bg_dark_tile_edge, 180),
+            (True, True, True, False): pygame.transform.rotate(bg_dark_tile_edge, 90),
+            (False, False, True, True): pygame.transform.flip(bg_dark_tile_corner, True, False),
+            (True, False, False, True): pygame.transform.rotate(bg_dark_tile_corner, 180),
+            (True, True, False, False): pygame.transform.flip(bg_dark_tile_corner, False, True),
+            (False, True, True, False): bg_dark_tile_corner,
         }
 
         self.bg_brick_tile = img_loader('data/images/tile_bg_brick.PNG', tile_size, tile_size)
@@ -445,9 +435,11 @@ class World:
         self.set_lava_img_list = []
         self.set_lava_rect = self.set_lava.get_rect()
 
-        # greenhouse ---------------------------------------------------------------------------------------------------
+        # buildings ---------------------------------------------------------------------------------------------------
         self.greenhouse = img_loader('data/images/greenhouse.PNG', tile_size * 3, tile_size * 2)
         self.greenhouse_glazing = img_loader('data/images/greenhouse_glazing.PNG', tile_size * 3, tile_size * 2)
+        self.cottage = img_loader('data/images/cottage.PNG', tile_size * 6, tile_size * 4)
+        self.mill = img_loader('data/images/mill.PNG', tile_size * 8, tile_size * 6)
 
         # guidance arrows and keys -------------------------------------------------------------------------------------
         self.white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
@@ -523,11 +515,10 @@ class World:
         self.bg_data = bg_data
 
         # TILE DATA ENCODING SYSTEM ====================================================================================
-        # 5 - exterior bricks
-        # 6 - roof
-        # 7 - foundations
-        # 8 - brick wall passage
-        # 9 - background transition border
+
+        # 7 - greenhouse
+        # 8 - cottage
+        # 9 - mill
         # 10 - gem
         # 11 - dirt
         # 12 - stone
@@ -539,14 +530,14 @@ class World:
         # 18 - wheat
         # 19 - bridge
         # 20 - portal
-        # 21 - dirt tile rocks
-        # 22 - greenhouse
+        # 21 - free tile
+        # 22 - free tile
         # 23 - bear trap
         # 24 - platform
         # 25 - wobbly mushrooms
         # 26 - hot lava start
         # 27 - hot lava stop
-        # 28 - real bee hive
+        # 28 - bee hive
         # 29 - shockwave mushroom
         # 30 - set lava
         # 31 - set lava left
@@ -586,38 +577,21 @@ class World:
             tile_column = 0
             self.level_length = 0
             for tile in row:
-                if tile == 9:
+                if tile == 99:
                     # background transition border
                     self.bg_border = row_count * tile_size
-                if tile == 5:
-                    # exterior bricks
-                    tile = img_rect_pos(self.brick_tile_right_ext_edge, column_count, row_count, pov_offset)
-                    tile.append('rock')
-                    self.tile_list.append(tile)
-                    self.tile_pos_list.append([tile[1].x, tile[1].y])
-                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
-                if tile == 6:
-                    # roof tiles
-                    tile = img_rect_pos(self.roof_tiles, column_count, row_count, pov_offset)
-                    tile.append('rock')
-                    self.tile_list.append(tile)
-                    self.tile_pos_list.append([tile[1].x, tile[1].y])
-                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if tile == 7:
-                    # brick foundations
-                    tile = img_rect_pos(self.foundations_floor, column_count, row_count, pov_offset)
-                    tile.append('wood')
-                    self.tile_list.append(tile)
-                    self.tile_pos_list.append([tile[1].x, tile[1].y])
-                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
+                    # greenhouse
+                    tile = img_rect_pos(self.greenhouse, column_count, row_count, pov_offset)
+                    self.bg_decoration_list.append(tile)
                 if tile == 8:
-                    # brick wall passage
-                    tile = img_rect_pos(self.brick_pass, column_count, row_count, pov_offset)
-                    tile.append('rock')
-                    self.tile_list.append(tile)
-                    self.tile_pos_list.append([tile[1].x, tile[1].y])
-                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
-                    # added to the tile list temporarily so the tiles around get adjusted
+                    # cottage
+                    tile = img_rect_pos(self.cottage, column_count, row_count, pov_offset)
+                    self.bg_decoration_list.append(tile)
+                if tile == 9:
+                    # mill
+                    tile = img_rect_pos(self.mill, column_count, row_count, pov_offset)
+                    self.bg_decoration_list.append(tile)
                 if tile == 10:
                     # gem
                     if level_count == 5 and self.world_count == 3:
@@ -642,6 +616,9 @@ class World:
                     tile.append([(column_count - start_x) * tile_size, (row_count - start_y) * tile_size])
                     self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x + 16, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y + 16])
+                    self.bg_tile_pos_list.append([tile[1].x + 16, tile[1].y + 16])
                     self.tile_list.append(tile)
                 if tile == 12:
                     # stone
@@ -650,6 +627,9 @@ class World:
                     tile.append([tile_column * tile_size, tile_row * tile_size])
                     self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x + 16, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y + 16])
+                    self.bg_tile_pos_list.append([tile[1].x + 16, tile[1].y + 16])
                     self.tile_list.append(tile)
                 if tile == 13:
                     # bricks
@@ -658,6 +638,9 @@ class World:
                     tile.append([tile_column * tile_size, tile_row * tile_size])
                     self.tile_pos_list.append([tile[1].x, tile[1].y])
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x + 16, tile[1].y])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y + 16])
+                    self.bg_tile_pos_list.append([tile[1].x + 16, tile[1].y + 16])
                     self.tile_list.append(tile)
                 if tile == 14:
                     # rock 1
@@ -710,23 +693,6 @@ class World:
                     self.next_level_list.append(tile)
                     self.portal_list.append(tile)
                     self.portal_position = (img1_rectangle[0], img1_rectangle[1])
-                if tile == 21:
-                    # stone dirt
-                    img = self.dirt_tile_rocks
-                    img_rectangle = img.get_rect()
-                    img_rectangle.x = column_count * tile_size
-                    img_rectangle.y = row_count * tile_size
-                    tile = [img, img_rectangle, 'grass', [tile_column * tile_size, tile_row * tile_size]]
-                    self.tile_pos_list.append([img_rectangle.x, img_rectangle.y])
-                    self.tile_list.append(tile)
-                if tile == 22:
-                    # greenhouse
-                    img = self.greenhouse
-                    img_rect = img.get_rect()
-                    img_rect.x = column_count * tile_size - pov_offset
-                    img_rect.y = row_count * tile_size
-                    tile = (img, img_rect)
-                    self.bg_decoration_list.append(tile)
                 if tile == 23:
                     # bear trap
                     img = self.bear_trap_shut_img
@@ -1033,27 +999,7 @@ class World:
                     tile[0] = self.brick_tiles[index]
                 except KeyError:
                     tile[0] = self.brick_tile
-            if tile[0] == self.brick_pass:
-                if not tile_edge_data[1]:
-                    pass_tile_dir = 'right'
-                else:
-                    pass_tile_dir = 'left'
-                fg_img = self.passage_brick_tiles_fg[pass_tile_dir]
-                self.decoration_list.append([fg_img, tile[1], tile[2]])
-                bg_img = self.passage_brick_tiles_bg[pass_tile_dir]
-                self.passage_list_bg.append([bg_img, tile[1], tile[2]])
-                removal_list.append(tile)
-            if tile[0] == self.foundations_floor:
-                if tile_edge_data[0]:
-                    tile[0] = self.foundations
-            if tile[0] == self.roof_tiles:
-                if not tile_edge_data[1]:
-                    tile[0] = self.roof_tiles_right
-                elif not tile_edge_data[3]:
-                    tile[0] = self.roof_tiles_left
-            if tile[0] == self.brick_tile_right_ext_edge:
-                if not tile_edge_data[3]:
-                    tile[0] = self.brick_tile_left_ext_edge
+
             if tile[0] == self.bridge_section:
                 self.bridge_list.append(tile)
             else:
@@ -1081,37 +1027,37 @@ class World:
         # 50 - background brick way out tile
         # 51 - background brick window tile
 
-        bg_row_count = start_y
-        self.background_y = start_y * 32
-        self.background_x = start_x * 32
+        bg_row_count = start_y * 2
+        self.background_y = start_y * tile_size
+        self.background_x = start_x * tile_size
         for row in self.bg_data:
-            bg_col_count = start_x
+            bg_col_count = start_x * 2
             for bg_tile in row:
                 if bg_tile == 47:
                     # bg dirt tile
-                    tile = img_rect_pos(self.bg_dirt_tile, bg_col_count, bg_row_count, pov_offset)
+                    tile = bg_img_rect_pos(self.bg_tile, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([bg_col_count * tile_size - pov_offset, bg_row_count * tile_size])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if bg_tile == 48:
                     # bg dark tile
-                    tile = img_rect_pos(self.bg_dark_tile, bg_col_count, bg_row_count, pov_offset)
+                    tile = bg_img_rect_pos(self.bg_dark_tile, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([bg_col_count * tile_size - pov_offset, bg_row_count * tile_size])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if bg_tile == 49:
                     # bg brick tile
-                    tile = img_rect_pos(self.bg_brick_tile, bg_col_count, bg_row_count, pov_offset)
+                    tile = bg_img_rect_pos(self.bg_brick_tile, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([bg_col_count * tile_size - pov_offset, bg_row_count * tile_size])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if bg_tile == 50:
                     # bg brick way out tile
-                    tile = img_rect_pos(self.bg_brick_way_out, bg_col_count, bg_row_count, pov_offset)
+                    tile = bg_img_rect_pos(self.bg_brick_way_out, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([bg_col_count * tile_size - pov_offset, bg_row_count * tile_size])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if bg_tile == 51:
                     # bg brick window tile
-                    tile = img_rect_pos(self.bg_brick_window, bg_col_count, bg_row_count, pov_offset)
+                    tile = bg_img_rect_pos(self.bg_brick_window, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([bg_col_count * tile_size - pov_offset, bg_row_count * tile_size])
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
 
                 bg_col_count += 1
             bg_row_count += 1
@@ -1122,22 +1068,22 @@ class World:
             #    2
             tile_edge_data = [True, True, True, True]
             # checking if there is a tile behind
-            if [tile[1].x - tile_size, tile[1].y] not in self.bg_tile_pos_list:
+            if [tile[1].x - tile_size / 2, tile[1].y] not in self.bg_tile_pos_list:
                 tile_edge_data[3] = False
             # checking if there is a tile in front
-            if [tile[1].x + tile_size, tile[1].y] not in self.bg_tile_pos_list:
+            if [tile[1].x + tile_size / 2, tile[1].y] not in self.bg_tile_pos_list:
                 tile_edge_data[1] = False
             # checking if there is a tile above
-            if [tile[1].x, tile[1].y - tile_size] not in self.bg_tile_pos_list:
+            if [tile[1].x, tile[1].y - tile_size / 2] not in self.bg_tile_pos_list:
                 tile_edge_data[0] = False
             # checking if there is a tile beneath
-            if [tile[1].x, tile[1].y + tile_size] not in self.bg_tile_pos_list:
+            if [tile[1].x, tile[1].y + tile_size / 2] not in self.bg_tile_pos_list:
                 tile_edge_data[2] = False
-            if tile[0] == self.bg_dirt_tile:
+            if tile[0] == self.bg_tile:
                 try:
                     tile[0] = self.bg_dirt_tiles[tuple(tile_edge_data)]
                 except KeyError:
-                    tile[0] = self.bg_dirt_tile
+                    tile[0] = self.bg_tile
             if tile[0] == self.bg_dark_tile:
                 try:
                     tile[0] = self.bg_dark_tiles[tuple(tile_edge_data)]
