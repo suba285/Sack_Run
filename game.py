@@ -81,7 +81,7 @@ level_pos_dictionary = {
     "level6_3": (-23, 0),
     "level7_3": (3, -8),
     "level8_3": (2, -8),
-    "level1_4": (5, -7),
+    "level1_4": (3, 0),
 }
 
 level_card_dictionary = {
@@ -554,6 +554,7 @@ class Game:
 
         # world completed screen variables -----------------------------------------------------------------------------
         self.world_completed_texts = {
+            0: 'emptiness',
             1: 'Seems like you got the hang of it!',
             2: 'The farm is now behind you, further challenges lay ahead',
             3: 'Fresh air, finally... No more damp caves',
@@ -1113,7 +1114,7 @@ class Game:
                 self.game_screen.fill(self.cave_background_colour)
         self.world.draw_static_tiles_background(self.game_screen)
         self.tile_harm, self.gem_equipped, sounds['gem'] = self.world.update_bg_tiles(self.game_screen, fps_adjust,
-                                                                                      level_count, self.camera_move_x,
+                                                                                      tutorial, self.camera_move_x,
                                                                                       self.camera_move_y, sack_rect,
                                                                                       self.gem_equipped, self.health)
         bridge_screen_shake = self.world.draw_bridge(self.game_screen, self.camera_move_x, self.camera_move_y,

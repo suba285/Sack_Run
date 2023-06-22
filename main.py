@@ -166,9 +166,8 @@ try:
         unlocked_worlds_data = json.load(json_file)
         counter = 1
         for value in unlocked_worlds_data:
-            print(counter)
             if value:
-                world_count = counter - 1
+                world_count = counter
             counter += 1
 except FileNotFoundError:
     world_count = 1
@@ -187,7 +186,7 @@ nums_to_unlocked_world_data = {
     1: 1,
     2: 2,
     3: 3,
-    4: 3
+    4: 4
 }
 
 default_game_counter = -3
@@ -695,7 +694,7 @@ while run:
                     unlocked_world_data = json.load(json_file)
             except FileNotFoundError:
                 unlocked_world_data = [True, False, False, False]
-            if world_count < 3 and not unlocked_world_data[world_count]:
+            if world_count < 4 and not unlocked_world_data[world_count]:
                 new_world_unlocked = True
                 unlocked_world_data[nums_to_unlocked_world_data[world_count]] = True
             try:

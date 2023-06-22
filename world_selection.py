@@ -392,8 +392,10 @@ class LevelSelection:
         if left_press or left_bumper_press:
             update_value = -1
             self.object_wobble_counter = self.text_wobble_default_value
+            print(self.world_count)
         elif right_press or right_bumper_press:
             update_value = 1
+            print(self.world_count)
             self.object_wobble_counter = self.text_wobble_default_value
 
         self.world_count += update_value

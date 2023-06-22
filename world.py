@@ -1160,7 +1160,7 @@ class World:
 
     # functions for drawing animated or interactive tiles and enemies ==================================================
 
-    def update_bg_tiles(self, screen, fps_adjust, level_count, camera_move_x, camera_move_y, sack_rect,
+    def update_bg_tiles(self, screen, fps_adjust, tutorial, camera_move_x, camera_move_y, sack_rect,
                         gem_equipped, health):
         harm = False
         # portal variables
@@ -1232,7 +1232,7 @@ class World:
 
                     screen.blit(tile[3], (tile[1][0], tile[1][1] - 16))
 
-                    if level_count == 1:
+                    if tutorial == 1:
                         screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
 
             # set lava -------------------------------------------------------------------------------------------------
