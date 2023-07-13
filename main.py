@@ -168,6 +168,7 @@ try:
         for value in unlocked_worlds_data:
             if value:
                 world_count = counter
+                break
             counter += 1
 except FileNotFoundError:
     world_count = 1

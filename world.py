@@ -101,7 +101,6 @@ class World:
         self.grn_mushroom_list = []
         self.bee_hive_list = []
         self.shut_trap_list = []
-        self.bush_list = []
         self.slope_list = []
         self.decoration_list = []
         self.spitting_plant_list_left = []
@@ -117,7 +116,9 @@ class World:
         self.hot_lava_list = []
         self.bridge_list = []
         self.bat_list = []
-        self.passage_list_bg = []
+        self.copper_wheel_list = []
+        self.pipe_list = []
+        self.pipe_pos_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -147,6 +148,9 @@ class World:
         self.gem_particles = []
         self.shock_mush_part_anim_count = 0
         self.shock_mush_part_frame_len_count = 0
+        self.copper_wheel_radius = 60
+        self.copper_wheel_count = 0
+        self.copper_wheel_frame = 0
 
         self.key_press_counter = 0
 
@@ -162,8 +166,6 @@ class World:
         self.level_height = 0
 
         self.portal_position = (0, 0)
-
-        self.angles = [0, 90, 180, 270]
 
         # tile images --------------------------------------------------------------------------------------------------
         self.dirt_tile = img_loader(f'data/images/tile_dirt.PNG', tile_size, tile_size)
@@ -361,8 +363,8 @@ class World:
         self.bg_brick_tile = img_loader('data/images/tile_bg_brick.PNG', tile_size, tile_size)
         self.bg_brick_way_out = img_loader('data/images/tile_bg_brick_way_out.PNG', tile_size, tile_size)
         self.bg_brick_window = img_loader('data/images/tile_bg_brick_window.PNG', tile_size, tile_size)
-        self.bg_brick_door1 = img_loader('data/images/door1.PNG', tile_size, tile_size)
-        self.bg_brick_door2 = img_loader('data/images/door2.PNG', tile_size, tile_size)
+        self.bg_brick_support = img_loader('data/images/tile_bg_brick_support1.PNG', tile_size, tile_size)
+        self.bg_brick_support_top = img_loader('data/images/tile_bg_brick_support2.PNG', tile_size, tile_size)
 
         # bee hive tile images -----------------------------------------------------------------------------------------
         self.bee_hive = img_loader('data/images/bee_hive.PNG', tile_size, 1.5 * tile_size)
@@ -419,6 +421,38 @@ class World:
         self.log1 = img_loader('data/images/log1.PNG', 2 * tile_size, tile_size)
         self.log1.set_colorkey((0, 0, 0))
 
+        # copper wheel frames ------------------------------------------------------------------------------------------
+        self.copper_wheel_frames = {}
+        index_count = 0
+        for frame in range(7):
+            img = img_loader(f'data/images/copper_wheel{index_count + 1}.PNG', tile_size * 4, tile_size * 4)
+            self.copper_wheel_frames[index_count] = img
+            index_count += 1
+
+        # copper pipe images -------------------------------------------------------------------------------------------
+        pipe_vertical = img_loader('data/images/pipe1.PNG', tile_size, tile_size)  # |
+        self.pipe = pipe_vertical.copy()
+        pipe_bend = img_loader('data/images/pipe2.PNG', tile_size, tile_size)  # ¬
+        pipe_cross = img_loader('data/images/pipe3.PNG', tile_size, tile_size)  # -|
+        pipe_end = img_loader('data/images/pipe4.PNG', tile_size, tile_size)  # i
+        self.copper_pipe_imgs = {
+            (True, False, True, False): pipe_vertical,
+            (False, True, False, True): pygame.transform.rotate(pipe_vertical, 90),
+            (False, False, True, True): pipe_bend,
+            (False, True, True, False): pygame.transform.flip(pipe_vertical, True, False),
+            (True, False, False, True): pygame.transform.rotate(pipe_bend, -90),
+            (True, True, False, False): pygame.transform.rotate(pipe_bend, 180),
+            (False, True, True, False): pygame.transform.flip(pipe_bend, True, False),
+            (True, False, False, False): pygame.transform.flip(pipe_end, False, True),
+            (False, True, False, False): pygame.transform.rotate(pipe_end, 90),
+            (False, False, True, False): pipe_end,
+            (False, False, False, True): pygame.transform.rotate(pipe_end, -90),
+            (True, False, True, True): pipe_cross,
+            (False, True, True, True): pygame.transform.rotate(pipe_cross, 90),
+            (True, True, True, False): pygame.transform.rotate(pipe_cross, 180),
+            (True, True, False, True): pygame.transform.rotate(pipe_cross, 270),
+        }
+
         # crops --------------------------------------------------------------------------------------------------------
         self.carrot_patch = img_loader('data/images/carrot_patch.PNG', tile_size, tile_size)
         self.lettuce_patch = img_loader('data/images/lettuce_patch.PNG', tile_size, tile_size)
@@ -468,7 +502,6 @@ class World:
         self.grn_mushroom_list = []
         self.bee_hive_list = []
         self.shut_trap_list = []
-        self.bush_list = []
         self.decoration_list = []
         self.spitting_plant_list_left = []
         self.spitting_plant_list_right = []
@@ -482,7 +515,9 @@ class World:
         self.hot_lava_list = []
         self.bridge_list = []
         self.bat_list = []
-        self.passage_list_bg = []
+        self.copper_wheel_list = []
+        self.pipe_list = []
+        self.pipe_pos_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -507,6 +542,7 @@ class World:
         self.wood_particles = []
         self.mush_particles = []
         self.gem_particles = []
+        self.copper_wheel_radius = 60
 
         # assigning tiles to corresponding coordinates by the level map ------------------------------------------------
         self.level_height = 0
@@ -530,8 +566,8 @@ class World:
         # 18 - wheat
         # 19 - bridge
         # 20 - portal
-        # 21 - free tile
-        # 22 - free tile
+        # 21 - copper wheel
+        # 22 - pipe
         # 23 - bear trap
         # 24 - platform
         # 25 - wobbly mushrooms
@@ -594,6 +630,7 @@ class World:
                     self.bg_decoration_list.append(tile)
                 if tile == 10:
                     # gem
+                    tile_type = 'gem'
                     if level_count == 5 and self.world_count == 3:
                         offset = tile_size / 2
                     else:
@@ -607,7 +644,7 @@ class World:
                     animation = CircleAnimation()
                     gem_collected = False
                     gem_counter = 0
-                    tile = [self.gem, rect, shake_counter, gem_collected, surface, animation, gem_counter]
+                    tile = [tile_type, rect, shake_counter, gem_collected, surface, animation, gem_counter]
                     self.gem_list.append(tile)
                 if tile == 11:
                     # dirt
@@ -673,6 +710,7 @@ class World:
                     self.tile_list.append(tile)
                 if tile == 20:
                     # portal
+                    tile_type = 'portal'
                     img1 = self.portal
                     img1.set_colorkey((0, 0, 0))
                     img1_rectangle = img1.get_rect()
@@ -689,10 +727,27 @@ class World:
                                       random.choice([(255, 0, 255), (143, 0, 255)])])
                     portal_surface = pygame.Surface((tile_size, tile_size * 1.5)).convert()
                     portal_surface.set_colorkey((0, 0, 255))
-                    tile = (img1, img1_rectangle, portal_surface, star_surface, stars)
+                    tile = (tile_type, img1_rectangle, portal_surface, star_surface, stars)
                     self.next_level_list.append(tile)
                     self.portal_list.append(tile)
                     self.portal_position = (img1_rectangle[0], img1_rectangle[1])
+                if tile == 21:
+                    # copper wheel
+                    tile_type = 'copper_wheel'
+                    x = column_count * tile_size - pov_offset
+                    y = row_count * tile_size
+                    rect = pygame.Rect(x, y, tile_size * 4, tile_size * 4)
+                    if level_count > 2:
+                        boxes = [0, 90, 180, 270]
+                    else:
+                        boxes = [0, 180]
+                    tile = [tile_type, rect, boxes]
+                    self.copper_wheel_list.append(tile)
+                if tile == 22:
+                    # copper pipe
+                    tile = img_rect_pos(self.pipe, column_count, row_count, pov_offset)
+                    self.pipe_list.append(tile)
+                    self.pipe_pos_list.append([tile[1].x, tile[1].y])
                 if tile == 23:
                     # bear trap
                     img = self.bear_trap_shut_img
@@ -747,6 +802,7 @@ class World:
                     self.hot_lava_list.append(lava_package)
                 if tile == 28:
                     # bee hive
+                    tile_type = 'bee_hive'
                     img = self.bee_hive
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size - pov_offset
@@ -755,10 +811,11 @@ class World:
                     for i in range(4):
                         bee = Bee(img_rectangle.x, img_rectangle.y)
                         bee_list.append(bee)
-                    tile = (img, img_rectangle, bee_list)
+                    tile = (tile_type, img_rectangle, bee_list)
                     self.bee_hive_list.append(tile)
                 if tile == 29:
                     # shockwave mushroom
+                    tile_type = 'shockwave_mushroom'
                     img = self.shockwave_mushroom
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size - pov_offset
@@ -766,37 +823,40 @@ class World:
                     squash_counter = 0
                     cooldown = 0
                     shockwave_init = Shockwave(self.screen)
-                    tile = [img, img_rectangle, squash_counter, cooldown, shockwave_init]
+                    tile = [tile_type, img_rectangle, squash_counter, cooldown, shockwave_init]
                     self.shockwave_mushroom_list.append(tile)
                 if tile == 30:
                     # set lava
+                    tile_type = 'set_lava'
                     lava_img = random.choice([self.set_lava, self.set_lava2])
                     img = random.choice([lava_img, pygame.transform.flip(lava_img, True, False)])
                     img_rect = img.get_rect()
                     img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size + tile_size - 5
                     offset = 0
-                    tile = (img, img_rect, offset)
+                    tile = (img, img_rect, offset, tile_type)
                     self.set_lava_list.append(tile)
                 if tile == 31:
                     # set lava left
+                    tile_type = 'set_lava'
                     img = self.set_lava_left
                     img_rect = img.get_rect()
                     img_rect.width = tile_size - 10
                     img_rect.x = column_count * tile_size + 10 - pov_offset
                     img_rect.y = row_count * tile_size + tile_size - 5
                     offset = -10
-                    tile = (img, img_rect, offset)
+                    tile = (img, img_rect, offset, tile_type)
                     self.set_lava_list.append(tile)
                 if tile == 32:
                     # set lava right
+                    tile_type = 'set_lava'
                     img = self.set_lava_right
                     img_rect = img.get_rect()
                     img_rect.width = tile_size - 10
                     img_rect.x = column_count * tile_size - pov_offset
                     img_rect.y = row_count * tile_size + tile_size - 5
                     offset = 0
-                    tile = (img, img_rect, offset)
+                    tile = (img, img_rect, offset, tile_type)
                     self.set_lava_list.append(tile)
                 if tile == 33:
                     # short grass
@@ -834,6 +894,7 @@ class World:
                     self.bg_decoration_list.append(tile)
                 if tile == 37:
                     # spitting plant left
+                    tile_type = 'spitting_plant_left'
                     img = self.spitting_plant0l
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
@@ -844,11 +905,12 @@ class World:
                     for i in range(6):
                         plant_spit = PlantSpit(direction, img_rectangle.x, img_rectangle.y)
                         spit_list.append(plant_spit)
-                    tile = (img, img_rectangle, direction, spit_list)
+                    tile = (tile_type, img_rectangle, direction, spit_list)
                     self.spitting_plant_img_left = img
                     self.spitting_plant_list_left.append(tile)
                 if tile == 38:
                     # spitting plant right
+                    tile_type = 'spitting_plant_right'
                     img = self.spitting_plant0r
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
@@ -859,11 +921,12 @@ class World:
                     for i in range(6):
                         plant_spit = PlantSpit(direction, img_rectangle.x, img_rectangle.y)
                         spit_list.append(plant_spit)
-                    tile = (img, img_rectangle, direction, spit_list)
+                    tile = (tile_type, img_rectangle, direction, spit_list)
                     self.spitting_plant_img_right = img
                     self.spitting_plant_list_right.append(tile)
                 if tile == 39:
                     # spitting plant up
+                    tile_type = 'spitting_plant_up'
                     img = self.spitting_plant_up0
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
@@ -874,17 +937,18 @@ class World:
                     for i in range(6):
                         plant_spit = PlantSpit(direction, img_rectangle.x, img_rectangle.y)
                         spit_list.append(plant_spit)
-                    tile = (img, img_rectangle, direction, spit_list)
+                    tile = (tile_type, img_rectangle, direction, spit_list)
                     self.spitting_plant_img_up = img
                     self.spitting_plant_list_up.append(tile)
                 if tile == 40:
                     # log
+                    tile_type = 'log'
                     img = self.log0
                     img.set_colorkey((0, 0, 0))
                     img_rectangle = img.get_rect()
                     img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size + tile_size
-                    tile = (img, img_rectangle)
+                    tile = (tile_type, img_rectangle)
                     self.log_list.append(tile)
                 if tile == 41:
                     # birch tree
@@ -972,17 +1036,22 @@ class World:
             if [tile[1].x, tile[1].y + tile_size] not in self.tile_pos_list:
                 tile_edge_data[2] = False
 
-            index = tuple(tile_edge_data)
+            if tile[0] == self.brick_tile:
+                left_x = self.tile_list[0][1].x
+                top_y = self.tile_list[0][1].y
+                right_x = self.tile_list[-1][1].x
+                btm_y = self.tile_list[-1][1].y
 
-            if tile[0] != self.dirt_tile:
-                if tile[1].x == start_x * tile_size:
+                if tile[1].x == left_x:
                     tile_edge_data[3] = True
-                if tile[1].x == (start_x + self.level_length) * tile_size - tile_size:
+                if tile[1].x == right_x:
                     tile_edge_data[1] = True
-                if tile[1].y == start_y * tile_size:
+                if tile[1].y == top_y:
                     tile_edge_data[0] = True
-                if tile[1].y == (start_y + self.level_height) * tile_size - tile_size:
+                if tile[1].y == btm_y:
                     tile_edge_data[2] = True
+
+            index = tuple(tile_edge_data)
 
             if tile[0] == self.dirt_tile:
                 try:
@@ -1005,14 +1074,44 @@ class World:
             else:
                 self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                     tile[1][1] - start_y * tile_size))
+
             if tile[0] != self.dirt_tile and tile[0] != self.stone_tile:
                 temp_tile_list.append(tile)
+
+        for tile in self.pipe_list:
+            #    0
+            # 3 [ ] 1
+            #    2
+            tile_edge_data = [True, True, True, True]
+
+            pipe_pos_list = self.pipe_pos_list + self.tile_pos_list
+
+            # checking if there is a tile behind
+            if [tile[1].x - tile_size, tile[1].y] not in pipe_pos_list:
+                tile_edge_data[3] = False
+            # checking if there is a tile in front
+            if [tile[1].x + tile_size, tile[1].y] not in pipe_pos_list:
+                tile_edge_data[1] = False
+            # checking if there is a tile above
+            if [tile[1].x, tile[1].y - tile_size] not in pipe_pos_list:
+                tile_edge_data[0] = False
+            # checking if there is a tile beneath
+            if [tile[1].x, tile[1].y + tile_size] not in pipe_pos_list:
+                tile_edge_data[2] = False
+
+            index = tuple(tile_edge_data)
+
+            try:
+                tile[0] = self.copper_pipe_imgs[index]
+            except KeyError:
+                tile[0] = self.pipe
+            self.bg_decoration_list.append(tile)
 
         for tile in self.decoration_list:
             self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
         for tile in self.set_lava_list:
-            self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset + tile[-1],
+            self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset + tile[-2],
                                                 tile[1][1] - start_y * tile_size))
         self.tile_list = temp_tile_list
         # removing brick passage tiles from the tile list
@@ -1058,6 +1157,11 @@ class World:
                     tile = bg_img_rect_pos(self.bg_brick_window, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
+                if bg_tile == 52:
+                    # bg brick support
+                    tile = bg_img_rect_pos(self.bg_brick_support, bg_col_count, bg_row_count, pov_offset)
+                    self.bg_tile_list.append(tile)
+                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
 
                 bg_col_count += 1
             bg_row_count += 1
@@ -1089,18 +1193,19 @@ class World:
                     tile[0] = self.bg_dark_tiles[tuple(tile_edge_data)]
                 except KeyError:
                     tile[0] = self.bg_dark_tile
+            if tile[0] == self.bg_brick_support:
+                if [tile[1].x, tile[1].y - tile_size] in self.tile_pos_list:
+                    tile[0] = self.bg_brick_support_top
 
             self.tile_surface_bg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
-
-        self.bg_decoration_list += self.passage_list_bg
 
         for tile in self.bg_decoration_list:
             self.tile_surface_bg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset,
                                                 tile[1][1] - start_y * tile_size))
 
         bg_tiles = [self.spitting_plant_list_up, self.spitting_plant_list_left, self.spitting_plant_list_right,
-                    self.set_lava_list, self.portal_list, self.gem_list, self.log_list]
+                    self.set_lava_list, self.portal_list, self.gem_list, self.log_list, self.copper_wheel_list]
 
         for el in bg_tiles:
             self.main_tile_list += el
@@ -1163,6 +1268,7 @@ class World:
     def update_bg_tiles(self, screen, fps_adjust, tutorial, camera_move_x, camera_move_y, sack_rect,
                         gem_equipped, health):
         harm = False
+        update_wheel_angles = False
         # portal variables
         self.portal_counter += 1 * fps_adjust
         self.portal_part_counter += 1 * fps_adjust
@@ -1180,9 +1286,18 @@ class World:
         # log variables
         self.log_counter += 1 * fps_adjust
 
+        self.copper_wheel_count += 1 * fps_adjust
+        if self.copper_wheel_count > 3.5 and health > 0:
+            self.copper_wheel_count = 0
+            self.copper_wheel_frame += 1
+            update_wheel_angles = True
+        if self.copper_wheel_frame > 6:
+            self.copper_wheel_frame = 0
+        speed = -1.6
+
         for tile in self.main_tile_list:
             # portal ---------------------------------------------------------------------------------------------------
-            if tile[0] == self.portal:
+            if tile[0] == 'portal':
                 if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
                     portal_y_offset = math.sin((1 / 15) * self.portal_counter) * 2
 
@@ -1237,18 +1352,18 @@ class World:
 
             # set lava -------------------------------------------------------------------------------------------------
             if (tile[1].width == self.set_lava_rect.width and tile[1].height == self.set_lava_rect.height) or \
-                    tile[0] in [self.set_lava_left, self.set_lava_right]:
+                    tile[-1] == 'set_lava':
                 if -tile_size < tile[1][0] < swidth:
                     if tile[1].colliderect(sack_rect):
                         harm = True
 
             # gem ------------------------------------------------------------------------------------------------------
-            if tile[0] == self.gem:
+            if tile[0] == 'gem':
                 tile[4].fill((0, 0, 0))
 
                 tile[6] -= 1 * fps_adjust
 
-                tile[4].blit(tile[0], (0, 0))
+                tile[4].blit(self.gem, (0, 0))
                 pygame.draw.line(tile[4], (255, 255, 255),
                                  (16, -10 + self.gem_flicker_counter), (0, self.gem_flicker_counter), 3)
                 tile[4].blit(self.gem_mask_surf, (0, 0))
@@ -1265,7 +1380,7 @@ class World:
                     scale = (15 - abs(tile[2])) / 8
                     tile[2] -= 1.5 * fps_adjust
                     if scale > 0:
-                        img = pygame.transform.scale(tile[0], (16 * scale, 16 * scale))
+                        img = pygame.transform.scale(self.gem, (16 * scale, 16 * scale))
                     circle_animation_finished = tile[5].draw_circle_animation((tile[1][0] + 8, tile[1][1] + 8),
                                                                               screen, fps_adjust)
 
@@ -1292,7 +1407,7 @@ class World:
                                                            tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
 
             # spitting plant left --------------------------------------------------------------------------------------
-            if tile[0] == self.spitting_plant0l:
+            if tile[0] == 'spitting_plant_left':
                 if self.spitting_counter_left >= 60:
                     self.spitting_plant_img_left = self.spitting_plant2l
                     if self.spit_counter_left < 5:
@@ -1301,7 +1416,7 @@ class World:
                 elif self.spitting_counter_left >= 45:
                     self.spitting_plant_img_left = self.spitting_plant1l
                 elif self.spitting_counter_left >= 30:
-                    self.spitting_plant_img_left = tile[0]
+                    self.spitting_plant_img_left = self.spitting_plant0l
                 elif self.spitting_counter_left >= 15:
                     self.spitting_plant_img_left = self.spitting_plant1l
 
@@ -1316,7 +1431,7 @@ class World:
                     screen.blit(self.spitting_plant_img_left, tile[1])
 
             # spitting plant right -------------------------------------------------------------------------------------
-            if tile[0] == self.spitting_plant0r:
+            if tile[0] == 'spitting_plant_right':
                 if self.spitting_counter_right >= 60:
                     self.spitting_plant_img_right = self.spitting_plant2r
                     if self.spit_counter_right < 5:
@@ -1325,7 +1440,7 @@ class World:
                 elif self.spitting_counter_right >= 45:
                     self.spitting_plant_img_right = self.spitting_plant1r
                 elif self.spitting_counter_right >= 30:
-                    self.spitting_plant_img_right = tile[0]
+                    self.spitting_plant_img_right = self.spitting_plant0r
                 elif self.spitting_counter_right >= 15:
                     self.spitting_plant_img_right = self.spitting_plant1r
 
@@ -1340,7 +1455,7 @@ class World:
                     screen.blit(self.spitting_plant_img_right, tile[1])
 
             # spitting plant up ----------------------------------------------------------------------------------------
-            if tile[0] == self.spitting_plant_up0:
+            if tile[0] == 'spitting_plant_up':
                 if self.spitting_counter_up >= 60:
                     self.spitting_plant_img_up = self.spitting_plant_up2
                     if self.spit_counter_up < 5:
@@ -1349,7 +1464,7 @@ class World:
                 elif self.spitting_counter_up >= 45:
                     self.spitting_plant_img_up = self.spitting_plant_up1
                 elif self.spitting_counter_up >= 30:
-                    self.spitting_plant_img_up = tile[0]
+                    self.spitting_plant_img_up = self.spitting_plant_up0
                 elif self.spitting_counter_up >= 15:
                     self.spitting_plant_img_up = self.spitting_plant_up1
 
@@ -1364,9 +1479,9 @@ class World:
                     screen.blit(self.spitting_plant_img_up, tile[1])
 
             # log ------------------------------------------------------------------------------------------------------
-            if tile[0] == self.log0:
+            if tile[0] == 'log':
                 if -tile_size * 2 < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
-                    img = tile[0]
+                    img = self.log0
                     if self.log_counter >= 15:
                         if self.wood_num != 1:
                             self.wood_num = random.randrange(1, 4)
@@ -1395,6 +1510,29 @@ class World:
                         if part[2] <= 0:
                             self.wood_particles.remove(part)
 
+            # copper wheel ---------------------------------------------------------------------------------------------
+            if tile[0] == 'copper_wheel':
+                img = self.copper_wheel_frames[self.copper_wheel_frame]
+                screen.blit(img, tile[1])
+
+                for angle in tile[2]:
+                    # drawing obstacle circles
+                    if health > 0:
+                        index = tile[2].index(angle)
+                        tile[2][index] += speed * fps_adjust
+                        angle = tile[2][index]
+                    radian_angle = math.radians(angle)
+                    x = math.sin(radian_angle) * self.copper_wheel_radius
+                    y = math.cos(radian_angle) * self.copper_wheel_radius
+                    x += 64 + tile[1].x
+                    y += 64 + tile[1].y
+                    pygame.draw.circle(screen, (0, 0, 0), (x, y), 16, 16)
+                    pygame.draw.circle(screen, (255, 255, 255), (x, y), 16, 1)
+                    # collision
+                    circ_rect = pygame.Rect(x - 9, y - 9, 18, 18)
+                    if circ_rect.colliderect(sack_rect):
+                        harm = True
+
         return harm, gem_equipped, gem_sound
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -1414,7 +1552,7 @@ class World:
 
         for tile in self.main_fg_tile_list:
             # shockwave mushroom ---------------------------------------------------------------------------------------
-            if tile[0] == self.shockwave_mushroom:
+            if tile[0] == 'shockwave_mushroom':
                 if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
                     squash = 0
                     trigger = False
@@ -1481,7 +1619,7 @@ class World:
                     screen.blit(img, (tile[1][0] - squash / 2, tile[1][1] + squash))
 
             # bee hive -------------------------------------------------------------------------------------------------
-            if tile[0] == self.bee_hive:
+            if tile[0] == 'bee_hive':
                 if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
                     screen.blit(self.bee_hive, tile[1])
                 if self.bee_counter > 0:

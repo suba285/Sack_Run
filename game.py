@@ -36,6 +36,7 @@ level_dictionary = {
     "level7_3": level7_3,
     "level8_3": level8_3,
     "level1_4": level1_4,
+    "level2_4": level2_4,
 }
 
 level_bg_dictionary = {
@@ -58,6 +59,7 @@ level_bg_dictionary = {
     "level7_3_bg": level7_3_bg,
     "level8_3_bg": level8_3_bg,
     "level1_4_bg": level1_4_bg,
+    "level2_4_bg": level2_4_bg
 }
 
 level_pos_dictionary = {
@@ -82,6 +84,7 @@ level_pos_dictionary = {
     "level7_3": (3, -8),
     "level8_3": (2, -8),
     "level1_4": (3, 0),
+    "level2_4": (3, -1)
 }
 
 level_card_dictionary = {
@@ -349,6 +352,7 @@ class Game:
         self.cave_background_colour = (46, 27, 47)
         self.sky_background_colour = (100, 63, 102)
         self.bg_transition_colour = [0, 0, 0]
+        self.brick_colour = (86, 67, 32)
 
         self.bg_cloud1_pos = [0, 100]
         self.bg_cloud2_pos = [0, 130]
@@ -1093,8 +1097,10 @@ class Game:
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
 
         # blitting tiles and images in the background ------------------------------------------------------------------
-        if world_count in [1, 2, 4]:
+        if world_count in [1, 2] or (world_count == 4 and level_count == 1):
             Game.update_cloud_bg(self)
+        elif world_count == 4:
+            self.game_screen.fill(self.brick_colour)
         else:
             if level_count == 1:
                 if self.world.bg_border == 0:
@@ -1174,7 +1180,7 @@ class Game:
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 
-        if world_count in [1, 2, 4]:
+        if world_count in [1, 2] or (world_count == 4 and level_count == 1):
             update_leaves(self.particle_leaves, self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust,
                           False)
         if world_count == 3 and level_count == 1:

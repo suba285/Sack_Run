@@ -393,15 +393,14 @@ class eqManager:
                 event = events['joybuttondown']
                 if event.button == self.eq_controls['configuration'][1]:
                     bumper_key_pressed = True
-                    self.joystick_counter -= 1
-                    if self.joystick_counter < 0:
-                        if card_num >= 0:
-                            self.joystick_counter = card_num
+                    if self.joystick_counter == 0:
+                        self.joystick_over_counter = 0
+                    self.joystick_counter = 0
                 if event.button == self.eq_controls['configuration'][2]:
                     bumper_key_pressed = True
-                    self.joystick_counter += 1
-                    if self.joystick_counter > card_num >= 0:
-                        self.joystick_counter = 0
+                    if self.joystick_counter == 1:
+                        self.joystick_over_counter = 0
+                    self.joystick_counter = 1
                 if event.button == 1:
                     joystick_info_press = True
                 if event.button == 2:
