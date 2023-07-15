@@ -741,7 +741,8 @@ class World:
                         boxes = [0, 90, 180, 270]
                     else:
                         boxes = [0, 180]
-                    tile = [tile_type, rect, boxes]
+                    # tile[-1] -> stop the wheel after dying from it
+                    tile = [tile_type, rect, boxes, False]
                     self.copper_wheel_list.append(tile)
                 if tile == 22:
                     # copper pipe
@@ -1287,7 +1288,7 @@ class World:
         self.log_counter += 1 * fps_adjust
 
         self.copper_wheel_count += 1 * fps_adjust
-        if self.copper_wheel_count > 3.5 and health > 0:
+        if self.copper_wheel_count > 3.5:
             self.copper_wheel_count = 0
             self.copper_wheel_frame += 1
             update_wheel_angles = True
@@ -1512,12 +1513,15 @@ class World:
 
             # copper wheel ---------------------------------------------------------------------------------------------
             if tile[0] == 'copper_wheel':
-                img = self.copper_wheel_frames[self.copper_wheel_frame]
+                if not tile[-1]:
+                    img = self.copper_wheel_frames[self.copper_wheel_frame]
+                else:
+                    img = tile[-1]
                 screen.blit(img, tile[1])
 
                 for angle in tile[2]:
                     # drawing obstacle circles
-                    if health > 0:
+                    if not tile[-1]:
                         index = tile[2].index(angle)
                         tile[2][index] += speed * fps_adjust
                         angle = tile[2][index]
@@ -1532,6 +1536,7 @@ class World:
                     circ_rect = pygame.Rect(x - 9, y - 9, 18, 18)
                     if circ_rect.colliderect(sack_rect):
                         harm = True
+                        tile[-1] = img
 
         return harm, gem_equipped, gem_sound
 
