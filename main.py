@@ -155,6 +155,7 @@ import random
 world_data = level1_1
 bg_data = level1_1_bg
 first_level = 1
+
 try:
     with open('data/level_count.json', 'r') as json_file:
         level_counters = json.load(json_file)
@@ -166,15 +167,18 @@ try:
         unlocked_worlds_data = json.load(json_file)
         counter = 1
         for value in unlocked_worlds_data:
-            if value:
-                world_count = counter
+            if not value:
+                world_count = counter - 1
                 break
+
             counter += 1
+        if counter > 4:
+            world_count = 4
 except FileNotFoundError:
     world_count = 1
 
 
-level_count = level_counters[world_count]
+level_count = level_counters[world_count - 1]
 
 world_level_nums = {
     1: 3,
@@ -440,8 +444,10 @@ game_duration_counter = 0
 
 # MAIN LOOP ============================================================================================================
 while run:
-
-    event_list = pygame.event.get()
+    try:
+        event_list = pygame.event.get()
+    except SystemError:
+        event_list = []
     events = {
         'quit': False,
         'keydown': False,
@@ -455,7 +461,7 @@ while run:
         'joydeviceadded': False,
         'joydeviceremoved': False,
         'mousewheel': False,
-        'videoresize': False
+        'videoresize': False,
     }
     for event in event_list:
         if event.type == pygame.QUIT:
@@ -487,6 +493,10 @@ while run:
             events['videoresize'] = event
 
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+    if joystick_connected:
+        events['joyconnected'] = True
+    else:
+        events['joyconnected'] = False
     key = pygame.key.get_pressed()
 
     # sound triggers

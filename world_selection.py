@@ -99,7 +99,7 @@ class LevelSelection:
 
         world3_txt = text.make_text(["'Home' Run"])
 
-        world3_description = text.make_text(["A barn obstacle course"])
+        world3_description = text.make_text(["A flour mill obstacle course"])
 
         self.world_locked_txt = text.make_text(['LEVEL LOCKED'])
 

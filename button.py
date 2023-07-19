@@ -29,6 +29,7 @@ class Button:
         self.button_down = False
         self.joystick_over_button = False
         self.joystick_over_counter = 0
+        self.joystick_connected = False
 
     def draw_button(self, screen, card, mouse_adjustment, events, joystick_over):
         action = False
@@ -44,16 +45,27 @@ class Button:
 
         # cursor position
         pos = pygame.mouse.get_pos()
+        try:
+            if events['joyconnected']:
+                self.joystick_connected = True
+            else:
+                self.joystick_connected = False
+        except KeyError:
+            self.joystick_connected = False
 
         if joystick_over:
             self.joystick_over_counter += 1
         else:
             self.joystick_over_counter = 0
 
-        if (self.image_rect.collidepoint((pos[0] / mouse_adjustment[0] - mouse_adjustment[2],
-                                         pos[1] / mouse_adjustment[0] - mouse_adjustment[1])) and
-            pygame.mouse.get_focused()) or \
-                self.joystick_over_button:
+        cursor_over = False
+        if self.image_rect.collidepoint((pos[0] / mouse_adjustment[0] - mouse_adjustment[2],
+                                         pos[1] / mouse_adjustment[0] - mouse_adjustment[1])):
+            cursor_over = True
+        if self.joystick_connected:
+            cursor_over = False
+
+        if cursor_over or self.joystick_over_button:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             self.image = self.image2
             self.cursor_over = True

@@ -373,15 +373,20 @@ class eqManager:
                         keydown = True
                     if event.key == pygame.K_j:
                         bumper_key_pressed = True
-                        self.joystick_counter -= 1
-                        if self.joystick_counter < 0:
-                            if card_num >= 0:
+                        if self.joystick_over_counter <= 0:
+                            self.joystick_counter = 0
+                        else:
+                            self.joystick_counter -= 1
+                            if self.joystick_counter < 0:
                                 self.joystick_counter = card_num
                     elif event.key == pygame.K_l:
                         bumper_key_pressed = True
-                        self.joystick_counter += 1
-                        if self.joystick_counter > card_num >= 0:
-                            self.joystick_counter = 0
+                        if self.joystick_over_counter <= 0:
+                            self.joystick_counter = card_num
+                        else:
+                            self.joystick_counter += 1
+                            if self.joystick_counter > card_num:
+                                self.joystick_counter = 0
                     elif event.key == pygame.K_k:
                         joystick_use_press = True
                     elif event.key == pygame.K_i:
@@ -393,14 +398,20 @@ class eqManager:
                 event = events['joybuttondown']
                 if event.button == self.eq_controls['configuration'][1]:
                     bumper_key_pressed = True
-                    if self.joystick_counter == 0:
-                        self.joystick_over_counter = 0
-                    self.joystick_counter = 0
+                    if self.joystick_over_counter <= 0:
+                        self.joystick_counter = 0
+                    else:
+                        self.joystick_counter -= 1
+                        if self.joystick_counter < 0:
+                            self.joystick_counter = card_num
                 if event.button == self.eq_controls['configuration'][2]:
                     bumper_key_pressed = True
-                    if self.joystick_counter == 1:
-                        self.joystick_over_counter = 0
-                    self.joystick_counter = 1
+                    if self.joystick_over_counter <= 0:
+                        self.joystick_counter = card_num
+                    else:
+                        self.joystick_counter += 1
+                        if self.joystick_counter > card_num:
+                            self.joystick_counter = 0
                 if event.button == 1:
                     joystick_info_press = True
                 if event.button == 2:

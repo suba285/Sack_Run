@@ -446,7 +446,7 @@ class Game:
                 1: text.make_text(['Follow the compass in the top-left corner,']),
                 2: text.make_text(['it will lead you to portals.']),
                 3: text.make_text(['Use cards to gain special abilities.']),
-                4: text.make_text(['Collect gems to use cards.'])
+                4: text.make_text(['Collect gems to use cards.']),
             }
             instruction_width = instructions[1].get_width()
         else:
@@ -579,7 +579,7 @@ class Game:
 
         self.world_completed = False
 
-        self.world_completed_btn_count = 0
+        self.space_btn_count = 0
 
         self.world_completed_text_alpha = 0
         self.world_completed_text_anim_count = 0
@@ -739,6 +739,10 @@ class Game:
                                                 False,
                                                 mouse_adjustment,
                                                 events, joystick_over)
+            if events['keydown']:
+                if events['keydown'].key == self.controls['jump']:
+                    press = True
+                    events['keydown'] = False
         else:
             press = False
 
@@ -859,11 +863,11 @@ class Game:
             else:
                 btn_img = self.cross_button_img
         else:
-            self.world_completed_btn_count += 1 * fps_adjust
-            if self.world_completed_btn_count > 50:
+            self.space_btn_count += 1 * fps_adjust
+            if self.space_btn_count > 50:
                 btn_img = self.space_button_press
-                if self.world_completed_btn_count > 60:
-                    self.world_completed_btn_count = 0
+                if self.space_btn_count > 60:
+                    self.space_btn_count = 0
             else:
                 btn_img = self.space_button_img
 
@@ -1276,6 +1280,10 @@ class Game:
                 popup_controls_press, ok_over = self.ok_controls_btn.draw_button(screen,
                                                                                  False, mouse_adjustment,
                                                                                  events, joystick_over)
+                if events['keydown']:
+                    if events['keydown'].key == self.controls['jump']:
+                        popup_controls_press = True
+                        events['keydown'] = False
             else:
                 popup_controls_press = False
 
@@ -1284,6 +1292,7 @@ class Game:
 
         # bee info popup
         elif self.bee_info_popup and not self.bee_info_popup_done and not self.speedrun_mode:
+            self.space_btn_count += 1 * fps_adjust
             popup_bees_press = Game.popup_window(self, self.bees_popup, screen, self.ok_bee_btn,
                                                  mouse_adjustment, events, joystick_over)
             if self.level_duration_counter > 1.45:

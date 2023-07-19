@@ -119,6 +119,7 @@ class World:
         self.copper_wheel_list = []
         self.pipe_list = []
         self.pipe_pos_list = []
+        self.crate_pos_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -361,7 +362,7 @@ class World:
         }
 
         self.bg_brick_tile = img_loader('data/images/tile_bg_brick.PNG', tile_size, tile_size)
-        self.bg_brick_way_out = img_loader('data/images/tile_bg_brick_way_out.PNG', tile_size, tile_size)
+        self.bg_brick_danger = img_loader('data/images/tile_bg_brick_danger.PNG', tile_size, tile_size)
         self.bg_brick_window = img_loader('data/images/tile_bg_brick_window.PNG', tile_size, tile_size)
         self.bg_brick_support = img_loader('data/images/tile_bg_brick_support1.PNG', tile_size, tile_size)
         self.bg_brick_support_top = img_loader('data/images/tile_bg_brick_support2.PNG', tile_size, tile_size)
@@ -369,6 +370,9 @@ class World:
         # bee hive tile images -----------------------------------------------------------------------------------------
         self.bee_hive = img_loader('data/images/bee_hive.PNG', tile_size, 1.5 * tile_size)
         self.bee_hive.set_colorkey((0, 0, 0))
+
+        # crate --------------------------------------------------------------------------------------------------------
+        self.crate = img_loader('data/images/crate.PNG', 22, 22)
 
         # bush tiles ---------------------------------------------------------------------------------------------------
         self.bush = img_loader('data/images/bush1.PNG', 2 * tile_size, 2 * tile_size)
@@ -453,10 +457,7 @@ class World:
             (True, True, False, True): pygame.transform.rotate(pipe_cross, 270),
         }
 
-        # crops --------------------------------------------------------------------------------------------------------
-        self.carrot_patch = img_loader('data/images/carrot_patch.PNG', tile_size, tile_size)
-        self.lettuce_patch = img_loader('data/images/lettuce_patch.PNG', tile_size, tile_size)
-        self.leek_patch = img_loader('data/images/leek_patch.PNG', tile_size, tile_size)
+        # wheat --------------------------------------------------------------------------------------------------------
         self.wheat = img_loader('data/images/light_wheat_plant.PNG', 3, tile_size)
 
         # lava ---------------------------------------------------------------------------------------------------------
@@ -518,6 +519,7 @@ class World:
         self.copper_wheel_list = []
         self.pipe_list = []
         self.pipe_pos_list = []
+        self.crate_pos_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -589,9 +591,9 @@ class World:
         # 41 - birch tree
         # 42 - tree
         # 43 - flowers
-        # 44 - leek patch
-        # 45 - carrot patch
-        # 46 - lettuce patch
+        # 44 - crate
+        # 45 - free tile
+        # 46 - free tile
 
         lava_start = []
 
@@ -976,29 +978,13 @@ class World:
                     tile = (img, img_rect)
                     self.decoration_list.append(tile)
                 if tile == 44:
-                    # leek patch
-                    img = self.leek_patch
-                    img_rect = self.leek_patch.get_rect()
-                    img_rect.x = column_count * tile_size - pov_offset
-                    img_rect.y = row_count * tile_size
-                    tile = (img, img_rect)
-                    self.decoration_list.append(tile)
-                if tile == 45:
-                    # carrot patch
-                    img = self.carrot_patch
-                    img_rect = self.carrot_patch.get_rect()
-                    img_rect.x = column_count * tile_size - pov_offset
-                    img_rect.y = row_count * tile_size
-                    tile = (img, img_rect)
-                    self.decoration_list.append(tile)
-                if tile == 46:
-                    # lettuce patch
-                    img = self.lettuce_patch
-                    img_rect = self.lettuce_patch.get_rect()
-                    img_rect.x = column_count * tile_size - pov_offset
-                    img_rect.y = row_count * tile_size
-                    tile = (img, img_rect)
-                    self.decoration_list.append(tile)
+                    # crate
+                    tile = img_rect_pos(self.crate, column_count, row_count, pov_offset)
+                    tile[1].x += 5
+                    tile[1].y += 10
+                    tile.append('wood')
+                    self.tile_list.append(tile)
+                    self.crate_pos_list.append([tile[1].x, tile[1].y])
 
                 column_count += 1
                 tile_column += 1
@@ -1036,6 +1022,10 @@ class World:
             # checking if there is a tile beneath
             if [tile[1].x, tile[1].y + tile_size] not in self.tile_pos_list:
                 tile_edge_data[2] = False
+
+            if tile[0] == self.crate:
+                if [tile[1].x, tile[1].y + tile_size] in self.crate_pos_list:
+                    tile[1].y += 10
 
             if tile[0] == self.brick_tile:
                 left_x = self.tile_list[0][1].x
@@ -1114,6 +1104,7 @@ class World:
         for tile in self.set_lava_list:
             self.tile_surface_fg.blit(tile[0], (tile[1][0] - start_x * tile_size + pov_offset + tile[-2],
                                                 tile[1][1] - start_y * tile_size))
+
         self.tile_list = temp_tile_list
         # removing brick passage tiles from the tile list
         for tile in removal_list:
@@ -1150,7 +1141,7 @@ class World:
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if bg_tile == 50:
                     # bg brick way out tile
-                    tile = bg_img_rect_pos(self.bg_brick_way_out, bg_col_count, bg_row_count, pov_offset)
+                    tile = bg_img_rect_pos(self.bg_brick_danger, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
                     self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if bg_tile == 51:
