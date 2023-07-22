@@ -1138,22 +1138,18 @@ class World:
                     # bg brick tile
                     tile = bg_img_rect_pos(self.bg_brick_tile, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if bg_tile == 50:
                     # bg brick way out tile
                     tile = bg_img_rect_pos(self.bg_brick_danger, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if bg_tile == 51:
                     # bg brick window tile
                     tile = bg_img_rect_pos(self.bg_brick_window, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
                 if bg_tile == 52:
                     # bg brick support
                     tile = bg_img_rect_pos(self.bg_brick_support, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
-                    self.bg_tile_pos_list.append([tile[1].x, tile[1].y])
 
                 bg_col_count += 1
             bg_row_count += 1
