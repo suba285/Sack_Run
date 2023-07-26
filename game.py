@@ -27,6 +27,7 @@ level_dictionary = {
     "level6_2": level6_2,
     "level7_2": level7_2,
     "level8_2": level8_2,
+    "level9_2": level9_2,
     "level1_3": level1_3,
     "level2_3": level2_3,
     "level3_3": level3_3,
@@ -52,6 +53,7 @@ level_bg_dictionary = {
     "level6_2_bg": level6_2_bg,
     "level7_2_bg": level7_2_bg,
     "level8_2_bg": level8_2_bg,
+    "level9_2_bg": level9_2_bg,
     "level1_3_bg": level1_3_bg,
     "level2_3_bg": level2_3_bg,
     "level3_3_bg": level3_3_bg,
@@ -75,10 +77,10 @@ level_pos_dictionary = {
     "level3_2": (2, -4),
     "level4_2": (2, -5),
     "level5_2": (5, -7),
-    "level6_2": (4, 2),
-    "level7_2": (5, -19),
-    "level8_2": (5, -5),
-    "level9_2": (5, -2),
+    "level6_2": (5, -19),
+    "level7_2": (4, 2),
+    "level8_2": (2, -18),
+    "level9_2": (5, -5),
     "level1_3": (3, 0),
     "level2_3": (3, -4),
     "level3_3": (-2, -5),
@@ -100,7 +102,7 @@ level_card_dictionary = {
 
 world_ending_levels = {
     1: 3,
-    2: 9,
+    2: 10,
     3: 9,
     4: 8
 }
@@ -768,7 +770,7 @@ class Game:
         # the level position needs to be offset by a certain amount to set the right spawn for the player (center)
         # calculated by tiles from the center of the mould (tiles fitting in the window)
 
-        max_level = 9
+        max_level = 10
         max_world = 4
         if level_count >= max_level:
             level_count = max_level

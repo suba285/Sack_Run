@@ -475,6 +475,7 @@ class World:
         self.greenhouse_glazing = img_loader('data/images/greenhouse_glazing.PNG', tile_size * 3, tile_size * 2)
         self.cottage = img_loader('data/images/cottage.PNG', tile_size * 6, tile_size * 4)
         self.mill = img_loader('data/images/mill.PNG', tile_size * 8, tile_size * 6)
+        self.garage = img_loader('data/images/garage.PNG', tile_size * 4, tile_size * 3)
 
         # guidance arrows and keys -------------------------------------------------------------------------------------
         self.white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
@@ -554,6 +555,7 @@ class World:
 
         # TILE DATA ENCODING SYSTEM ====================================================================================
 
+        # 6 - garage
         # 7 - greenhouse
         # 8 - cottage
         # 9 - mill
@@ -618,6 +620,10 @@ class World:
                 if tile == 99:
                     # background transition border
                     self.bg_border = row_count * tile_size
+                if tile == 6:
+                    # garage
+                    tile = img_rect_pos(self.garage, column_count, row_count, pov_offset)
+                    self.bg_decoration_list.append(tile)
                 if tile == 7:
                     # greenhouse
                     tile = img_rect_pos(self.greenhouse, column_count, row_count, pov_offset)
