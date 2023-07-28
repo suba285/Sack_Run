@@ -559,8 +559,6 @@ while run:
     if run_menu:
         run_game = False
         game_paused = False
-        loading = False
-        game_loaded = False
         if not controller_calibration:
             menu_events = events
         else:
@@ -594,12 +592,49 @@ while run:
 
         # changing the displayed screens
         if level_selection and (joystick_configured or not joystick_connected):
+            if speedrun_mode:
+                world_data = level_dictionary[f'level1_1']
+                bg_data = level_bg_dictionary[f'level1_1_bg']
+                world_count = 1
+                level_count = 1
+                threading.Thread(target=load_game, args=[world_data, bg_data, world_count, joystick_connected]).start()
+                loading = True
+                proceed_with_transition = False
+            else:
+                run_game = False
+                run_level_selection = True
+                game_counter = default_game_counter
+                run_menu = False
+                menu_y = 0
+                game_y = swidth
+
+        if game_loaded:
+            loading = False
+            play = True
+            load_music = True
+            game_loaded = False
+            world_completed = False
+
+        if loading:
+            loading_counter += 0.4 * fps_adjust
+            if loading_counter > len(loading_animation) - 1:
+                loading_counter = 0
+            menu_screen.blit(screen_dim, (0, 0))
+            loading_bg.blit(loading_erase_surf, (loading_anim_x, loading_anim_y))
+            loading_frame = loading_animation[round(loading_counter)]
+            loading_bg.blit(loading_frame, (loading_anim_x, loading_anim_y))
+            menu_screen.blit(loading_bg,
+                                        (swidth / 2 - loading_bg.get_width() / 2,
+                                         sheight / 2 - loading_bg.get_height() / 2))
+
+        if play:
             game_counter = default_game_counter
-            run_game = False
             run_menu = False
-            run_level_selection = True
-            menu_y = 0
-            game_y = swidth
+            run_game = True
+            paused = False
+            run_level_selection = False
+            menu_transition = True
+            menu_transition_counter = 0
 
         # controller not configured message trigger
         if level_selection and joystick_connected and not joystick_configured:
@@ -635,6 +670,7 @@ while run:
         run_menu = False
         if pygame.WINDOWMAXIMIZED not in events and not world_completed and not opening_scene:
             level_count,\
+                world_count,\
                 play_music_trigger,\
                 game_sounds,\
                 fadeout_music,\
@@ -754,14 +790,22 @@ while run:
                                                          fps_adjust, opening_scene)
 
         if lvl_select:
-            run_game = False
-            run_level_selection = True
-            run_settings = False
-            run_menu = False
-            paused = False
-            screen_alpha = 0
-            main_game.update_controller_type(controls['configuration'], settings_counters)
-            if not speedrun_mode:
+            if speedrun_mode:
+                run_game = False
+                run_level_selection = False
+                run_settings = False
+                run_menu = True
+                paused = False
+                screen_alpha = 0
+                main_game.update_controller_type(controls['configuration'], settings_counters)
+            else:
+                run_game = False
+                run_level_selection = True
+                run_settings = False
+                run_menu = False
+                paused = False
+                screen_alpha = 0
+                main_game.update_controller_type(controls['configuration'], settings_counters)
                 try:
                     with open('data/level_count.json', 'w') as json_file:
                         if level_count == world_level_nums[world_count]:
@@ -856,12 +900,10 @@ while run:
 
         if game_loaded:
             loading = False
-            if proceed_with_transition:
-                play = True
-                load_music = True
-                game_loaded = False
-                world_completed = False
-            proceed_with_transition = True
+            play = True
+            load_music = True
+            game_loaded = False
+            world_completed = False
 
         if loading:
             loading_counter += 0.4 * fps_adjust

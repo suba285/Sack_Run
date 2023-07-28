@@ -785,6 +785,11 @@ class Game:
             self.dash_info_popup = True
 
         # loading world data and position info
+        if self.speedrun_mode and level_count == world_ending_levels[world_count]:
+            if world_count < 4:
+                world_count += 1
+            if not (world_count == 4 and level_count == 8):
+                level_count = 1
         if level_count != world_ending_levels[world_count]:
             world_data_level_checker = level_dictionary[f'level{level_count}_{world_count}']
             bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
@@ -799,7 +804,7 @@ class Game:
             bg_data = []
             self.world_completed = True
 
-        return world_data_level_checker, bg_data
+        return world_data_level_checker, bg_data, world_count, level_count
 
 # WORLD COMPLETED ======================================================================================================
     def world_completed_screen(self, screen, events, fps_adjust, joysticks, joystick_calibration, world_count):
@@ -812,8 +817,8 @@ class Game:
             try:
                 with open('data/times.json', 'r') as json_file:
                     times_data = json.load(json_file)
-                if times_data[str(world_count)] != 'no data':
-                    prev_time = time_unpacker(times_data[str(world_count)])
+                if times_data['time'] != 'no data':
+                    prev_time = time_unpacker(times_data['time'])
                     current_time = time_unpacker(self.speedrun_time)
                     if current_time < prev_time:
                         self.new_best = True
@@ -1149,7 +1154,7 @@ class Game:
 
         # updating the world data if new level -------------------------------------------------------------------------
         if self.level_check < level_count or restart_level:
-            self.world_data, self.bg_data = Game.level_checker(self, level_count, world_count)
+            self.world_data, self.bg_data, world_count, level_count = Game.level_checker(self, level_count, world_count)
             self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data, level_count)
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
@@ -1377,5 +1382,5 @@ class Game:
             play_music = True
 
         # returns
-        return level_count, play_music, sounds,\
+        return level_count, world_count, play_music, sounds,\
             fadeout, popup_lvl_completed_press, self.world_completed

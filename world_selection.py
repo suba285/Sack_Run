@@ -27,23 +27,10 @@ class LevelSelection:
         try:
             with open('data/times.json', 'r') as json_file:
                 times_data = json.load(json_file)
-                time1 = text.make_text([times_data['1']])
-                time2 = text.make_text([times_data['2']])
-                time3 = text.make_text([times_data['3']])
-                time4 = text.make_text([times_data['4']])
+                self.time = text.make_text([times_data['time']])
         except FileNotFoundError:
             no_data_txt = text.make_text(['no data'])
-            time1 = no_data_txt
-            time2 = no_data_txt
-            time3 = no_data_txt
-            time4 = no_data_txt
-
-        self.times = {
-            '1': time1,
-            '2': time2,
-            '3': time3,
-            '4': time4
-        }
+            self.time = no_data_txt
 
         self.world_count = world_count
 
@@ -174,23 +161,12 @@ class LevelSelection:
         try:
             with open('data/times.json', 'r') as json_file:
                 times_data = json.load(json_file)
-                time1 = self.text.make_text([times_data['1']])
-                time2 = self.text.make_text([times_data['2']])
-                time3 = self.text.make_text([times_data['3']])
-                time4 = self.text.make_text([times_data['4']])
+                self.time = self.text.make_text([times_data['time']])
         except FileNotFoundError:
             no_data_txt = self.text.make_text(['no data'])
-            time1 = no_data_txt
-            time2 = no_data_txt
-            time3 = no_data_txt
-            time4 = no_data_txt
+            self.time = no_data_txt
 
-        self.times = {
-            '1': time1,
-            '2': time2,
-            '3': time3,
-            '4': time4
-        }
+
 
     def draw_level_selection(self, level_screen, mouse_adjustment, events, controls, joysticks, fps_adjust,
                              world_count, new_world_unlocked, speedrun_mode):
@@ -291,7 +267,7 @@ class LevelSelection:
 
         description = self.descriptions[self.world_count - 1]
         title = self.titles[self.world_count - 1]
-        time = self.times[str(self.world_count)]
+        time = self.time
 
         if self.object_wobble_counter > 0:
             object_wobble = math.sin((self.text_wobble_default_value - self.object_wobble_counter)) * 3
