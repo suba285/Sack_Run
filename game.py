@@ -154,7 +154,7 @@ class SpeedRunClock:
         self.box_width = self.box.get_width()
         self.gap = 1
         self.time_string = ''
-        self.x = (swidth / 2) - (40 + self.gap * 5) / 2
+        self.x = swidth - (self.box.get_width() + 7) + ((self.box.get_width() - (40 + self.gap * 5)) / 2)
         self.y = 15
         self.time_counter = 0
         self.minutes = 0
@@ -206,7 +206,7 @@ class SpeedRunClock:
 
         x = self.x
 
-        screen.blit(self.box, (swidth / 2 - self.box_width / 2, self.y - 7))
+        screen.blit(self.box, (swidth - self.box_width - 7, self.y - 7))
 
         screen.blit(minutes1, (x, self.y))
         x += self.gap + self.char_width
@@ -226,22 +226,23 @@ class SpeedRunClock:
 
         return self.time_string
 
-    def save(self, world_count):
+    def save(self):
         try:
             with open('data/times.json', 'r') as json_file:
                 times_data = json.load(json_file)
-            if times_data[str(world_count)] != 'no data':
-                prev_time = time_unpacker(times_data[str(world_count)])
+            if times_data['time'] != 'no data':
+                prev_time = time_unpacker(times_data['time'])
                 current_time = time_unpacker(self.time_string)
             else:
                 prev_time = 1
                 current_time = 0
             if current_time < prev_time:
                 with open('data/times.json', 'w') as json_file:
-                    times_data[str(world_count)] = self.time_string
+                    times_data['time'] = self.time_string
                     json.dump(times_data, json_file)
         except FileNotFoundError:
             pass
+            # cheeky pass :)
 
 
 class Dialogue:
@@ -901,7 +902,7 @@ class Game:
             screen.blit(btn_img, (swidth / 2 - btn_img.get_width() / 2, sheight / 2 - text.get_height() / 2 + 35))
 
         if menu_press and self.speedrun_mode:
-            self.speedrun_clock.save(world_count)
+            self.speedrun_clock.save()
 
         if self.fade_counter <= 0:
             end_screen = True

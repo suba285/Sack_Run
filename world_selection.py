@@ -166,8 +166,6 @@ class LevelSelection:
             no_data_txt = self.text.make_text(['no data'])
             self.time = no_data_txt
 
-
-
     def draw_level_selection(self, level_screen, mouse_adjustment, events, controls, joysticks, fps_adjust,
                              world_count, new_world_unlocked, speedrun_mode):
 
