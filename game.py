@@ -79,8 +79,8 @@ level_pos_dictionary = {
     "level5_2": (5, -7),
     "level6_2": (5, -19),
     "level7_2": (4, 2),
-    "level8_2": (2, -18),
-    "level9_2": (5, -5),
+    "level8_2": (5, -5),
+    "level9_2": (2, -18),
     "level1_3": (3, 0),
     "level2_3": (3, -4),
     "level3_3": (-2, -5),
@@ -104,8 +104,11 @@ world_ending_levels = {
     1: 3,
     2: 10,
     3: 9,
-    4: 8
+    4: 5
 }
+
+bee_popup = [2, 7]
+dash_popup = [3, 5]
 
 
 class Gradient:
@@ -406,6 +409,14 @@ class Game:
             part = [pos, counter, speed, sin_speed, rotation, colour]
             self.particle_leaves.append(part)
 
+        # border surface -----------------------------------------------------------------------------------------------
+        self.border = pygame.Surface((swidth / 2, sheight))
+        self.border.fill((255, 0, 0))
+        self.border_alpha_max = 60
+        self.border_alpha = 0
+        self.border.set_alpha(self.border_alpha)
+        self.border_x = 0
+
         # POPUP WINDOWS ================================================================================================
 
         # controls popup window
@@ -575,6 +586,9 @@ class Game:
         }
 
         self.world_completed_text = text.make_text([self.world_completed_texts[world_count]])
+        speedrun_completed_text = text.make_text(['Nice! You must be so sweaty, better take a shower.'])
+        if self.speedrun_mode:
+            self.world_completed_text = speedrun_completed_text
 
         self.congrats_text_animation = {}
         for frame in range(0, 87):
@@ -779,18 +793,21 @@ class Game:
             world_count = max_world
 
         # popup windows
-        if world_count == 2 and level_count == 6:
+        if [world_count, level_count] == bee_popup:
             self.bee_info_popup = True
 
-        if world_count == 3 and level_count == 5:
+        if [world_count, level_count] == dash_popup:
             self.dash_info_popup = True
 
         # loading world data and position info
         if self.speedrun_mode and level_count == world_ending_levels[world_count]:
             if world_count < 4:
                 world_count += 1
-            if not (world_count == 4 and level_count == 8):
+            if world_count == 4 and world_ending_levels[4] == level_count:
+                self.world_completed = True
+            else:
                 level_count = 1
+
         if level_count != world_ending_levels[world_count]:
             world_data_level_checker = level_dictionary[f'level{level_count}_{world_count}']
             bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
@@ -1032,6 +1049,7 @@ class Game:
             'wheat': 0,
             'gem': False,
         }
+        fadeout = False
 
         if joysticks:
             joystick_connected = True
@@ -1078,31 +1096,31 @@ class Game:
             self.health,\
             self.camera_move_x,\
             self.camera_move_y,\
-            fadeout,\
             restart_level,\
             self.player_moved,\
             new_level_cooldown,\
             self.world.shockwave_mushroom_list,\
             self.gem_equipped,\
             screen_shake,\
-            player_sounds = self.player.update_pos_animation(screen,
-                                                             self.tile_list,
-                                                             self.world.next_level_list,
-                                                             level_count,
-                                                             self.harm,
-                                                             fps_adjust,
-                                                             self.mid_air_jump_trigger,
-                                                             self.speed_dash_trigger,
-                                                             self.left_border,
-                                                             self.right_border,
-                                                             self.move,
-                                                             self.world.shockwave_mushroom_list,
-                                                             events,
-                                                             self.gem_equipped,
-                                                             joysticks,
-                                                             restart_level_procedure,
-                                                             self.controls,
-                                                             )
+            player_sounds,\
+            border_col = self.player.update_pos_animation(screen,
+                                                          self.tile_list,
+                                                          self.world.next_level_list,
+                                                          level_count,
+                                                          self.harm,
+                                                          fps_adjust,
+                                                          self.mid_air_jump_trigger,
+                                                          self.speed_dash_trigger,
+                                                          self.left_border,
+                                                          self.right_border,
+                                                          self.move,
+                                                          self.world.shockwave_mushroom_list,
+                                                          events,
+                                                          self.gem_equipped,
+                                                          joysticks,
+                                                          restart_level_procedure,
+                                                          self.controls,
+                                                          )
         # updating player sounds
         sounds.update(player_sounds)
         # sack motion
@@ -1182,6 +1200,9 @@ class Game:
             # resetting clouds
             self.bg_cloud1_pos = [0, 100]
             self.bg_cloud2_pos = [0, 130]
+            # music fading
+            if world_ending_levels[world_count] == level_count:
+                fadeout = True
 
         # --------------------------------------------------------------------------------------------------------------
         if world_count == 3:
@@ -1215,6 +1236,19 @@ class Game:
                                                                   self.player_moved, self.health)
             if bat_screen_shake:
                 screen_shake = True
+
+        # drawing the border -------------------------------------------------------------------------------------------
+        if border_col != 0:
+            self.border_alpha = self.border_alpha_max
+        self.border_alpha -= 2 * fps_adjust
+        self.border_x += self.camera_move_x
+        if border_col == 1:
+            self.border_x = self.right_border
+        if border_col == -1:
+            self.border_x = self.left_border - (swidth / 2)
+        if self.border_alpha > 0:
+            self.border.set_alpha(self.border_alpha)
+            self.game_screen.blit(self.border, (self.border_x, 0))
 
         # speedrun clock -----------------------------------------------------------------------------------------------
         if self.speedrun_mode:

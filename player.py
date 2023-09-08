@@ -437,8 +437,8 @@ class Player:
         self.left_border = left_border
         self.right_border = right_border
         top_border = 50 / 270 * sheight
-        if level_count == 8 and self.world_count == 2:
-            top_border = 110 / 270 * sheight
+        if level_count == 9 and self.world_count == 2:
+            top_border = 125 / 270 * sheight
 
         harm = False
 
@@ -582,12 +582,6 @@ class Player:
                     if not self.transition:
                         self.circle_transition = CircleTransition(screen)
                     self.transition = True
-                    # music loading
-                    if self.world_count == 1 and level_count == 2:
-                        self.fadeout = True
-                    if self.world_count == 2:
-                        if level_count == 8:
-                            self.fadeout = True
 
                 if self.teleport_count >= 50:
                     if self.mid_air_jump:
@@ -841,18 +835,22 @@ class Player:
 
         bridge_cutscene_trigger = False
 
+        border_col = 0
+
         if self.sack_rect.x + 20 > self.right_border:
             if self.vel_x > 0:
                 self.vel_x_r = 0
                 self.vel_x = 0
                 self.sack_rect.x = self.right_border - 20
                 self.col_types['right'] = True
+            border_col = 1
         if self.sack_rect.x < self.left_border:
             if self.vel_x < 0:
                 self.vel_x_l = 0
                 self.vel_x = 0
                 self.sack_rect.x = self.left_border
                 self.col_types['left'] = True
+            border_col = -1
 
         col_counter = 0
         col_y_tile_list = []
@@ -969,8 +967,8 @@ class Player:
         # returns ------------------------------------------------------------------------------------------------------
         return level_count, self.sack_rect, self.direction, self.health,\
                self.camera_movement_x, self.camera_movement_y,\
-               self.fadeout, self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list,\
-               gem_equipped, screen_shake, sounds
+               self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list,\
+               gem_equipped, screen_shake, sounds, border_col
 
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================
     def blit_player(self, screen, draw_hitbox, fps_adjust):

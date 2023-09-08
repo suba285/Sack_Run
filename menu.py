@@ -5,6 +5,7 @@ from font_manager import Text
 from screen_info import swidth, sheight
 import random
 import math
+import json
 
 local_tile_size = 32
 tile_size = local_tile_size
@@ -12,7 +13,7 @@ tile_size = local_tile_size
 
 class mainMenu:
     def __init__(self):
-        text = Text()
+        self.text = Text()
 
         # images -------------------------------------------------------------------------------------------------------
         self.play_button = img_loader('data/images/button_play2.PNG', tile_size, tile_size * 0.75)
@@ -32,12 +33,12 @@ class mainMenu:
         self.logo_rect.x = swidth / 2 - self.logo.get_width() / 2
         self.logo_rect.y = round(sheight * 0.26)
 
-        self.quit_txt = text.make_text([' Quit (ctrl + Q)'])
+        self.quit_txt = self.text.make_text([' Quit (ctrl + Q)'])
         self.quit_txt_y = round(sheight * 0.85)
         self.quit_txt.set_alpha(180)
         self.quit_txt_alpha = 0
 
-        self.author_txt = text.make_text(['Made by Suba'])
+        self.author_txt = self.text.make_text(['Made by Suba'])
         self.author_txt_alpha = 255
 
         self.screen_alpha = 0
@@ -81,14 +82,38 @@ class mainMenu:
             self.particles.append([random.randrange(0, swidth),
                                    random.randrange(1, self.logo_surface.get_height() - 2)])
 
+        # loading speed run times
+        try:
+            with open('data/times.json', 'r') as json_file:
+                times_data = json.load(json_file)
+                self.time = times_data['time']
+        except FileNotFoundError:
+            self.time = 'no data'
+
+        self.best_time_txt = self.text.make_text([f'Best time: ' + self.time])
+        self.best_time_txt_alpha = 0
+        self.best_time_txt.set_alpha(0)
+        self.best_time_width = self.best_time_txt.get_width()
+
         # initiating button classes ------------------------------------------------------------------------------------
         self.p_button = Button(self.play_x, self.play_y, self.play_button, self.play_button_press,
                                self.play_button_down)
         self.s_button = Button(self.settings_x, self.settings_y, self.settings_button, self.settings_button_press,
                                self.settings_button_down)
 
+    def update_time(self):
+        try:
+            with open('data/times.json', 'r') as json_file:
+                times_data = json.load(json_file)
+                self.time = times_data['time']
+        except FileNotFoundError:
+            self.time = 'no data'
+
+        self.best_time_txt = self.text.make_text([f'Best time: ' + self.time])
+        self.best_time_width = self.best_time_txt.get_width()
+
 # UPDATING AND DRAWING MENU ============================================================================================
-    def menu(self, menu_screen, mouse_adjustement, events, fps_adjust, joystick_controls, joysticks):
+    def menu(self, menu_screen, mouse_adjustement, events, fps_adjust, joysticks, speedrun_mode):
 
         menu_screen.blit(self.menu_background, (0, 0))
 
@@ -207,6 +232,9 @@ class mainMenu:
 
         if self.opening_animation_counter > 260:
             self.sack_run_logo_y = self.final_sack_run_logo_y - math.sin(self.logo_pos_counter / 16) * 3
+            if self.best_time_txt_alpha < 255:
+                self.best_time_txt_alpha += 5 * fps_adjust
+                self.best_time_txt.set_alpha(self.best_time_txt_alpha)
 
         if self.opening_animation_counter > 230:
             # play button
@@ -221,6 +249,10 @@ class mainMenu:
             play = False
 
         menu_screen.blit(self.button_surface, (0, 0))
+
+        if self.best_time_txt_alpha > 0 and speedrun_mode and self.time != 'no data':
+            menu_screen.blit(self.best_time_txt, (swidth / 2 - self.best_time_width / 2,
+                                                  sheight / 2 - 10 - math.sin(self.logo_pos_counter / 16 - 0.9) * 2))
 
         if (over1 or over2 or over4) and self.opening_animation_counter > 250:
             end_over1 = True

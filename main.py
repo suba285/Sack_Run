@@ -138,7 +138,7 @@ background_sky_colour = (100, 63, 102)
 
 # external file imports ------------------------------------------------------------------------------------------------
 from levels import *
-from game import Game
+from game import Game, world_ending_levels
 from menu import mainMenu
 from display_fps import FpsDisplay
 from font_manager import Text
@@ -179,13 +179,6 @@ except FileNotFoundError:
 
 
 level_count = level_counters[world_count - 1]
-
-world_level_nums = {
-    1: 3,
-    2: 9,
-    3: 9,
-    4: 6
-}
 
 nums_to_unlocked_world_data = {
     1: 1,
@@ -581,11 +574,11 @@ while run:
         level_selection, sound_triggers['button'],\
             button_sound_trigger3, settings = main_menu.menu(menu_screen,
                                                              mouse_adjustment, menu_events, fps_adjust,
-                                                             controls['configuration'], joysticks)
+                                                             joysticks, speedrun_mode)
 
         # settings not saved error
         if settings_not_saved_error:
-            settings_not_saved_error_counter -= 1*fps_adjust
+            settings_not_saved_error_counter -= 1 * fps_adjust
             if settings_not_saved_error_counter >= 0:
                 menu_screen.blit(settings_not_saved_error_txt,
                                  (swidth / 2 - settings_not_loaded_error_txt.get_width() / 2, 3))
@@ -690,7 +683,7 @@ while run:
                                                                    controller_calibration, world_count)
             world_completed_transition_counter = 255
             if lvl_selection_press:
-                level_select.update_times()
+                main_menu.update_time()
                 events = {
                     'quit': False,
                     'keydown': False,
@@ -751,10 +744,14 @@ while run:
                 progress_not_saved_error = True
 
             game_counter = default_game_counter
+            if speedrun_mode:
+                run_menu = True
+                run_level_selection = False
+            else:
+                run_menu = False
+                run_level_selection = True
             run_game = False
-            run_menu = False
             run_settings = False
-            run_level_selection = True
             fadeout_music = True
             menu_y = 0
             game_y = swidth
@@ -808,7 +805,7 @@ while run:
                 main_game.update_controller_type(controls['configuration'], settings_counters)
                 try:
                     with open('data/level_count.json', 'w') as json_file:
-                        if level_count == world_level_nums[world_count]:
+                        if level_count == world_ending_levels[world_count]:
                             level_count = 1
                         else:
                             pass
@@ -880,8 +877,7 @@ while run:
             level_selection_sounds = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
                                                                        lvl_selection_events,
                                                                        controls, joysticks, fps_adjust, world_count,
-                                                                       new_world_unlocked,
-                                                                       settings_counters['speedrun'])
+                                                                       new_world_unlocked)
         sound_triggers.update(level_selection_sounds)
 
         if play_press and (joystick_configured or not joystick_connected):
@@ -1256,7 +1252,7 @@ while run:
     # music
     if play_background_music:
         if not world_completed_sound_played:
-            if (world_count == 1 and level_count == 3) or (world_count == 2 and level_count == 9) and run_game:
+            if world_ending_levels[world_count] == level_count and run_game:
                 sounds['world_completed'].play()
                 world_completed_sound_played = True
 
