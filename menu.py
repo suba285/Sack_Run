@@ -90,7 +90,10 @@ class mainMenu:
         except FileNotFoundError:
             self.time = 'no data'
 
-        self.best_time_txt = self.text.make_text([f'Best time: ' + self.time])
+        if self.time == 'no data':
+            self.best_time_txt = self.text.make_text(['Speedrun'])
+        else:
+            self.best_time_txt = self.text.make_text([f'Best time: ' + self.time])
         self.best_time_txt_alpha = 0
         self.best_time_txt.set_alpha(0)
         self.best_time_width = self.best_time_txt.get_width()
@@ -108,8 +111,10 @@ class mainMenu:
                 self.time = times_data['time']
         except FileNotFoundError:
             self.time = 'no data'
-
-        self.best_time_txt = self.text.make_text([f'Best time: ' + self.time])
+        if self.time == 'no data':
+            self.best_time_txt = self.text.make_text(['Speedrun'])
+        else:
+            self.best_time_txt = self.text.make_text([f'Best time: ' + self.time])
         self.best_time_width = self.best_time_txt.get_width()
 
 # UPDATING AND DRAWING MENU ============================================================================================
@@ -178,10 +183,18 @@ class mainMenu:
         self.button_surface.fill((0, 0, 0))
 
         for particle in self.particles:
-            particle[0] += 1 * fps_adjust
-            pygame.draw.circle(self.logo_surface, (136, 104, 134), particle, 1, 1)
+            if speedrun_mode:
+                part_speed = 6
+                particle[0] += part_speed * fps_adjust
+                pygame.draw.line(self.logo_surface, (136, 104, 134), particle, (particle[0] + 50, particle[1]), 1)
+            else:
+                part_speed = 1
+                particle[0] += part_speed * fps_adjust
+                pygame.draw.circle(self.logo_surface, (136, 104, 134), particle, 1, 1)
             if particle[0] > swidth:
                 particle[0] = 0
+                if speedrun_mode:
+                    particle[0] = -50
                 particle[1] = random.randrange(1, self.logo_surface.get_height() - 2)
         menu_screen.blit(self.logo_surface, (0, self.logo_surface_y))
 
@@ -250,7 +263,7 @@ class mainMenu:
 
         menu_screen.blit(self.button_surface, (0, 0))
 
-        if self.best_time_txt_alpha > 0 and speedrun_mode and self.time != 'no data':
+        if self.best_time_txt_alpha > 0 and speedrun_mode:
             menu_screen.blit(self.best_time_txt, (swidth / 2 - self.best_time_width / 2,
                                                   sheight / 2 - 10 - math.sin(self.logo_pos_counter / 16 - 0.9) * 2))
 

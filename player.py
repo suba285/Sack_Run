@@ -384,7 +384,7 @@ class Player:
         # class initiations --------------------------------------------------------------------------------------------
         self.circle_transition = CircleTransition(screen)
 
-    def update_pos_animation(self, screen, tile_list, next_level_list, level_count, harm_in, fps_adjust,
+    def update_pos_animation(self, screen, tile_list, next_level_list, level_count, world_count, harm_in, fps_adjust,
                              mid_air_jump_trigger, speed_dash_trigger,
                              left_border, right_border,
                              move, shockwave_mush_list, events, gem_equipped, joysticks, restart_level_procedure,
@@ -437,12 +437,12 @@ class Player:
         self.left_border = left_border
         self.right_border = right_border
         top_border = 50 / 270 * sheight
-        if level_count == 9 and self.world_count == 2:
-            top_border = 125 / 270 * sheight
+        if level_count == 9 and world_count == 2:
+            top_border = 135 / 270 * sheight
 
         harm = False
 
-        if self.world_count == 1 and level_count == 1 and self.lowering_cooldown == 15:
+        if world_count == 1 and level_count == 1 and self.lowering_cooldown == 15:
             self.screen_shake_counter = 10
 
         if self.screen_shake_counter > 0:
@@ -601,9 +601,8 @@ class Player:
 
         # movement and animation ---------------------------------------------------------------------------------------
         if self.new_level_cooldown >= 30 and not self.dead and self.teleport_count < 20\
-                and not (self.col_types['right'] or self.col_types['left']) and move:
+                and not (self.col_types['right'] or self.col_types['left']) and move and not self.transition:
             # player control
-            self.transition = False
             if self.player_jump and not self.jumped:
                 self.teleport_count = 0
                 if self.speed_dash_activated:
@@ -813,7 +812,7 @@ class Player:
             if self.dead:
                 self.vel_y = dy
             else:
-                if not move and self.world_count == 1 and level_count == 1:
+                if not move and world_count == 1 and level_count == 1:
                     self.lowering_cooldown -= 1 * fps_adjust
                     if self.lowering_cooldown <= 0:
                         grav_speed = 0.3
@@ -967,7 +966,7 @@ class Player:
         # returns ------------------------------------------------------------------------------------------------------
         return level_count, self.sack_rect, self.direction, self.health,\
                self.camera_movement_x, self.camera_movement_y,\
-               self.restart_level, self.player_moved, self.new_level_cooldown, shockwave_mush_list,\
+               self.restart_level, self.player_moved, shockwave_mush_list,\
                gem_equipped, screen_shake, sounds, border_col
 
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================
@@ -1093,9 +1092,11 @@ class Player:
             magic_animation(self, screen, self.teleport_count, particle_x)
 
 # inter-level transition -----------------------------------------------------------------------------------------------
-    def draw_transition(self, fps_adjust):
+    def draw_transition(self, fps_adjust, long_trans):
         if self.transition:
-            self.circle_transition.draw_circle_transition(self.sack_rect, fps_adjust)
+            transition = self.circle_transition.draw_circle_transition(self.sack_rect, fps_adjust, long_trans)
+            if not transition:
+                self.transition = False
 
 # respawn instructions -------------------------------------------------------------------------------------------------
     def blit_respawn_instructions(self, screen, fps_adjust, joystick_connected, settings_counters):

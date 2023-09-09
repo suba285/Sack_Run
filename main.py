@@ -716,7 +716,10 @@ while run:
             run_game = False
             paused = True
             run_level_selection = False
-            fadeout_music = True
+            if not speedrun_mode:
+                fadeout_music = True
+            else:
+                pygame.mixer.music.set_volume(0.2)
             pause_menu.joystick_counter = 0
 
         # changing the displayed screens
@@ -794,6 +797,7 @@ while run:
                 run_menu = True
                 paused = False
                 screen_alpha = 0
+                fadeout_music = True
                 main_game.update_controller_type(controls['configuration'], settings_counters)
             else:
                 run_game = False
@@ -823,9 +827,11 @@ while run:
             run_game = True
             paused = False
             run_level_selection = False
-            if not opening_scene:
+            if not opening_scene and not speedrun_mode:
                 play_music = True
                 load_music = True
+            if speedrun_mode:
+                pygame.mixer.music.set_volume(0.6)
             main_game.update_controller_type(controls['configuration'], settings_counters)
             if restart_level:
                 level_restart_procedure = True
@@ -1017,7 +1023,7 @@ while run:
             else:
                 speedrun_mode = True
 
-            if settings_counters['music_volume'] > 1:
+            if settings_counters['music_volume'] > 1 and not speedrun_mode:
                 pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
                 play_background_music = True
                 play_music = False
@@ -1048,7 +1054,6 @@ while run:
                 'configuration': controls['configuration'],
                 'cards': controls_nums[f"cards{settings_counters['cards']}"],
             }
-
             pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
     # displaying fps ---------------------------------------------------------------------------------------------------
@@ -1164,7 +1169,10 @@ while run:
             run_game = False
             paused = True
             run_level_selection = False
-            fadeout_music = True
+            if not speedrun_mode:
+                fadeout_music = True
+            else:
+                pygame.mixer.music.set_volume(0.2)
             pause_menu.joystick_counter = 0
 
     if user_quit1 and user_quit2:
@@ -1252,15 +1260,22 @@ while run:
     # music
     if play_background_music:
         if not world_completed_sound_played:
-            if world_ending_levels[world_count] == level_count and run_game:
+            if world_ending_levels[world_count] == level_count and run_game and not speedrun_mode:
                 sounds['world_completed'].play()
                 world_completed_sound_played = True
 
         if load_music:
-            song = music[f'{world_count}']
-            pygame.mixer.music.load(f'data/sounds/{song}.wav')
+            if speedrun_mode:
+                pygame.mixer.music.load('data/sounds/Speedrun-song.wav')
+            else:
+                song = music[f'{world_count}']
+                pygame.mixer.music.load(f'data/sounds/{song}.wav')
 
         if play_music:
+            if speedrun_mode:
+                pygame.mixer.music.set_volume(0.6)
+                if paused:
+                    pygame.mixer.music.set_volume(0.2)
             pygame.mixer.music.play(-1, 0.0, 300)
             play_music = False
 

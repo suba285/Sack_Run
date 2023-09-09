@@ -369,6 +369,9 @@ class Game:
         self.bg_cloud1_pos = [0, 100]
         self.bg_cloud2_pos = [0, 130]
 
+        # longer level transition (speed run mode when changing worlds)
+        self.long_transition = False
+
         # loading in images --------------------------------------------------------------------------------------------
         home_button_img = img_loader('data/images/button_pause.PNG', tile_size * 0.75, tile_size * 0.75)
         home_button_press = img_loader('data/images/button_pause_press.PNG', tile_size * 0.75, tile_size * 0.75)
@@ -416,6 +419,14 @@ class Game:
         self.border_alpha = 0
         self.border.set_alpha(self.border_alpha)
         self.border_x = 0
+
+        # speed run mode world progression texts -----------------------------------------------------------------------
+        self.world_prog_txts = {
+            1: self.text.make_text(['CLIMBTON FARM']),
+            2: self.text.make_text(['SIZZLE CAVES']),
+            3: self.text.make_text(['HOME RUN']),
+        }
+        self.world_prog_txt = self.world_prog_txts[1]
 
         # POPUP WINDOWS ================================================================================================
 
@@ -792,6 +803,8 @@ class Game:
         if world_count >= max_world:
             world_count = max_world
 
+        self.long_transition = False
+
         # popup windows
         if [world_count, level_count] == bee_popup:
             self.bee_info_popup = True
@@ -801,8 +814,10 @@ class Game:
 
         # loading world data and position info
         if self.speedrun_mode and level_count == world_ending_levels[world_count]:
+            self.world_prog_txt = self.world_prog_txts[world_count]
             if world_count < 4:
                 world_count += 1
+                self.long_transition = self.world_prog_txt
             if world_count == 4 and world_ending_levels[4] == level_count:
                 self.world_completed = True
             else:
@@ -1098,7 +1113,6 @@ class Game:
             self.camera_move_y,\
             restart_level,\
             self.player_moved,\
-            new_level_cooldown,\
             self.world.shockwave_mushroom_list,\
             self.gem_equipped,\
             screen_shake,\
@@ -1107,6 +1121,7 @@ class Game:
                                                           self.tile_list,
                                                           self.world.next_level_list,
                                                           level_count,
+                                                          world_count,
                                                           self.harm,
                                                           fps_adjust,
                                                           self.mid_air_jump_trigger,
@@ -1201,7 +1216,7 @@ class Game:
             self.bg_cloud1_pos = [0, 100]
             self.bg_cloud2_pos = [0, 130]
             # music fading
-            if world_ending_levels[world_count] == level_count:
+            if world_ending_levels[world_count] == level_count and not self.speedrun_mode:
                 fadeout = True
 
         # --------------------------------------------------------------------------------------------------------------
@@ -1401,7 +1416,9 @@ class Game:
             sounds['button'] = True
 
         # new level transition -----------------------------------------------------------------------------------------
-        self.player.draw_transition(fps_adjust)
+        if self.player_moved:
+            self.long_transition = False
+        self.player.draw_transition(fps_adjust, self.long_transition)
 
         # sounds -------------------------------------------------------------------------------------------------------
         if world_count == 3 and not self.music_playing:
