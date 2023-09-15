@@ -1,4 +1,5 @@
 import pygame._sdl2
+import json
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
@@ -14,6 +15,16 @@ button_size = tile_size * 0.75
 class SettingsMenu:
     def __init__(self, controls, settings_counters, resolutions, recommended_res_counter):
         text = Text()
+        # unlocked world data ------------------------------------------------------------------------------------------
+        try:
+            with open('data/unlocked_worlds.json', 'r') as json_file:
+                unlocked_world_data = json.load(json_file)
+        except FileNotFoundError:
+            unlocked_world_data = [True, False, False, False, False]
+        if unlocked_world_data[-1]:
+            self.speedrun_unlocked = True
+        else:
+            self.speedrun_unlocked = False
 
         # image loading ------------------------------------------------------------------------------------------------
         self.menu_background = img_loader('data/images/menu_background.PNG', swidth, sheight)
@@ -161,6 +172,7 @@ class SettingsMenu:
         self.hitbox_txt = text.make_text(['show hitbox:'])
         self.hitbox_conf1 = self.off_conf
         self.hitbox_conf2 = self.on_conf
+        self.unlock_speedrun_txt = text.make_text(['complete game to unlock'])
 
         # sound settings
         self.volume_txt = text.make_text(['music volume:'])
@@ -1158,6 +1170,9 @@ class SettingsMenu:
         self.visual_screen.blit(speedrun_txt,
                                 (self.center - 10 - self.speedrun_txt.get_width(),
                                  text_titles_y + self.gap * 4))
+        if not self.speedrun_unlocked:
+            self.visual_screen.blit(self.unlock_speedrun_txt,
+                                    (self.center + 15, text_titles_y + self.gap * 4))
 
         if self.resolution_counter == 1:
             res_text = self.res_conf1
@@ -1189,8 +1204,10 @@ class SettingsMenu:
                                             self.vis_sound_button_start_y + self.gap * 2 + 7))
         self.visual_screen.blit(hit_text, (button_text_center - hit_text.get_width() / 2 + button_size / 2,
                                            self.vis_sound_button_start_y + self.gap * 3 + 7))
-        self.visual_screen.blit(speedrun_text, (button_text_center - speedrun_text.get_width() / 2 + button_size / 2,
-                                           self.vis_sound_button_start_y + self.gap * 4 + 7))
+        if self.speedrun_unlocked:
+            self.visual_screen.blit(speedrun_text,
+                                    (button_text_center - speedrun_text.get_width() / 2 + button_size / 2,
+                                     self.vis_sound_button_start_y + self.gap * 4 + 7))
 
         if not self.draw_visual_screen:
             if self.resolution_counter > 1:
@@ -1268,41 +1285,42 @@ class SettingsMenu:
                 speedrun_gray_btn_img_left = self.left_button_gray
                 speedrun_gray_btn_img_right = self.right_button_gray
 
-            if self.speedrun_counter > 1 and not game_paused:
-                speedrun_left_press, over7 = self.speedrun_btn_left.draw_button(self.visual_screen,
-                                                                                False, mouse_adjustment, events,
-                                                                                joystick_over1)
-            else:
-                self.visual_screen.blit(speedrun_gray_btn_img_left, (self.left_btn_x,
-                                                                self.vis_sound_button_start_y + self.gap * 4))
+            if self.speedrun_unlocked:
+                if self.speedrun_counter > 1 and not game_paused:
+                    speedrun_left_press, over7 = self.speedrun_btn_left.draw_button(self.visual_screen,
+                                                                                    False, mouse_adjustment, events,
+                                                                                    joystick_over1)
+                else:
+                    self.visual_screen.blit(speedrun_gray_btn_img_left, (self.left_btn_x,
+                                                                    self.vis_sound_button_start_y + self.gap * 4))
 
-                if joystick_over1:
-                    if game_paused:
-                        if joystick_moved == -1:
-                            self.joystick_counter -= 1
-                        elif joystick_moved == 1:
-                            self.joystick_counter += 1
-                    else:
-                        self.visual_screen.blit(self.arrow_button_outline_surf,
-                                                (self.left_btn_x, self.vis_sound_button_start_y + self.gap * 4))
+                    if joystick_over1:
+                        if game_paused:
+                            if joystick_moved == -1:
+                                self.joystick_counter -= 1
+                            elif joystick_moved == 1:
+                                self.joystick_counter += 1
+                        else:
+                            self.visual_screen.blit(self.arrow_button_outline_surf,
+                                                    (self.left_btn_x, self.vis_sound_button_start_y + self.gap * 4))
 
-            if self.speedrun_counter < 2 and not game_paused:
-                speedrun_right_press, over8 = self.speedrun_btn_right.draw_button(self.visual_screen,
-                                                                                  False, mouse_adjustment, events,
-                                                                                  joystick_over_1)
-            else:
-                self.visual_screen.blit(speedrun_gray_btn_img_right, (self.right_btn_x,
-                                                                 self.vis_sound_button_start_y + self.gap * 4))
+                if self.speedrun_counter < 2 and not game_paused:
+                    speedrun_right_press, over8 = self.speedrun_btn_right.draw_button(self.visual_screen,
+                                                                                      False, mouse_adjustment, events,
+                                                                                      joystick_over_1)
+                else:
+                    self.visual_screen.blit(speedrun_gray_btn_img_right, (self.right_btn_x,
+                                                                     self.vis_sound_button_start_y + self.gap * 4))
 
-                if joystick_over_1:
-                    if game_paused:
-                        if joystick_moved == -1:
-                            self.joystick_counter += 1
-                        elif joystick_moved == 1:
-                            self.joystick_counter -= 1
-                    else:
-                        self.visual_screen.blit(self.arrow_button_outline_surf,
-                                                (self.right_btn_x, self.vis_sound_button_start_y + self.gap * 4))
+                    if joystick_over_1:
+                        if game_paused:
+                            if joystick_moved == -1:
+                                self.joystick_counter += 1
+                            elif joystick_moved == 1:
+                                self.joystick_counter -= 1
+                        else:
+                            self.visual_screen.blit(self.arrow_button_outline_surf,
+                                                    (self.right_btn_x, self.vis_sound_button_start_y + self.gap * 4))
 
         if res_left_press and self.resolution_counter > 1:
             self.resolution_counter -= 1
@@ -1347,6 +1365,11 @@ class SettingsMenu:
         else:
             sound_text = self.sounds_conf2
 
+        if self.speedrun_counter == 1:
+            volume_cap = 3
+        else:
+            volume_cap = 2
+
         if not self.draw_sound_screen:
             if self.volume_counter > 1:
                 vol_left_press, over1 = self.volume_btn_left.draw_button(self.sound_screen,
@@ -1358,7 +1381,7 @@ class SettingsMenu:
                 if joystick_over2:
                     self.sound_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x,
                                                                             self.vis_sound_button_start_y + self.gap))
-            if self.volume_counter < 3:
+            if self.volume_counter < volume_cap:
                 vol_right_press, over2 = self.volume_btn_right.draw_button(self.sound_screen,
                                                                            False, mouse_adjustment, events,
                                                                            joystick_over_2)
@@ -1396,10 +1419,35 @@ class SettingsMenu:
             self.sound_screen.blit(sound_text, (button_text_center - sound_text.get_width() / 2 + button_size / 2,
                                               self.vis_sound_button_start_y + self.gap * 2 + 7))
 
+        play_music = False
+        fadeout_music = False
+        change_volume = False
+        real_volume = False
+
         if vol_left_press and self.volume_counter > 1:
             self.volume_counter -= 1
-        if vol_right_press and self.volume_counter < 3:
+            if self.volume_counter == 2 and self.speedrun_counter == 1:
+                change_volume = True
+        if vol_right_press and self.volume_counter < volume_cap:
             self.volume_counter += 1
+            if self.volume_counter == 3 and self.speedrun_counter == 1:
+                change_volume = True
+        if vol_right_press or vol_left_press:
+            if self.volume_counter == 1:
+                fadeout_music = True
+            if self.volume_counter == 2 and not change_volume:
+                play_music = True
+
+        if (joystick_over2 or joystick_over_2 or over1 or over2) and not self.draw_sound_screen:
+            real_volume = True
+
+        # adjusts background music
+        settings_music = {
+            'play': play_music,
+            'fadeout': fadeout_music,
+            'volume': change_volume,
+            'real_volume': real_volume
+        }
 
         if sound_left_press and self.sounds_counter > 1:
             self.sounds_counter -= 1
@@ -1534,4 +1582,4 @@ class SettingsMenu:
         self.settings_counters['speedrun'] = self.speedrun_counter
 
         return menu_press, self.controls, final_over1, final_over2, self.pov_counter, resolution, \
-               adjust_resolution, self.settings_counters, calibrated
+               adjust_resolution, self.settings_counters, calibrated, settings_music

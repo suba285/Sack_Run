@@ -22,7 +22,7 @@ class LevelSelection:
                 self.world_status = json.load(json_file)
 
         except FileNotFoundError:
-            self.world_status = [True, False, False, False]
+            self.world_status = [True, False, False, False, False]
 
         self.world_count = world_count
 
@@ -149,6 +149,8 @@ class LevelSelection:
         self.new_world_dim_surf.fill((0, 0, 0))
 
         self.world_count = world_count
+        if self.world_count > 4:
+            self.world_count = 4
 
         update_value = 0
 
@@ -339,10 +341,8 @@ class LevelSelection:
         if left_press or left_bumper_press:
             update_value = -1
             self.object_wobble_counter = self.text_wobble_default_value
-            print(self.world_count)
         elif right_press or right_bumper_press:
             update_value = 1
-            print(self.world_count)
             self.object_wobble_counter = self.text_wobble_default_value
 
         self.world_count += update_value

@@ -2,6 +2,9 @@ import time
 import threading
 from screen_info import *
 import pygame._sdl2
+import os
+
+os.environ['SDL_JOYSTICK_HIDAPI_PS4_RUMBLE'] = '1'
 
 pygame.init()
 pygame.joystick.init()
@@ -305,7 +308,7 @@ step_sound_volume = 0.7
 sounds['card_pull'].set_volume(0.4)
 sounds['lock'].set_volume(2.5)
 sounds['bear_trap_cling'].set_volume(0.6)
-sounds['button_click'].set_volume(1.2)
+sounds['button_click'].set_volume(1.4)
 sounds['world_completed'].set_volume(0.6)
 sounds['step_grass1'].set_volume(step_sound_volume)
 sounds['step_grass2'].set_volume(step_sound_volume)
@@ -319,22 +322,29 @@ sounds['mid_air_jump'].set_volume(0.8)
 sounds['gem'].set_volume(0.3)
 sounds['click'].set_volume(0.3)
 sounds['sack_noise'].set_volume(0.5)
+sounds['mushroom'].set_volume(1.2)
 
 music = {
     '1': 'game_song1',
     '2': 'game_song2',
-    '3': 'game_song3'
+    '3': 'game_song3',
+    '4': 'game_song4'
 }
 
 music_volumes = {
     '1': 0,
     '2': 0.3,
-    '3': 1
+    '3': 0.6
 }
+
+paused_music_volume = 0.1
+speedrun_volume = 0.6
 
 pygame.mixer.music.load('data/sounds/game_song1.wav')
 pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
+# when True: adjust volume to background level (it was increased for demonstration purposes)
+adjust_settings_music_volume = False
 
 # sound locks
 one_time_play_card_pull = True
@@ -605,6 +615,7 @@ while run:
             loading = False
             play = True
             load_music = True
+            play_music = True
             game_loaded = False
             world_completed = False
 
@@ -649,6 +660,7 @@ while run:
                 settings_menu.section_counter = 0
                 settings_menu.joystick_counter = 1
             settings_menu.screen_alpha_counter = 0
+            pygame.mixer.music.load('data/sounds/game_song1.wav')
 
     # running the game -------------------------------------------------------------------------------------------------
     if run_game:
@@ -710,16 +722,13 @@ while run:
         if play_music_trigger:
             play_music = True
 
-        # changing the displayed screens
+        # pausing (joystick pausing can be found in 'game event handling')
         if key[pygame.K_ESCAPE]:
             run_menu = False
             run_game = False
             paused = True
             run_level_selection = False
-            if not speedrun_mode:
-                fadeout_music = True
-            else:
-                pygame.mixer.music.set_volume(0.2)
+            pygame.mixer.music.set_volume(paused_music_volume)
             pause_menu.joystick_counter = 0
 
         # changing the displayed screens
@@ -736,13 +745,16 @@ while run:
                 with open('data/unlocked_worlds.json', 'r') as json_file:
                     unlocked_world_data = json.load(json_file)
             except FileNotFoundError:
-                unlocked_world_data = [True, False, False, False]
+                unlocked_world_data = [True, False, False, False, False]
             if world_count < 4 and not unlocked_world_data[world_count]:
                 new_world_unlocked = True
-                unlocked_world_data[nums_to_unlocked_world_data[world_count]] = True
+            if world_count < 5:
+                unlocked_world_data[world_count] = True
             try:
                 with open('data/unlocked_worlds.json', 'w') as json_file:
                     json.dump(unlocked_world_data, json_file)
+                    if unlocked_world_data[-1]:
+                        settings_menu.speedrun_unlocked = True
             except FileNotFoundError:
                 progress_not_saved_error = True
 
@@ -806,6 +818,7 @@ while run:
                 run_menu = False
                 paused = False
                 screen_alpha = 0
+                fadeout_music = True
                 main_game.update_controller_type(controls['configuration'], settings_counters)
                 try:
                     with open('data/level_count.json', 'w') as json_file:
@@ -827,11 +840,10 @@ while run:
             run_game = True
             paused = False
             run_level_selection = False
-            if not opening_scene and not speedrun_mode:
-                play_music = True
-                load_music = True
             if speedrun_mode:
-                pygame.mixer.music.set_volume(0.6)
+                pygame.mixer.music.set_volume(speedrun_volume)
+            else:
+                pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
             main_game.update_controller_type(controls['configuration'], settings_counters)
             if restart_level:
                 level_restart_procedure = True
@@ -857,7 +869,7 @@ while run:
                     reload_world_status = False
             except FileNotFoundError:
                 world_status_loading_error = True
-                level_select.world_status = [True, False, False, False]
+                level_select.world_status = [True, False, False, False, False]
         if joystick_configured or not joystick_connected or controller_calibration:
             lvl_selection_events = events
         else:
@@ -967,14 +979,36 @@ while run:
             current_resolution,\
             adjust_resolution,\
             settings_counters,\
-            calibrated_press = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment, settings_events,
-                                                                fps_adjust, joystick_connected, joysticks,
-                                                                game_paused)
+            calibrated_press,\
+            settings_music_control = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment,
+                                                                      settings_events, fps_adjust, joystick_connected,
+                                                                      joysticks, game_paused)
 
         if performance_counter == 1:
             slow_computer = False
         else:
             slow_computer = True
+
+        if settings_music_control['play']:
+            play_music = True
+            play_background_music = True
+        if settings_music_control['fadeout']:
+            fadeout_music = True
+        if settings_music_control['real_volume']:
+            if speedrun_mode:
+                settings_volume = speedrun_volume
+            else:
+                settings_volume = music_volumes[str(settings_counters['music_volume'])]
+            pygame.mixer.music.set_volume(settings_volume)
+            if not game_paused and not adjust_settings_music_volume:
+                play_music = True
+            adjust_settings_music_volume = True
+        elif adjust_settings_music_volume:
+            if game_paused:
+                pygame.mixer.music.set_volume(paused_music_volume)
+            else:
+                fadeout_music = True
+            adjust_settings_music_volume = False
 
         if adjust_resolution:
             wiwidth = current_resolution[0]
@@ -1023,10 +1057,10 @@ while run:
             else:
                 speedrun_mode = True
 
-            if settings_counters['music_volume'] > 1 and not speedrun_mode:
-                pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
+            if settings_counters['music_volume'] > 1:
                 play_background_music = True
-                play_music = False
+                if not game_paused:
+                    play_music = False
             if settings_counters['music_volume'] == 1:
                 play_background_music = False
                 play_music = False
@@ -1054,7 +1088,6 @@ while run:
                 'configuration': controls['configuration'],
                 'cards': controls_nums[f"cards{settings_counters['cards']}"],
             }
-            pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
     # displaying fps ---------------------------------------------------------------------------------------------------
     fps_display.draw_fps(fps_int, screen)
@@ -1169,10 +1202,7 @@ while run:
             run_game = False
             paused = True
             run_level_selection = False
-            if not speedrun_mode:
-                fadeout_music = True
-            else:
-                pygame.mixer.music.set_volume(0.2)
+            pygame.mixer.music.set_volume(paused_music_volume)
             pause_menu.joystick_counter = 0
 
     if user_quit1 and user_quit2:
@@ -1222,6 +1252,8 @@ while run:
 
         if sound_triggers['jump']:
             sounds['jump'].play()
+            if joysticks:
+                joysticks[0].rumble(0.1, 0.2, 10)
 
         if sound_triggers['mid_air_jump']:
             sounds['mid_air_jump'].play()
@@ -1273,9 +1305,9 @@ while run:
 
         if play_music:
             if speedrun_mode:
-                pygame.mixer.music.set_volume(0.6)
+                pygame.mixer.music.set_volume(speedrun_volume)
                 if paused:
-                    pygame.mixer.music.set_volume(0.2)
+                    pygame.mixer.music.set_volume(paused_music_volume)
             pygame.mixer.music.play(-1, 0.0, 300)
             play_music = False
 

@@ -593,7 +593,7 @@ class Game:
             1: 'Seems like you got the hang of it!',
             2: 'The farm is now behind you, further challenges lay ahead',
             3: 'Fresh air, finally... No more damp caves',
-            4: "That is the game, Thanks for playing!"
+            4: "Thanks for playing! Now you can try speedrun mode [settings]"
         }
 
         self.world_completed_text = text.make_text([self.world_completed_texts[world_count]])
@@ -814,8 +814,8 @@ class Game:
 
         # loading world data and position info
         if self.speedrun_mode and level_count == world_ending_levels[world_count]:
-            self.world_prog_txt = self.world_prog_txts[world_count]
             if world_count < 4:
+                self.world_prog_txt = self.world_prog_txts[world_count]
                 world_count += 1
                 self.long_transition = self.world_prog_txt
             if world_count == 4 and world_ending_levels[4] == level_count:
@@ -836,6 +836,9 @@ class Game:
             world_data_level_checker = []
             bg_data = []
             self.world_completed = True
+
+        if world_count > 4:
+            world_count = 4
 
         return world_data_level_checker, bg_data, world_count, level_count
 
@@ -1421,15 +1424,7 @@ class Game:
         self.player.draw_transition(fps_adjust, self.long_transition)
 
         # sounds -------------------------------------------------------------------------------------------------------
-        if world_count == 3 and not self.music_playing:
-            self.music_playing = True
-            play_music = True
-
-        if world_count == 2 and not self.music_playing:
-            self.music_playing = True
-            play_music = True
-
-        if world_count == 1 and not self.music_playing:
+        if not self.music_playing:
             self.music_playing = True
             play_music = True
 
