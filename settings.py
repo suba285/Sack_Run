@@ -61,6 +61,9 @@ class SettingsMenu:
         self.calibrate_btn_down= img_loader('data/images/button_calibrate_down.PNG', tile_size * 2, tile_size * 0.75)
 
         self.keyboard_base = img_loader('data/images/keyboard_highlights/keyboard_base.PNG', tile_size * 3, tile_size)
+        self.keyboard_press_surf = pygame.Surface((tile_size * 3, tile_size))
+        self.keyboard_press_surf.fill((255, 255, 255))
+        self.keyboard_press_surf.set_colorkey((255, 255, 255))
         self.mouse_base = img_loader('data/images/keyboard_highlights/mouse_base.PNG', tile_size, tile_size)
         keyboard_jump1 = img_loader('data/images/keyboard_highlights/keyboard_jump1.PNG',
                                     tile_size * 3, tile_size)
@@ -76,7 +79,7 @@ class SettingsMenu:
                                      tile_size * 3, tile_size)
         mouse_cards1 = img_loader('data/images/keyboard_highlights/mouse_cards.PNG', tile_size, tile_size)
 
-        self.controller = img_loader('data/images/controller.PNG', tile_size * 2, tile_size)
+        self.kbr_bg = img_loader('data/images/keyboard_highlights/keyboard_background.PNG', 130, 50)
 
         self.keyboard_overlays = {
             'jump1': keyboard_jump1,
@@ -88,8 +91,96 @@ class SettingsMenu:
             'mouse_cards': mouse_cards1
         }
 
+        rows = [4, 7, 10, 13]
+        x_by_row = [6, 7, 6, 0]
+        self.pygame_kbr_events = [
+            [pygame.K_q, pygame.K_w, pygame.K_e, pygame.K_r, pygame.K_t, pygame.K_y, pygame.K_u, pygame.K_i, pygame.K_o,
+             pygame.K_p],
+            [pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_f, pygame.K_g, pygame.K_h, pygame.K_j, pygame.K_k,
+             pygame.K_l],
+            [pygame.K_z, pygame.K_x, pygame.K_c, pygame.K_v, pygame.K_b, pygame.K_n, pygame.K_m, ],
+            [pygame.K_SPACE, pygame.K_UP, pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT]
+        ]
+        self.keyboard_press_pos = {
+            pygame.K_SPACE: [30, 26],
+            pygame.K_UP: [80, 26],
+            pygame.K_LEFT: [74, 28],
+            pygame.K_DOWN: [80, 28],
+            pygame.K_RIGHT: [86, 28],
+        }
+        key_highlight = pygame.Surface((4, 4))
+        key_highlight.fill((0, 0, 0))
+        space_hightlight = pygame.Surface((28, 4))
+        space_hightlight.fill((0, 0, 0))
+        arrow_hightlight = pygame.Surface((4, 2))
+        arrow_hightlight.fill((0, 0, 0))
+        row_count = 0
+        for row in self.pygame_kbr_events:
+            y = rows[row_count]
+            key_count = 0
+            for key in row:
+                x = x_by_row[row_count]
+                if row_count < 3:
+                    self.keyboard_press_pos[key] = [(x + key_count * 3) * 2, y * 2]
+                key_count += 1
+            row_count += 1
+
+        self.keyboard_presses = {}
+        for row in self.pygame_kbr_events:
+            for key in row:
+                if key == pygame.K_SPACE:
+                    img = space_hightlight
+                elif key in [pygame.K_UP, pygame.K_RIGHT, pygame.K_LEFT, pygame.K_DOWN]:
+                    img = arrow_hightlight
+                else:
+                    img = key_highlight
+                self.keyboard_presses[key] = [False, self.keyboard_press_pos[key], img]
+
+        self.mouse_press_overlays = {
+            1: img_loader('data/images/keyboard_highlights/mouse_left_c.PNG', tile_size, tile_size),
+            3: img_loader('data/images/keyboard_highlights/mouse_right_c.PNG', tile_size, tile_size),
+        }
+        self.mouse_current_press_overlay = self.mouse_press_overlays[1]
+        self.mouse_press = False
+
+        # controller press overlays
+        self.controller = img_loader('data/images/keyboard_highlights/controller.PNG', tile_size * 2, tile_size)
+        colorkey = (255, 255, 255)
+        self.controller_presses = {
+            'a': [False, img_loader('data/images/keyboard_highlights/cont_a_overlay.PNG', tile_size * 2, tile_size,
+                                    colorkey)],
+            'b': [False, img_loader('data/images/keyboard_highlights/cont_b_overlay.PNG', tile_size * 2, tile_size,
+                                    colorkey)],
+            'x': [False, img_loader('data/images/keyboard_highlights/cont_x_overlay.PNG', tile_size * 2, tile_size,
+                                    colorkey)],
+            'pause': [False, img_loader('data/images/keyboard_highlights/cont_pause_overlay.PNG', tile_size * 2,
+                                        tile_size, colorkey)],
+            'rb': [False, img_loader('data/images/keyboard_highlights/cont_rb_overlay.PNG', tile_size * 2, tile_size,
+                                     colorkey)],
+            'lb': [False, img_loader('data/images/keyboard_highlights/cont_lb_overlay.PNG', tile_size * 2, tile_size,
+                                     colorkey)],
+            'up': [False, img_loader('data/images/keyboard_highlights/cont_up_overlay.PNG', tile_size * 2, tile_size,
+                                     colorkey)],
+            'right': [False, img_loader('data/images/keyboard_highlights/cont_right_overlay.PNG', tile_size * 2,
+                                        tile_size, colorkey)],
+            'left': [False, img_loader('data/images/keyboard_highlights/cont_left_overlay.PNG', tile_size * 2,
+                                       tile_size, colorkey)],
+            'down': [False, img_loader('data/images/keyboard_highlights/cont_down_overlay.PNG', tile_size * 2,
+                                       tile_size, colorkey)],
+        }
+
+        self.joystick_movement = [0, 0]
+
         # variables ----------------------------------------------------------------------------------------------------
         self.controls = controls
+        self.cont_overlay_key = {
+            controls['configuration'][1]: 'lb',
+            controls['configuration'][2]: 'rb',
+            controls['configuration'][3]: 'pause',
+            0: 'a',
+            1: 'b',
+            2: 'x',
+        }
         self.recommended_res_counter = recommended_res_counter
         self.keyboard_highlight_counter = 60
         self.keyboard_highlight_off = False
@@ -141,7 +232,7 @@ class SettingsMenu:
         # control settings
         self.walking_txt = text.make_text(['keyboard walking:'])
         self.jumping_txt = text.make_text(['keyboard jumping:'])
-        self.rumble_txt = text.make_text(['keyboard cards:'])
+        self.keyboard_cards = text.make_text(['keyboard cards:'])
         self.configuration_txt = text.make_text(['controller calibration:'])
         self.move_conf1 = text.make_text(['A and D keys'])
         self.move_conf2 = text.make_text(['arrow keys'])
@@ -364,6 +455,8 @@ class SettingsMenu:
         self.keyboard_control_box3.x = self.center + 6
         self.keyboard_control_box3.y = control_button_start_y + gap * 3 - 4
 
+        self.volume_col_box = pygame.Rect(self.center + 10, self.vis_sound_button_start_y + gap, 150, 30)
+
         # pov settings popup window
         self.pov_popup_text = text.make_text(['POV settings changes will apply after restarting the game'])
         self.pov_popup = popup_bg_generator((self.pov_popup_text.get_width() + 10, 15))
@@ -529,6 +622,18 @@ class SettingsMenu:
         self.sounds_counter = settings_counters['sounds']
 
         self.controls['configuration'] = controls['configuration']
+        self.cont_overlay_key = {
+            controls['configuration'][1]: 'lb',
+            controls['configuration'][2]: 'rb',
+            controls['configuration'][3]: 'pause',
+            0: 'a',
+            1: 'b',
+            2: 'x',
+            (-1, 0): 'left',
+            (1, 0): 'right',
+            (0, -1): 'down',
+            (0, 1): 'up',
+        }
         self.nums_to_btns['configuration'] = controls['configuration']
 
     def controller_calibration_func(self, local_screen, events, fps_adjust, in_settings, joysticks):
@@ -752,6 +857,7 @@ class SettingsMenu:
                 # horizontal joystick movement
                 if events['joyaxismotion_x']:
                     event = events['joyaxismotion_x']
+                    self.joystick_movement[0] = event.value
                     if abs(event.value) > 0.3 and not self.joystick_moved:
                         self.joystick_counter = self.joystick_counter * -1
                         self.joystick_moved = True
@@ -760,6 +866,7 @@ class SettingsMenu:
                 # vertical joystick movement
                 if events['joyaxismotion_y']:
                     event = events['joyaxismotion_y']
+                    self.joystick_movement[1] = event.value
                     # down
                     if event.value > 0.3 and not self.joystick_moved:
                         if self.joystick_counter >= 0:
@@ -800,6 +907,21 @@ class SettingsMenu:
                     joystick_tab_left = True
                 if event.button == 5 or event.button == self.controls['configuration'][2]:
                     joystick_tab_right = True
+                # controller press visualization buttons (down)
+                try:
+                    key = self.cont_overlay_key[event.button]
+                    self.controller_presses[key][0] = True
+                except KeyError:
+                    pass
+            if events['joybuttonup']:
+                event = events['joybuttonup']
+                # controller press visualization buttons (up)
+                try:
+                    key = self.cont_overlay_key[event.button]
+                    self.controller_presses[key][0] = False
+                except KeyError:
+                    pass
+
             if events['mousebuttondown'] or events['keydown']:
                 self.no_controller_counter = 0
                 self.pov_popup_counter = 0
@@ -807,6 +929,21 @@ class SettingsMenu:
             # D-pad input
             if joysticks:
                 hat_value = joysticks[0].get_hat(0)
+
+                # controller press visualization D-pad management
+                self.controller_presses['left'][0] = False
+                self.controller_presses['right'][0] = False
+                self.controller_presses['up'][0] = False
+                self.controller_presses['down'][0] = False
+                if hat_value[0] == -1:
+                    self.controller_presses['left'][0] = True
+                if hat_value[0] == 1:
+                    self.controller_presses['right'][0] = True
+                if hat_value[1] == -1:
+                    self.controller_presses['down'][0] = True
+                if hat_value[1] == 1:
+                    self.controller_presses['up'][0] = True
+
                 if not self.hat_x_pressed:
                     if abs(hat_value[0]) == 1:
                         self.joystick_counter = self.joystick_counter * -1
@@ -972,8 +1109,8 @@ class SettingsMenu:
                                                         self.button_start_y + 7 + self.gap))
             self.control_screen.blit(self.jumping_txt, (self.center - 10 - self.jumping_txt.get_width(),
                                                         self.button_start_y + 7 + self.gap * 2))
-            self.control_screen.blit(self.rumble_txt, (self.center - 10 - self.rumble_txt.get_width(),
-                                                        self.button_start_y + 7 + self.gap * 3))
+            self.control_screen.blit(self.keyboard_cards, (self.center - 10 - self.keyboard_cards.get_width(),
+                                                           self.button_start_y + 7 + self.gap * 3))
             self.control_screen.blit(self.configuration_txt, (self.center - 10 - self.configuration_txt.get_width(),
                                                         self.button_start_y + 7 + self.gap * 4))
             # keyboard controls visualisation --------------------------------------------------------------------------
@@ -981,8 +1118,26 @@ class SettingsMenu:
                 keyboard_x = swidth / 2 - tile_size
                 mouse_x = swidth / 2 - tile_size * 2
             else:
-                keyboard_x = swidth / 2 - tile_size * 2
+                keyboard_x = swidth / 2 - tile_size * 1.8
                 mouse_x = keyboard_x + tile_size * 3
+            # mouse button presses
+            if events['mousebuttondown']:
+                if events['mousebuttondown'].button in [1, 3]:
+                    self.mouse_current_press_overlay = self.mouse_press_overlays[events['mousebuttondown'].button]
+                    self.mouse_press = True
+            if events['mousebuttonup']:
+                self.mouse_press = False
+
+            try:
+                if events['keydown']:
+                    self.keyboard_presses[events['keydown'].key][0] = True
+                if events['keyup']:
+                    self.keyboard_presses[events['keyup'].key][0] = False
+            except KeyError:
+                pass
+
+            self.control_screen.blit(self.kbr_bg, (swidth / 2 - 65, 165 / 270 * sheight))
+
             if not joystick_connected:
                 self.control_screen.blit(self.keyboard_base, (keyboard_x,
                                                               (175 / 270 * sheight)))
@@ -991,15 +1146,33 @@ class SettingsMenu:
                                          (keyboard_x, (175 / 270 * sheight)))
                 self.control_screen.blit(self.keyboard_overlays[f'jump{self.jump_counter}'],
                                          (keyboard_x, (175 / 270 * sheight)))
+
                 if self.cards_counter == 2:
                     self.control_screen.blit(self.keyboard_overlays['keybrd_cards'],
                                              (keyboard_x, (175 / 270 * sheight)))
                 else:
                     self.control_screen.blit(self.keyboard_overlays['mouse_cards'],
                                              (mouse_x, (175 / 270 * sheight)))
+                    if self.mouse_press:
+                        self.control_screen.blit(self.mouse_current_press_overlay, (mouse_x, (175 / 270 * sheight)))
+
+                self.keyboard_press_surf.fill((255, 255, 255))
+                for key in self.keyboard_presses:
+                    pressed_key = self.keyboard_presses[key]
+                    if pressed_key[0]:
+                        self.keyboard_press_surf.blit(pressed_key[2], pressed_key[1])
+                self.control_screen.blit(self.keyboard_press_surf, (keyboard_x, (175 / 270 * sheight)))
 
             else:
                 self.control_screen.blit(self.controller, (swidth / 2 - tile_size, (175 / 270 * sheight)))
+                for key in self.controller_presses:
+                    if self.controller_presses[key][0]:
+                        self.control_screen.blit(self.controller_presses[key][1],
+                                                 (swidth / 2 - tile_size, (175 / 270 * sheight)))
+                if self.joystick_movement != [0, 0]:
+                    pygame.draw.circle(self.control_screen, (0, 0, 0),
+                                       (swidth / 2 - tile_size + 20 + self.joystick_movement[0] * 3
+                                        , 175 / 270 * sheight + 10 + self.joystick_movement[1] * 3), 2, 2)
 
             # displaying the selected option (text) --------------------------------------------------------------------
             self.control_screen.blit(walk_text, (button_text_center - walk_text.get_width() / 2 + button_size / 2,
@@ -1370,6 +1543,10 @@ class SettingsMenu:
         else:
             volume_cap = 2
 
+        volume_over = False
+        if self.volume_col_box.collidepoint(mouse_pos):
+            volume_over = True
+
         if not self.draw_sound_screen:
             if self.volume_counter > 1:
                 vol_left_press, over1 = self.volume_btn_left.draw_button(self.sound_screen,
@@ -1438,7 +1615,7 @@ class SettingsMenu:
             if self.volume_counter == 2 and not change_volume:
                 play_music = True
 
-        if (joystick_over2 or joystick_over_2 or over1 or over2) and not self.draw_sound_screen:
+        if (joystick_over2 or joystick_over_2 or volume_over) and not self.draw_sound_screen:
             real_volume = True
 
         # adjusts background music

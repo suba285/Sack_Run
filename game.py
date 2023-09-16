@@ -40,6 +40,8 @@ level_dictionary = {
     "level2_4": level2_4,
     "level3_4": level3_4,
     "level4_4": level4_4,
+    "level5_4": level5_4,
+    "level6_4": level6_4,
 }
 
 level_bg_dictionary = {
@@ -66,6 +68,8 @@ level_bg_dictionary = {
     "level2_4_bg": level2_4_bg,
     "level3_4_bg": level3_4_bg,
     "level4_4_bg": level4_4_bg,
+    "level5_4_bg": level5_4_bg,
+    "level6_4_bg": level6_4_bg,
 }
 
 level_pos_dictionary = {
@@ -93,6 +97,8 @@ level_pos_dictionary = {
     "level2_4": (3, -1),
     "level3_4": (1, -8),
     "level4_4": (4, 1),
+    "level5_4": (3, -7),
+    "level6_4": (-25, 2),
 }
 
 level_card_dictionary = {
@@ -104,7 +110,7 @@ world_ending_levels = {
     1: 3,
     2: 10,
     3: 9,
-    4: 5
+    4: 7
 }
 
 bee_popup = [2, 7]

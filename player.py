@@ -437,7 +437,7 @@ class Player:
         self.left_border = left_border
         self.right_border = right_border
         top_border = 50 / 270 * sheight
-        if level_count == 9 and world_count == 2:
+        if [level_count, world_count] in [[9, 2], [5, 4]]:
             top_border = 135 / 270 * sheight
 
         harm = False

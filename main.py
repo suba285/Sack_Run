@@ -1290,18 +1290,18 @@ while run:
         one_time_play_button1 = True
 
     # music
+    if load_music:
+        if speedrun_mode:
+            pygame.mixer.music.load('data/sounds/Speedrun-song.wav')
+        else:
+            song = music[f'{world_count}']
+            pygame.mixer.music.load(f'data/sounds/{song}.wav')
+
     if play_background_music:
         if not world_completed_sound_played:
             if world_ending_levels[world_count] == level_count and run_game and not speedrun_mode:
                 sounds['world_completed'].play()
                 world_completed_sound_played = True
-
-        if load_music:
-            if speedrun_mode:
-                pygame.mixer.music.load('data/sounds/Speedrun-song.wav')
-            else:
-                song = music[f'{world_count}']
-                pygame.mixer.music.load(f'data/sounds/{song}.wav')
 
         if play_music:
             if speedrun_mode:
