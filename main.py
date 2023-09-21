@@ -141,7 +141,7 @@ background_sky_colour = (100, 63, 102)
 
 # external file imports ------------------------------------------------------------------------------------------------
 from levels import *
-from game import Game, world_ending_levels
+from game import Game, world_ending_levels, music_level_phases, music_change_list
 from menu import mainMenu
 from display_fps import FpsDisplay
 from font_manager import Text
@@ -241,6 +241,7 @@ show_cursor = True
 play_music = False
 play_music_trigger = False
 fadeout_music = False
+change_music = False
 world_completed_sound_played = False
 play_background_music = True
 play_sounds = True
@@ -324,17 +325,60 @@ sounds['click'].set_volume(0.3)
 sounds['sack_noise'].set_volume(0.5)
 sounds['mushroom'].set_volume(1.2)
 
-music = {
+music_data = {
     '1': 'game_song1',
     '2': 'game_song2',
     '3': 'game_song3',
     '4': 'game_song4'
 }
 
+music = {
+    '1-1': pygame.mixer.Sound('data/sounds/game_song1.wav'),
+    '2-1': pygame.mixer.Sound('data/sounds/game_song2.wav'),
+    '2-2': pygame.mixer.Sound('data/sounds/game_song2-2.wav'),
+    '3-1': pygame.mixer.Sound('data/sounds/game_song3-1.wav'),
+    '3-2': pygame.mixer.Sound('data/sounds/game_song3-2.wav'),
+    '3-3': pygame.mixer.Sound('data/sounds/game_song3-3.wav'),
+    '3-4': pygame.mixer.Sound('data/sounds/game_song3-4.wav'),
+    '3-4-transition': pygame.mixer.Sound('data/sounds/game_song3-4_transition.wav')
+}
+
 music_volumes = {
     '1': 0,
-    '2': 0.3,
-    '3': 0.6
+    '2': 0.4,
+    '3': 0.7
+}
+
+pygame.mixer.Channel(2).set_volume(0)  # phase 1 music channel
+pygame.mixer.Channel(3).set_volume(0)  # phase 2 music channel
+pygame.mixer.Channel(4).set_volume(0)  # phase 3 music channel
+pygame.mixer.Channel(5).set_volume(0)  # phase 4 music channel
+pygame.mixer.Channel(6).set_volume(0)  # transitions
+
+current_channel = 2
+if level_count > 1:
+    for pack in music_level_phases:
+        if pack[0] == world_count and pack[1] <= level_count:
+            current_channel = pack[2] + 1
+
+music_changed_levels = {
+    1: False,
+    2: False,
+    3: False,
+    4: False,
+    5: False,
+    6: False,
+    7: False,
+    8: False,
+    9: False,
+    10: False,
+}
+
+world_phase_limit = {
+    1: 1,
+    2: 2,
+    3: 4,
+    4: 1
 }
 
 paused_music_volume = 0.1
@@ -603,6 +647,14 @@ while run:
                 threading.Thread(target=load_game, args=[world_data, bg_data, world_count, joystick_connected]).start()
                 loading = True
                 proceed_with_transition = False
+                if level_count > 1:
+                    for pack in music_level_phases:
+                        if pack[0] == world_count and pack[1] <= level_count:
+                            current_channel = pack[2] + 1
+                else:
+                    current_channel = 2
+                for level in music_changed_levels:
+                    music_changed_levels[level] = False
             else:
                 run_game = False
                 run_level_selection = True
@@ -660,7 +712,6 @@ while run:
                 settings_menu.section_counter = 0
                 settings_menu.joystick_counter = 1
             settings_menu.screen_alpha_counter = 0
-            pygame.mixer.music.load('data/sounds/game_song1.wav')
 
     # running the game -------------------------------------------------------------------------------------------------
     if run_game:
@@ -680,10 +731,11 @@ while run:
                 game_sounds,\
                 fadeout_music,\
                 lvl_selection_press,\
-                world_completed = main_game.game(screen, level_count, fps_adjust,
-                                                 draw_hitbox, mouse_adjustment, events,
-                                                 game_counter, world_count, controls,
-                                                 controller_calibration, joysticks, level_restart_procedure)
+                world_completed,\
+                change_music = main_game.game(screen, level_count, fps_adjust,
+                                              draw_hitbox, mouse_adjustment, events,
+                                              game_counter, world_count, controls,
+                                              controller_calibration, joysticks, level_restart_procedure)
             level_restart_procedure = False
             sound_triggers.update(game_sounds)
         else:
@@ -728,7 +780,8 @@ while run:
             run_game = False
             paused = True
             run_level_selection = False
-            pygame.mixer.music.set_volume(paused_music_volume)
+            if play_background_music:
+                pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
             pause_menu.joystick_counter = 0
 
         # changing the displayed screens
@@ -765,9 +818,9 @@ while run:
             else:
                 run_menu = False
                 run_level_selection = True
+                fadeout_music = True
             run_game = False
             run_settings = False
-            fadeout_music = True
             menu_y = 0
             game_y = swidth
 
@@ -840,10 +893,11 @@ while run:
             run_game = True
             paused = False
             run_level_selection = False
-            if speedrun_mode:
-                pygame.mixer.music.set_volume(speedrun_volume)
-            else:
-                pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
+            if play_background_music:
+                if speedrun_mode:
+                    pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
+                else:
+                    pygame.mixer.Channel(current_channel).set_volume(music_volumes[str(settings_counters['music_volume'])])
             main_game.update_controller_type(controls['configuration'], settings_counters)
             if restart_level:
                 level_restart_procedure = True
@@ -911,6 +965,14 @@ while run:
             threading.Thread(target=load_game, args=[world_data, bg_data, world_count, joystick_connected]).start()
             loading = True
             proceed_with_transition = False
+            if level_count > 1:
+                for pack in music_level_phases:
+                    if pack[0] == world_count and pack[1] <= level_count:
+                        current_channel = pack[2] + 1
+            else:
+                current_channel = 2
+            for level in music_changed_levels:
+                music_changed_levels[level] = False
 
         if game_loaded:
             loading = False
@@ -994,18 +1056,21 @@ while run:
             play_background_music = True
         if settings_music_control['fadeout']:
             fadeout_music = True
+            play_background_music = False
         if settings_music_control['real_volume']:
             if speedrun_mode:
                 settings_volume = speedrun_volume
             else:
                 settings_volume = music_volumes[str(settings_counters['music_volume'])]
-            pygame.mixer.music.set_volume(settings_volume)
+            if play_background_music:
+                pygame.mixer.Channel(current_channel).set_volume(settings_volume)
             if not game_paused and not adjust_settings_music_volume:
                 play_music = True
             adjust_settings_music_volume = True
         elif adjust_settings_music_volume:
             if game_paused:
-                pygame.mixer.music.set_volume(paused_music_volume)
+                if play_background_music:
+                    pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
             else:
                 fadeout_music = True
             adjust_settings_music_volume = False
@@ -1202,7 +1267,8 @@ while run:
             run_game = False
             paused = True
             run_level_selection = False
-            pygame.mixer.music.set_volume(paused_music_volume)
+            if play_background_music:
+                pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
             pause_menu.joystick_counter = 0
 
     if user_quit1 and user_quit2:
@@ -1290,29 +1356,48 @@ while run:
         one_time_play_button1 = True
 
     # music
-    if load_music:
-        if speedrun_mode:
-            pygame.mixer.music.load('data/sounds/Speedrun-song.wav')
-        else:
-            song = music[f'{world_count}']
-            pygame.mixer.music.load(f'data/sounds/{song}.wav')
-
     if play_background_music:
         if not world_completed_sound_played:
             if world_ending_levels[world_count] == level_count and run_game and not speedrun_mode:
                 sounds['world_completed'].play()
                 world_completed_sound_played = True
 
-        if play_music:
-            if speedrun_mode:
-                pygame.mixer.music.set_volume(speedrun_volume)
-                if paused:
-                    pygame.mixer.music.set_volume(paused_music_volume)
-            pygame.mixer.music.play(-1, 0.0, 300)
-            play_music = False
+    if play_music:
+        volume = music_volumes[str(settings_counters['music_volume'])]
+        if speedrun_mode:
+            volume = speedrun_volume
+        if not play_background_music and not run_settings:
+            volume = 0
+        pygame.mixer.Channel(current_channel).set_volume(volume)
+        if not game_paused:
+            if not run_settings:
+                for channel in range(2, world_phase_limit[world_count] + 2):
+                    if channel != current_channel:
+                        pygame.mixer.Channel(channel).set_volume(0)
+                    pygame.mixer.Channel(channel).play(music[f'{world_count}-{channel - 1}'], -1)
+            else:
+                pygame.mixer.Channel(2).play(music['1-1'], -1)
+        play_music = False
+
+    if change_music and not speedrun_mode:
+        if not music_changed_levels[level_count] and current_channel <= world_phase_limit[world_count]:
+            current_channel += 1
+            music_changed_levels[level_count] = True
+            pygame.mixer.Channel(current_channel).set_volume(music_volumes[str(settings_counters['music_volume'])])
+            pygame.mixer.Channel(current_channel - 1).set_volume(0)
+            if [world_count, level_count] == [3, 7]:
+                pygame.mixer.Channel(6).set_volume(music_volumes[str(settings_counters['music_volume'])] + 0.1)
+                pygame.mixer.Channel(6).play(music['3-4-transition'], 1)
+                pygame.mixer.Channel(6).fadeout(1200)
+        change_music = False
 
     if fadeout_music:
-        pygame.mixer.music.fadeout(300)
+        if not game_paused:
+            for channel in range(2, 6):
+                pygame.mixer.Channel(channel).fadeout(300)
+        else:
+            for channel in range(2, 6):
+                pygame.mixer.Channel(channel).set_volume(0)
         fadeout_music = False
 
     # custom mouse cursor ----------------------------------------------------------------------------------------------

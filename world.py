@@ -1640,19 +1640,23 @@ class World:
         bat_harm = False
         screen_shake = False
         dead = False
+        change_music = False
         if health == 0:
             dead = True
         for bat in self.bat_list:
             if bat[1] == 17:
                 harm, screen_shake = bat[0].update_bat_laser(sack_rect, fps_adjust, screen, camera_move_x,
-                                                             camera_move_y, moved, dead)
+                                                                  camera_move_y, moved, dead)
+                if screen_shake:
+                    change_music = True
+
             else:
                 harm, screen_shake = bat[0].update_bat_charge(sack_rect, fps_adjust, screen, camera_move_x,
                                                               camera_move_y, moved, dead)
             if harm:
                 bat_harm = True
 
-        return bat_harm, screen_shake
+        return bat_harm, screen_shake, change_music
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -1714,6 +1718,8 @@ class World:
 
         debris_tile_counter = 0
 
+        change_music = False
+
         for tile in self.bridge_list:
             if sack_rect.x > tile[1][0] and not self.bridge_collapsing:
                 self.bridge_collapse_cooldown -= 1*fps_adjust
@@ -1738,6 +1744,7 @@ class World:
                 debris[1] = [tile[1][0], tile[1][1]]
                 self.bridge_debris_list.append(debris)
                 self.bridge_collapsed = True
+                change_music = True
             debris_tile_counter += 1
 
         # debris management
@@ -1762,7 +1769,7 @@ class World:
         if self.bridge_collapsing and not self.bridge_collapsed:
             screen_shake = True
 
-        return screen_shake
+        return screen_shake, change_music
 
     # ------------------------------------------------------------------------------------------------------------------
 

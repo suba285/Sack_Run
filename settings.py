@@ -1544,7 +1544,7 @@ class SettingsMenu:
             volume_cap = 2
 
         volume_over = False
-        if self.volume_col_box.collidepoint(mouse_pos):
+        if self.volume_col_box.collidepoint(mouse_pos) and not joysticks:
             volume_over = True
 
         if not self.draw_sound_screen:

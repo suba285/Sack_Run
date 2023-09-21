@@ -113,6 +113,9 @@ world_ending_levels = {
     4: 7
 }
 
+music_change_list = [[2, 7], [3, 5]]
+music_level_phases = [[2, 7, 2], [3, 2, 2], [3, 5, 3], [3, 8, 4]]
+
 bee_popup = [2, 7]
 dash_popup = [3, 5]
 
@@ -802,6 +805,8 @@ class Game:
         # the level position needs to be offset by a certain amount to set the right spawn for the player (center)
         # calculated by tiles from the center of the mould (tiles fitting in the window)
 
+        change_music = False
+
         max_level = 10
         max_world = 4
         if level_count >= max_level:
@@ -846,7 +851,10 @@ class Game:
         if world_count > 4:
             world_count = 4
 
-        return world_data_level_checker, bg_data, world_count, level_count
+        if [world_count, level_count] in music_change_list:
+            change_music = True
+
+        return world_data_level_checker, bg_data, world_count, level_count, change_music
 
 # WORLD COMPLETED ======================================================================================================
     def world_completed_screen(self, screen, events, fps_adjust, joysticks, joystick_calibration, world_count):
@@ -1074,6 +1082,7 @@ class Game:
             'gem': False,
         }
         fadeout = False
+        change_music = False
 
         if joysticks:
             joystick_connected = True
@@ -1183,8 +1192,10 @@ class Game:
                                                                                       tutorial, self.camera_move_x,
                                                                                       self.camera_move_y, sack_rect,
                                                                                       self.gem_equipped, self.health)
-        bridge_screen_shake = self.world.draw_bridge(self.game_screen, self.camera_move_x, self.camera_move_y,
-                                                     fps_adjust, sack_rect)
+        bridge_screen_shake, bridge_change_music = self.world.draw_bridge(self.game_screen, self.camera_move_x,
+                                                                          self.camera_move_y, fps_adjust, sack_rect)
+        if bridge_change_music:
+            change_music = True
         if bridge_screen_shake:
             screen_shake = True
 
@@ -1197,7 +1208,9 @@ class Game:
 
         # updating the world data if new level -------------------------------------------------------------------------
         if self.level_check < level_count or restart_level:
-            self.world_data, self.bg_data, world_count, level_count = Game.level_checker(self, level_count, world_count)
+            self.world_data, self.bg_data, world_count, level_count, change_music = Game.level_checker(self,
+                                                                                                       level_count,
+                                                                                                       world_count)
             self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data, level_count)
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
@@ -1255,11 +1268,14 @@ class Game:
 
         # drawing the bat ----------------------------------------------------------------------------------------------
         if world_count == 3:
-            self.bat_harm, bat_screen_shake = self.world.draw_bat(sack_rect, self.game_screen, fps_adjust,
-                                                                  self.camera_move_x, self.camera_move_y,
-                                                                  self.player_moved, self.health)
+            self.bat_harm, bat_screen_shake, bat_change_music = self.world.draw_bat(sack_rect, self.game_screen,
+                                                                                    fps_adjust, self.camera_move_x,
+                                                                                    self.camera_move_y,
+                                                                                    self.player_moved, self.health)
             if bat_screen_shake:
                 screen_shake = True
+            if bat_change_music:
+                change_music = True
 
         # drawing the border -------------------------------------------------------------------------------------------
         if border_col != 0:
@@ -1436,4 +1452,4 @@ class Game:
 
         # returns
         return level_count, world_count, play_music, sounds,\
-            fadeout, popup_lvl_completed_press, self.world_completed
+            fadeout, popup_lvl_completed_press, self.world_completed, change_music
