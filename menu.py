@@ -118,11 +118,15 @@ class mainMenu:
         self.best_time_width = self.best_time_txt.get_width()
 
 # UPDATING AND DRAWING MENU ============================================================================================
-    def menu(self, menu_screen, mouse_adjustement, events, fps_adjust, joysticks, speedrun_mode):
+    def menu(self, menu_screen, mouse_adjustement, events, fps_adjust, joysticks, speedrun_mode, joystick_controls):
 
         menu_screen.blit(self.menu_background, (0, 0))
 
         key = pygame.key.get_pressed()
+
+        hat_value = [0, 0]
+
+        use_btn = joystick_controls[5]
 
         joystick_sound = False
         joystick_over1 = False
@@ -142,36 +146,50 @@ class mainMenu:
         if events['joyaxismotion_y']:
             event = events['joyaxismotion_y']
             # down
-            if event.value > 0.1 and not self.joystick_moved:
+            if event.value > 0.3 and not self.joystick_moved:
                 self.joystick_counter += 1
                 self.joystick_moved = True
                 joystick_sound = True
                 if self.joystick_counter > 1:
                     self.joystick_counter = 0
             # up
-            elif event.value < -0.1 and not self.joystick_moved:
+            elif event.value < -0.3 and not self.joystick_moved:
                 self.joystick_counter -= 1
                 joystick_sound = True
                 self.joystick_moved = True
                 if self.joystick_counter < 0:
                     self.joystick_counter = 1
-            elif event.value == 0:
+            elif abs(event.value) < 0.05:
                 self.joystick_moved = False
+
         # D-pad input
-        if joysticks:
+        if events['joybuttondown']:
+            event = events['joybuttondown']
+            if joystick_controls[0]:
+                if event.button == joystick_controls[0][0]:  # right
+                    hat_value[0] = 1
+                if event.button == joystick_controls[0][1]:  # down
+                    hat_value[1] = -1
+                if event.button == joystick_controls[0][2]:  # left
+                    hat_value[0] = -1
+                if event.button == joystick_controls[0][3]:  # up
+                    hat_value[1] = 1
+
+        if joysticks and joysticks[0].get_numhats() > 0:
             hat_value = joysticks[0].get_hat(0)
-            if hat_value[1] == -1 and not self.hat_y_pressed:
-                self.hat_y_pressed = True
-                self.joystick_counter += 1
-                if self.joystick_counter > 1:
-                    self.joystick_counter = 0
-            if hat_value[1] == 1 and not self.hat_y_pressed:
-                self.hat_y_pressed = True
-                self.joystick_counter -= 1
-                if self.joystick_counter < 0:
-                    self.joystick_counter = 1
-            if hat_value[1] == 0:
-                self.hat_y_pressed = False
+
+        if hat_value[1] == -1 and not self.hat_y_pressed:
+            self.hat_y_pressed = True
+            self.joystick_counter += 1
+            if self.joystick_counter > 1:
+                self.joystick_counter = 0
+        if hat_value[1] == 1 and not self.hat_y_pressed:
+            self.hat_y_pressed = True
+            self.joystick_counter -= 1
+            if self.joystick_counter < 0:
+                self.joystick_counter = 1
+        if hat_value[1] == 0:
+            self.hat_y_pressed = False
 
         if joysticks:
             if self.joystick_counter == 1:
@@ -252,11 +270,11 @@ class mainMenu:
         if self.opening_animation_counter > 230:
             # play button
             play, over1 = self.p_button.draw_button(self.button_surface, False,
-                                                    mouse_adjustement, events, joystick_over0)
+                                                    mouse_adjustement, events, joystick_over0, use_btn)
 
             # settings button
             settings, over2 = self.s_button.draw_button(self.button_surface, False,
-                                                        mouse_adjustement, events, joystick_over1)
+                                                        mouse_adjustement, events, joystick_over1, use_btn)
         else:
             settings = False
             play = False

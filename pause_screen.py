@@ -61,13 +61,17 @@ class PauseScreen:
                                      self.reset_button_img, self.reset_button_press, self.reset_button_down)
         self.restart_over = False
 
-    def draw_pause_screen(self, mouse_adjustment, events, joysticks, joystick_configuration, fps_adjust, no_restart):
+    def draw_pause_screen(self, mouse_adjustment, events, joysticks, joystick_controls, fps_adjust, no_restart):
 
         self.pause_screen.blit(self.background, (0, 0))
 
         self.pause_screen.blit(self.paused_txt, (swidth / 2 - self.paused_txt.get_width() / 2, 40 / 270 * sheight))
 
         final_over1 = False
+
+        hat_value = [0, 0]
+
+        use_btn = joystick_controls[5]
 
         joystick_over0 = False
         joystick_over1 = False
@@ -76,36 +80,49 @@ class PauseScreen:
 
         if events['joyaxismotion_y']:
             event = events['joyaxismotion_y']
-            if event.axis == joystick_configuration[0][1]:
-                if event.value > 0.1 and not self.joystick_moved:
-                    self.joystick_counter += 1
-                    self.joystick_moved = True
-                    if self.joystick_counter > 3:
-                        self.joystick_counter = 0
-                elif event.value < -0.1 and not self.joystick_moved:
-                    self.joystick_counter -= 1
-                    self.joystick_moved = True
-                    if self.joystick_counter < 0:
-                        self.joystick_counter = 3
-                elif event.value == 0:
-                    self.joystick_moved = False
+            if event.value > 0.1 and not self.joystick_moved:
+                self.joystick_counter += 1
+                self.joystick_moved = True
+                if self.joystick_counter > 3:
+                    self.joystick_counter = 0
+            elif event.value < -0.1 and not self.joystick_moved:
+                self.joystick_counter -= 1
+                self.joystick_moved = True
+                if self.joystick_counter < 0:
+                    self.joystick_counter = 3
+            elif abs(event.value) < 0.02:
+                self.joystick_moved = False
+
+        if events['joybuttondown']:
+            event = events['joybuttondown']
+            # hat input
+            if joystick_controls[0]:
+                if event.button == joystick_controls[0][0]:  # right
+                    hat_value[0] = 1
+                if event.button == joystick_controls[0][1]:  # down
+                    hat_value[1] = -1
+                if event.button == joystick_controls[0][2]:  # left
+                    hat_value[0] = -1
+                if event.button == joystick_controls[0][3]:  # up
+                    hat_value[1] = 1
 
         # D-pad input
-        if joysticks:
+        if joysticks and joysticks[0].get_numhats() > 0:
             hat_value = joysticks[0].get_hat(0)
-            if not self.hat_y_pressed:
-                if hat_value[1] == 1:
-                    self.joystick_counter -= 1
-                    self.hat_y_pressed = True
-                    if self.joystick_counter < 0:
-                        self.joystick_counter = 3
-                if hat_value[1] == -1:
-                    self.joystick_counter += 1
-                    self.hat_y_pressed = True
-                    if self.joystick_counter > 3:
-                        self.joystick_counter = 0
-            if hat_value[1] == 0:
-                self.hat_y_pressed = False
+
+        if not self.hat_y_pressed:
+            if hat_value[1] == 1:
+                self.joystick_counter -= 1
+                self.hat_y_pressed = True
+                if self.joystick_counter < 0:
+                    self.joystick_counter = 3
+            if hat_value[1] == -1:
+                self.joystick_counter += 1
+                self.hat_y_pressed = True
+                if self.joystick_counter > 3:
+                    self.joystick_counter = 0
+        if hat_value[1] == 0:
+            self.hat_y_pressed = False
 
         if joysticks:
             if self.joystick_counter == 0:
@@ -131,12 +148,15 @@ class PauseScreen:
             self.restart_lvl_txt_alpha = 0
             self.restart_over_counter = 0
 
-        resume, over1 = self.resume_btn.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over0)
-        menu, over2 = self.menu_btn.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over1)
-        settings, over3 = self.s_button.draw_button(self.pause_screen, False, mouse_adjustment, events, joystick_over2)
+        resume, over1 = self.resume_btn.draw_button(self.pause_screen, False, mouse_adjustment, events,
+                                                    joystick_over0, use_btn)
+        menu, over2 = self.menu_btn.draw_button(self.pause_screen, False, mouse_adjustment, events,
+                                                joystick_over1, use_btn)
+        settings, over3 = self.s_button.draw_button(self.pause_screen, False, mouse_adjustment, events,
+                                                    joystick_over2, use_btn)
         if not no_restart:
             restart, self.restart_over = self.restart_button.draw_button(self.pause_screen, False, mouse_adjustment,
-                                                                         events, joystick_over3)
+                                                                         events, joystick_over3, use_btn)
         else:
             restart, self.restart_over = False, False
 

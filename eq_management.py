@@ -348,6 +348,10 @@ class eqManager:
         over3 = False
         over4 = False
 
+        use_btn = self.eq_controls['configuration'][6]
+
+        hat_value = [0, 0]
+
         if not gem_equipped:
             self.card_jump_animation_done = False
 
@@ -396,6 +400,7 @@ class eqManager:
                         keydown = True
             if events['joybuttondown']:
                 event = events['joybuttondown']
+                # buttons
                 if event.button == self.eq_controls['configuration'][1]:
                     bumper_key_pressed = True
                     if self.joystick_over_counter <= 0:
@@ -412,11 +417,22 @@ class eqManager:
                         self.joystick_counter += 1
                         if self.joystick_counter > card_num:
                             self.joystick_counter = 0
-                if event.button == 1:
+                # hat
+                if self.eq_controls['configuration'][0]:
+                    if event.button == self.eq_controls['configuration'][0][0]:  # right
+                        hat_value[0] = 1
+                    if event.button == self.eq_controls['configuration'][0][1]:  # down
+                        hat_value[1] = -1
+                    if event.button == self.eq_controls['configuration'][0][2]:  # left
+                        hat_value[0] = -1
+                    if event.button == self.eq_controls['configuration'][0][3]:  # up
+                        hat_value[1] = 1
+
+                if event.button == self.eq_controls['configuration'][4]:
                     joystick_info_press = True
-                if event.button == 2:
+                if event.button == self.eq_controls['configuration'][6]:
                     joystick_use_press = True
-                if event.button == 0:
+                if event.button == self.eq_controls['configuration'][5]:
                     joystick_jump_press = True
                 if (not joystick_info_press or self.card_info or joystick_jump_press) and not bumper_key_pressed:
                     joystick_action = True
@@ -427,7 +443,7 @@ class eqManager:
                 if abs(events['joyaxismotion_y'].value) > 0.3:
                     joystick_action = True
 
-        if joysticks:
+        if joysticks and joysticks[0].get_numhats() > 0:
             hat_value = joysticks[0].get_hat(0)
             if hat_value[0] != 0:
                 joystick_action = True
@@ -453,7 +469,8 @@ class eqManager:
             local_over = False
             if button[1] == 'mid-air_jump':
                 if self.card_info_type != 'mid-air_jump':
-                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events, joystick_over0)
+                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events,
+                                                              joystick_over0, use_btn)
                 else:
                     press = False
                     local_over = False
@@ -473,7 +490,8 @@ class eqManager:
 
             if button[1] == 'speed_dash':
                 if self.card_info_type != 'speed_dash':
-                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events, joystick_over1)
+                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events,
+                                                              joystick_over1, use_btn)
                 else:
                     press = False
                     local_over = False

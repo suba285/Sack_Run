@@ -40,6 +40,8 @@ class ScrollBar:
 
         mouse_pos = pygame.mouse.get_pos()
 
+        hat_value = [0, 0]
+
         self.surf_alpha += 15
         if self.surf_alpha <= 255:
             self.scrollbar_surface.set_alpha(self.surf_alpha)
@@ -70,16 +72,23 @@ class ScrollBar:
                 self.scroll_value = self.scroll_speed * -event.y
         if events['joyaxismotion_y']:
             event = events['joyaxismotion_y']
-            if event.axis == joystick_controls[0][1]:
-                self.scroll_value = self.scroll_speed * event.value
-                self.scrolling = True
-                if event.value == 0:
-                    self.scrolling = False
+            self.scroll_value = self.scroll_speed * event.value
+            self.scrolling = True
+            if abs(event.value) < 0.05:
+                self.scrolling = False
+        if events['joybuttondown']:
+            event = events['joybuttondown']
+            if joystick_controls[0]:
+                if event.button == joystick_controls[0][1]:  # down
+                    hat_value[1] = -1
+                if event.button == joystick_controls[0][3]:  # up
+                    hat_value[1] = 1
 
-        if joysticks:
+        if joysticks and joysticks[0].get_numhats() > 0:
             hat_value = joysticks[0].get_hat(0)
-            if not self.scrolling:
-                self.scroll_value = self.scroll_speed * -hat_value[1]
+
+        if not self.scrolling and hat_value[1] != 0:
+            self.scroll_value = self.scroll_speed * -hat_value[1]
 
         if (self.scroll_button_rect.collidepoint(mouse_pos[0] / mouse_adjustment[0],
                                                  mouse_pos[1] / mouse_adjustment[0] - mouse_adjustment[1])

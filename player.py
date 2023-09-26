@@ -211,6 +211,8 @@ class Player:
         self.settings_counters = settings_counters
         self.world_count = world_count
 
+        self.hat_value = [0, 0]
+
         # teleportation particles frames -------------------------------------------------------------------------------
         self.particles1 = img_loader('data/images/particles1.PNG', tile_size, tile_size)
         self.particles2 = img_loader('data/images/particles2.PNG', tile_size, tile_size)
@@ -479,18 +481,28 @@ class Player:
             if events['keyup'].key == self.controls['jump']:
                 self.player_jump = False
         if events['joybuttondown']:
-            if events['joybuttondown'].button == 0:
+            if events['joybuttondown'].button == controls['configuration'][5]:
                 self.player_jump = True
+            event = events['joybuttondown']
+            if controls['configuration'][0]:
+                if event.button == controls['configuration'][0][0]:  # right
+                    self.hat_value[0] = 1
+                if event.button == controls['configuration'][0][2]:  # left
+                    self.hat_value[0] = -1
         if events['joybuttonup']:
-            if events['joybuttonup'].button == 0:
+            if events['joybuttonup'].button == controls['configuration'][5]:
                 self.player_jump = False
+            event = events['joybuttonup']
+            if controls['configuration'][0]:
+                if event.button in [controls['configuration'][0][0], controls['configuration'][0][2]]:
+                    self.hat_value[0] = 0
         if events['joyaxismotion_x']:
             event = events['joyaxismotion_x']
-            if event.value > 0.4:
+            if event.value > 0.5:
                 self.joystick_right = True
             else:
                 self.joystick_right = False
-            if event.value < -0.4:
+            if event.value < -0.5:
                 self.joystick_left = True
             else:
                 self.joystick_left = False
@@ -500,10 +512,8 @@ class Player:
             self.player_jump = False
 
         # D-pad input
-        if joysticks:
-            hat_value = joysticks[0].get_hat(0)
-        else:
-            hat_value = (0, 0)
+        if joysticks and joysticks[0].get_numhats() > 0:
+            self.hat_value = joysticks[0].get_hat(0)
 
         # special power cards effects ----------------------------------------------------------------------------------
         if mid_air_jump_trigger and not self.mid_air_jump:
@@ -645,7 +655,7 @@ class Player:
                 if self.sack_rect.height != 28:
                     self.sack_rect.height = 28
                 # walking left
-                if key[self.controls['left']] or self.joystick_left or hat_value[0] == -1:
+                if key[self.controls['left']] or self.joystick_left or self.hat_value[0] == -1:
                     self.player_moved = True
                     if self.speed_dash and not self.speed_dash_activated:
                         self.speed_dash_activated = True
@@ -667,7 +677,7 @@ class Player:
                     self.teleport_count = 0
 
                 # walking right
-                if key[self.controls['right']] or self.joystick_right or hat_value[0] == 1 or self.bridge_cutscene_walk:
+                if key[self.controls['right']] or self.joystick_right or self.hat_value[0] == 1 or self.bridge_cutscene_walk:
                     self.player_moved = True
                     if self.speed_dash and not self.speed_dash_activated:
                         self.speed_dash_activated = True

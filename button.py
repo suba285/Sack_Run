@@ -31,17 +31,14 @@ class Button:
         self.joystick_over_counter = 0
         self.joystick_connected = False
 
-    def draw_button(self, screen, card, mouse_adjustment, events, joystick_over):
+    def draw_button(self, screen, card, mouse_adjustment, events, joystick_over, use_btn):
         action = False
         self.cursor_over = False
         self.image = self.image1
         self.image_rect.x = self.x
         self.image_rect.y = self.y
         self.joystick_over_button = joystick_over
-        if card:
-            joystick_button = 2
-        else:
-            joystick_button = 0
+        joystick_button = use_btn
 
         # cursor position
         pos = pygame.mouse.get_pos()

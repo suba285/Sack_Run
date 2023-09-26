@@ -142,7 +142,7 @@ class LevelSelection:
 
         self.lock_sound_played = False
  
-    def draw_level_selection(self, level_screen, mouse_adjustment, events, controls, joysticks, fps_adjust,
+    def draw_level_selection(self, level_screen, mouse_adjustment, events, joystick_controls, joysticks, fps_adjust,
                              world_count, new_world_unlocked):
 
         level_screen.blit(self.menu_background, (0, 0))
@@ -153,6 +153,10 @@ class LevelSelection:
             self.world_count = 4
 
         update_value = 0
+
+        use_btn = joystick_controls[5]
+
+        hat_value = [0, 0]
 
         sounds = {
             'lock': False,
@@ -211,30 +215,36 @@ class LevelSelection:
             if abs(event.value) > 0.3 and not self.joystick_moved:
                 self.joystick_counter *= -1
                 self.joystick_moved = True
-            if event.value == 0:
+            if abs(event.value) < 0.05:
                 self.joystick_moved = False
         if events['joybuttondown']:
             event = events['joybuttondown']
-            if event.button == controls['configuration'][1]:
+            if event.button == joystick_controls[1]:
                 self.left_bumper_press = True
                 left_bumper_press = True
-            if event.button == controls['configuration'][2]:
+            if event.button == joystick_controls[2]:
                 self.right_bumper_press = True
                 right_bumper_press = True
+            if joystick_controls[0]:
+                if event.button == joystick_controls[0][0]:  # right
+                    hat_value[0] = 1
+                if event.button == joystick_controls[0][2]:  # left
+                    hat_value[0] = -1
         if events['joybuttonup']:
             self.left_bumper_press = False
             self.right_bumper_press = False
 
         # D-pad input
-        if joysticks:
+        if joysticks and joysticks[0].get_numhats() > 0:
             hat_value = joysticks[0].get_hat(0)
-            if not self.hat_x_pressed:
-                # left and right
-                if abs(hat_value[0]) == 1:
-                    self.joystick_counter *= -1
-                    self.hat_x_pressed = True
-            if hat_value[0] == 0:
-                self.hat_x_pressed = False
+
+        if not self.hat_x_pressed:
+            # left and right
+            if abs(hat_value[0]) == 1:
+                self.joystick_counter *= -1
+                self.hat_x_pressed = True
+        if hat_value[0] == 0:
+            self.hat_x_pressed = False
 
         joystick_over1 = False
         joystick_over2 = False
@@ -310,14 +320,14 @@ class LevelSelection:
         if not joysticks:
             if self.world_count > 1:
                 left_press, over1 = self.left_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
-                                                              joystick_over2)
+                                                              joystick_over2, use_btn)
             else:
                 level_screen.blit(self.left_button_grey, (self.left_x, self.button_y))
                 if joystick_over2:
                     level_screen.blit(self.arrow_button_outline_surf, (self.left_x, self.button_y))
             if self.world_count < 4:
                 right_press, over2 = self.right_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
-                                                                joystick_over_2)
+                                                                joystick_over_2, use_btn)
             else:
                 level_screen.blit(self.right_button_grey, (self.right_x, self.button_y))
                 if joystick_over_2:
@@ -333,10 +343,10 @@ class LevelSelection:
             level_screen.blit(bumper2, (self.right_x + 4, self.button_y + 2))
 
         menu_press, over3 = self.menu_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
-                                                      joystick_over1)
+                                                      joystick_over1, use_btn)
         if self.world_status[self.world_count - 1]:
             play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
-                                                          joystick_over_1)
+                                                          joystick_over_1, use_btn)
 
         if left_press or left_bumper_press:
             update_value = -1

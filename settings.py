@@ -296,8 +296,10 @@ class SettingsMenu:
         # --------------------------------------------------------------------------------------------------------------
         self.joystick_counter = 0
         self.joystick_moved = False
+        self.calib_joystick_moved = False
         self.hat_x_pressed = False
         self.hat_y_pressed = False
+        self.hat_value = [0, 0]
 
         # button positional variables and other ------------------------------------------------------------------------
         gap = 30 / 270 * sheight
@@ -476,12 +478,18 @@ class SettingsMenu:
         self.controller_conf_popup2 = popup_bg_generator((200, 100))
         self.controller_conf_popup3 = popup_bg_generator((200, 100))
         self.controller_conf_popup4 = popup_bg_generator((200, 100))
+        self.controller_conf_popup5 = popup_bg_generator((200, 100))
+        self.controller_conf_popup6 = popup_bg_generator((200, 100))
+        self.controller_conf_popup7 = popup_bg_generator((200, 100))
         self.controller_conf_title = text.make_text(['CONTROLLER CALIBRATION'])
         self.controller_conf_cal0 = text.make_text(['move the left stick as shown below'])
         self.controller_conf_cal1 = text.make_text(['press the LB button (left bumper)'])
         self.controller_conf_cal2 = text.make_text(['press the RB button (right bumper)'])
         self.controller_conf_cal3 = text.make_text(['press the options button (pause)'])
-        self.controller_conf_cal4 = text.make_text(['choose your button naming'])
+        self.controller_conf_cal4 = text.make_text(['press the left face button'])
+        self.controller_conf_cal5 = text.make_text(['press the bottom face button'])
+        self.controller_conf_cal6 = text.make_text(['press the right face button'])
+        self.controller_conf_cal7 = text.make_text(['choose your button naming'])
         button_rb = img_loader('data/images/buttons/button_rb.PNG', tile_size / 2, tile_size / 2)
         button_lb = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
         self.button_rb = button_rb
@@ -494,24 +502,20 @@ class SettingsMenu:
         button_square = img_loader('data/images/buttons/button_square.PNG', tile_size / 2, tile_size / 2)
         button_cross = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
         button_circle = img_loader('data/images/buttons/button_circle.PNG', tile_size / 2, tile_size / 2)
-        self.controller_stick_animation_x = {
-            0: pygame.transform.flip(img_loader('data/images/controller_stick_animation/controller_stick1.PNG',
-                                                tile_size, tile_size), True, False),
-            1: pygame.transform.flip(img_loader('data/images/controller_stick_animation/controller_stick2.PNG',
-                                                tile_size, tile_size), True, False),
-            2: pygame.transform.flip(img_loader('data/images/controller_stick_animation/controller_stick3.PNG',
-                                                tile_size, tile_size), True, False),
-            3: pygame.transform.flip(img_loader('data/images/controller_stick_animation/controller_stick4.PNG',
-                                                tile_size, tile_size), True, False),
+        self.steps_to_btns = {
+            4: [button_b, button_circle],
+            5: [button_a, button_cross],
+            6: [button_x, button_square]
         }
-        self.controller_stick_animation_y = {
-            0: pygame.transform.rotate(self.controller_stick_animation_x[0], 270),
-            1: pygame.transform.rotate(self.controller_stick_animation_x[1], 270),
-            2: pygame.transform.rotate(self.controller_stick_animation_x[2], 270),
-            3: pygame.transform.rotate(self.controller_stick_animation_x[3], 270),
+        self.controller_hat_imgs = {
+            0: img_loader('data/images/buttons/hat.PNG', tile_size, tile_size),
+            1: img_loader('data/images/buttons/hat_R.PNG', tile_size, tile_size),
+            2: img_loader('data/images/buttons/hat_D.PNG', tile_size, tile_size),
+            3: img_loader('data/images/buttons/hat_L.PNG', tile_size, tile_size),
+            4: img_loader('data/images/buttons/hat_U.PNG', tile_size, tile_size),
         }
-        self.controller_stick_animation_surf = pygame.Surface((tile_size, tile_size))
-        self.controller_stick_animation_surf.set_colorkey((0, 0, 0))
+        self.controller_hat_animation_surf = pygame.Surface((tile_size, tile_size))
+        self.controller_hat_animation_surf.set_colorkey((0, 0, 0))
 
         btn_gap = 2
         btn_names_surf_width = int(tile_size * 1.5 + btn_gap * 4)
@@ -565,8 +569,12 @@ class SettingsMenu:
         self.cancel_surface.blit(cancel_text, (x, 4))
 
         self.controller_calibration_btn_surf = pygame.Surface((tile_size / 2, tile_size / 2))
+        self.controller_calibration_2btn_surf = pygame.Surface((tile_size * 1.5, tile_size / 2))
 
         popup_width = self.controller_conf_popup1.get_width()
+        popup_height = self.controller_conf_popup1.get_height()
+        face_center_x = popup_width / 2 - 8
+        face_y = popup_height / 2 - 8
         self.controller_conf_popup0.blit(self.controller_conf_title,
                                          (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
         self.controller_conf_popup0.blit(self.controller_conf_cal0,
@@ -587,15 +595,33 @@ class SettingsMenu:
                                          (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
         self.controller_conf_popup4.blit(self.controller_conf_cal4,
                                          (popup_width / 2 - self.controller_conf_cal4.get_width() / 2, 30))
+        self.controller_conf_popup4.blit(button_b, (face_center_x - 10, face_y))
+        self.controller_conf_popup4.blit(button_circle, (face_center_x + 10, face_y))
+        self.controller_conf_popup5.blit(self.controller_conf_title,
+                                         (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
+        self.controller_conf_popup5.blit(self.controller_conf_cal5,
+                                         (popup_width / 2 - self.controller_conf_cal5.get_width() / 2, 30))
+        self.controller_conf_popup5.blit(button_a, (face_center_x - 10, face_y))
+        self.controller_conf_popup5.blit(button_cross, (face_center_x + 10, face_y))
+        self.controller_conf_popup6.blit(self.controller_conf_title,
+                                         (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
+        self.controller_conf_popup6.blit(self.controller_conf_cal6,
+                                         (popup_width / 2 - self.controller_conf_cal6.get_width() / 2, 30))
+        self.controller_conf_popup6.blit(button_x, (face_center_x - 10, face_y))
+        self.controller_conf_popup6.blit(button_square, (face_center_x + 10, face_y))
+        self.controller_conf_popup7.blit(self.controller_conf_title,
+                                         (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
+        self.controller_conf_popup7.blit(self.controller_conf_cal7,
+                                         (popup_width / 2 - self.controller_conf_cal4.get_width() / 2, 30))
 
         self.controller_calibration = False
         self.controller_calibration_counter = 0
         self.controller_calibration_step_counter = 0
         self.controller_calibration_button_counter = 0
         self.controller_calibration_axis_counter = 0
-        self.calibrated_axis = []
-        self.controller_configuration = []
-        self.controller_taken_btns = [0, 1, 2]
+        self.calibrated_hat_btns = []
+        self.controller_configuration = [[], -1, -1, -1, -1, -1, -1, -1]
+        self.controller_taken_btns = []
         self.choose_different_btn_counter = 0
         self.btn_names_counter = 1
 
@@ -629,6 +655,9 @@ class SettingsMenu:
             0: 'a',
             1: 'b',
             2: 'x',
+            13: 'b',
+            14: 'a',
+            15: 'x',
             (-1, 0): 'left',
             (1, 0): 'right',
             (0, -1): 'down',
@@ -653,48 +682,42 @@ class SettingsMenu:
             self.dim_surf.set_alpha(self.dim_surf_target_alpha)
 
         if self.controller_calibration_step_counter == 0 and joysticks:
-            axes = joysticks[0].get_numaxes()
-            if axes == 0:
+            hats = joysticks[0].get_numhats()
+            if hats > 0:
                 self.controller_calibration_step_counter = 1
-                self.controller_configuration.append((0, 1))
+                self.controller_configuration[self.controller_calibration_step_counter] = []
 
-        # events
-        if len(self.calibrated_axis) == 0:
-            event = events['joyaxismotion_x']
-        else:
-            event = events['joyaxismotion_y']
-        if event:
-            if event.value > 0.9:
-                if not self.controller_configuration:
-                    if event.axis not in self.calibrated_axis:
-                        self.calibrated_axis.append(event.axis)
-                    if len(self.calibrated_axis) == 2:
-                        self.controller_configuration.append(self.calibrated_axis)
-                        self.calibrated_axis = []
-                        self.controller_calibration_step_counter += 1
+        # sequence: [(D-pad), rb, lb, pause, b, a, x, button naming]
+        # D-pad sequence: [right, down, left, up]
+
         if events['joybuttondown'] and self.controller_calibration_counter > 0.25:
             event = events['joybuttondown']
-            if event.button != 0:
-                if len(self.controller_configuration) < 4:
-                    if event.button not in self.controller_taken_btns:
-                        self.controller_configuration.append(event.button)
-                        self.controller_taken_btns.append(event.button)
-                        self.controller_calibration_step_counter += 1
-                    else:
-                        self.choose_different_btn_counter = 60
 
-            if event.button == 0:
-                if len(self.controller_configuration) == 4:
-                    self.controller_configuration.append(self.btn_names_counter)
+            if self.controller_calibration_step_counter == 0 and event.button not in self.controller_taken_btns:
+                self.calibrated_hat_btns.append(event.button)
+                self.controller_taken_btns.append(event.button)
+
+            if self.controller_calibration_step_counter == 7 and event.button == self.controller_configuration[5]:
+                self.controller_configuration[self.controller_calibration_step_counter] = self.btn_names_counter
+                self.controller_calibration_step_counter += 1
+
+            elif 1 <= self.controller_calibration_step_counter <= 6:
+                if event.button not in self.controller_taken_btns:
+                    self.controller_configuration[self.controller_calibration_step_counter] = event.button
+                    self.controller_taken_btns.append(event.button)
                     self.controller_calibration_step_counter += 1
+                    print(self.controller_calibration_step_counter)
+                else:
+                    self.choose_different_btn_counter = 60
 
-            if event.button == 0 and in_settings and self.controller_calibration_step_counter < 4:
+            if (event.button == self.controller_configuration[5] or event.button == self.controls['configuration'][5])\
+                    and in_settings and self.controller_calibration_step_counter == 0:
                 self.controller_calibration = False
                 self.configuration_counter = 3
                 self.controller_calibration_step_counter = 0
                 self.controller_calibration_counter = 0
-                self.calibrated_axis = []
-                self.controller_configuration = []
+                self.calibrated_hat_btns = []
+                self.controller_configuration = [[], -1, -1, -1, -1, -1, -1, -1]
                 self.controller_taken_btns = [1]
                 calibrated = False
                 self.dim_surf_alpha = 0
@@ -705,35 +728,23 @@ class SettingsMenu:
             self.configuration_counter = 3
             self.controller_calibration_step_counter = 0
             self.controller_calibration_counter = 0
-            self.calibrated_axis = []
-            self.controller_configuration = []
+            self.calibrated_hat_btns = []
+            self.controller_configuration = [[], -1, -1, -1, -1, -1, -1, -1]
             self.controller_taken_btns = [1]
             calibrated = False
             self.dim_surf_alpha = 0
             self.dim_surf.set_alpha(self.dim_surf_alpha)
 
-        if self.controller_calibration_step_counter == 4:
-            if events['joyaxismotion_x']:
-                event = events['joyaxismotion_x']
-                if event.axis == self.controller_configuration[0][0]:
-                    if not self.joystick_moved and abs(event.value) > 0.3:
-                        if self.btn_names_counter == 1:
-                            self.btn_names_counter = 2
-                        else:
-                            self.btn_names_counter = 1
-                        self.joystick_moved = True
-                    if event.value == 0:
-                        self.joystick_moved = False
-
-        if self.controller_calibration_step_counter == 5:
+        if self.controller_calibration_step_counter == 8:
             self.controller_calibration = False
+            self.calibrated_hat_btns = []
             self.controller_calibration_step_counter = 0
             self.controller_calibration_counter = 0
             self.configuration_counter = self.btn_names_counter
             self.nums_to_btns['configuration'] = self.controller_configuration
             self.controls['configuration'] = self.controller_configuration
             configuration = self.controller_configuration
-            self.controller_configuration = []
+            self.controller_configuration = [[], -1, -1, -1, -1, -1, -1, -1]
             self.controller_taken_btns = [1]
             calibration_done = True
             self.dim_surf_alpha = 0
@@ -748,14 +759,22 @@ class SettingsMenu:
             raw_popup = self.controller_conf_popup2
         elif self.controller_calibration_step_counter == 3:
             raw_popup = self.controller_conf_popup3
-        else:
+        elif self.controller_calibration_step_counter == 4:
             raw_popup = self.controller_conf_popup4
+        elif self.controller_calibration_step_counter == 5:
+            raw_popup = self.controller_conf_popup5
+        elif self.controller_calibration_step_counter == 6:
+            raw_popup = self.controller_conf_popup6
+        else:
+            raw_popup = self.controller_conf_popup7
+
+        # button animation counter cap
+        if self.controller_calibration_button_counter > 50:
+            self.controller_calibration_button_counter = 0
 
         if 0 < self.controller_calibration_step_counter <= 2:
             if self.controller_calibration_button_counter > 40:
                 btn_img = self.bumpers[f'{self.controller_calibration_step_counter}_2']
-                if self.controller_calibration_button_counter > 50:
-                    self.controller_calibration_button_counter = 0
             else:
                 btn_img = self.bumpers[f'{self.controller_calibration_step_counter}_1']
             self.controller_calibration_btn_surf.fill((79, 70, 81))
@@ -764,34 +783,47 @@ class SettingsMenu:
                                                         raw_popup.get_height() / 2 - btn_img.get_height() / 2 + 10))
 
         if self.controller_calibration_step_counter == 0:
-            self.controller_calibration_axis_counter += 0.18 * fps_adjust
-            anim_counter = self.controller_calibration_axis_counter
-            if self.controller_calibration_axis_counter > 3:
-                anim_counter = 3
-                if self.controller_calibration_axis_counter > 10:
-                    self.controller_calibration_axis_counter = 0
-            if len(self.calibrated_axis) == 0:
-                anim_dict = self.controller_stick_animation_x
+            if self.controller_calibration_button_counter > 30 and len(self.calibrated_hat_btns) < 4:
+                hat_img = self.controller_hat_imgs[len(self.calibrated_hat_btns) + 1]
             else:
-                anim_dict = self.controller_stick_animation_y
-            stick_img = anim_dict[round(anim_counter)]
-            self.controller_stick_animation_surf.fill((79, 70, 81))
-            self.controller_stick_animation_surf.blit(stick_img, (0, 0))
-            raw_popup.blit(self.controller_stick_animation_surf, (raw_popup.get_width() / 2 - 16,
-                                                                  raw_popup.get_height() / 2 - 12))
+                hat_img = self.controller_hat_imgs[0]
+            self.controller_hat_animation_surf.fill((79, 70, 81))
+            self.controller_hat_animation_surf.blit(hat_img, (0, 0))
+            raw_popup.blit(self.controller_hat_animation_surf, (raw_popup.get_width() / 2 - 16,
+                                                                raw_popup.get_height() / 2 - 12))
 
-        if self.controller_calibration_step_counter == 4:
+        if self.controller_calibration_step_counter == 7:
+            hat_value = [0, 0]
             # D-pad input
-            if joysticks:
+            if joysticks and joysticks[0].get_numhats() > 0:
                 hat_value = joysticks[0].get_hat(0)
-                if hat_value[0] != 0 and not self.hat_x_pressed:
-                    self.hat_x_pressed = True
+            if events['joybuttondown']:
+                event = events['joybuttondown']
+                if self.controller_configuration[0]:
+                    if event.button == self.controller_configuration[0][0]:  # right
+                        hat_value[0] = 1
+                    if event.button == self.controller_configuration[0][2]:  # left
+                        hat_value[0] = -1
+
+            if hat_value[0] != 0 and not self.hat_x_pressed:
+                self.hat_x_pressed = True
+                if self.btn_names_counter == 1:
+                    self.btn_names_counter = 2
+                else:
+                    self.btn_names_counter = 1
+            if hat_value[0] == 0:
+                self.hat_x_pressed = False
+
+            if events['joyaxismotion_x']:
+                event = events['joyaxismotion_x']
+                if not self.calib_joystick_moved and abs(event.value) > 0.3:
                     if self.btn_names_counter == 1:
                         self.btn_names_counter = 2
                     else:
                         self.btn_names_counter = 1
-                if hat_value[0] == 0:
-                    self.hat_x_pressed = False
+                    self.calib_joystick_moved = True
+                if abs(event.value) < 0.05:
+                    self.calib_joystick_moved = False
 
             joystick_over_btn1 = False
             joystick_over_btn2 = False
@@ -799,8 +831,9 @@ class SettingsMenu:
                 joystick_over_btn1 = True
             if self.btn_names_counter == 2:
                 joystick_over_btn2 = True
-            self.btn_names_button1.draw_button(raw_popup, False, [1, 0, 0], events, joystick_over_btn1)
-            self.btn_names_button2.draw_button(raw_popup, False, [1, 0, 0], events, joystick_over_btn2)
+            use_btn = [self.controller_configuration[5]]
+            self.btn_names_button1.draw_button(raw_popup, False, [1, 0, 0], events, joystick_over_btn1, use_btn)
+            self.btn_names_button2.draw_button(raw_popup, False, [1, 0, 0], events, joystick_over_btn2, use_btn)
 
         if 0.25 > self.controller_calibration_counter > 0:
             scaling = self.controller_calibration_counter
@@ -810,17 +843,22 @@ class SettingsMenu:
         else:
             popup = raw_popup
 
-        if in_settings and self.controller_calibration_step_counter < 4:
+        if in_settings and self.controller_calibration_step_counter == 0:
             popup.blit(self.cancel_surface, (popup.get_width() / 2 - self.cancel_surface.get_width() / 2,
                                              popup.get_height() - 25))
 
         local_screen.blit(self.dim_surf, (0, 0))
         local_screen.blit(popup, (swidth / 2 - popup.get_width() / 2, sheight / 2 - popup.get_height() / 2))
 
-        if self.choose_different_btn_counter > 0 and 0 < self.controller_calibration_step_counter < 4:
+        if self.choose_different_btn_counter > 0 and 0 < self.controller_calibration_step_counter < 7:
             local_screen.blit(self.choose_different_btn_surf,
                               (swidth / 2 - self.choose_different_btn_surf.get_width() / 2,
                                sheight / 2 - 8))
+
+        if len(self.calibrated_hat_btns) == 4 and self.controller_calibration_step_counter == 0:
+            self.controller_configuration[self.controller_calibration_step_counter] = self.calibrated_hat_btns
+            self.calibrated_hat_btns = []
+            self.controller_calibration_step_counter += 1
 
         return configuration, calibration_done, calibrated
 
@@ -847,66 +885,76 @@ class SettingsMenu:
 
         prev_joystick_counter = self.joystick_counter
 
+        use_btn = self.controls['configuration'][5]
+
         joystick_moved = 0
 
         if not self.controller_calibration:
             # axis input
             if events['joyaxismotion_x'] or events['joyaxismotion_y']:
-                self.no_controller_counter = 0
-                self.pov_popup_counter = 0
                 # horizontal joystick movement
                 if events['joyaxismotion_x']:
                     event = events['joyaxismotion_x']
                     self.joystick_movement[0] = event.value
-                    if abs(event.value) > 0.3 and not self.joystick_moved:
+                    if abs(event.value) > 0.7 and not self.joystick_moved:
                         self.joystick_counter = self.joystick_counter * -1
                         self.joystick_moved = True
-                    if event.value == 0:
+                    if abs(event.value) < 0.02:
                         self.joystick_moved = False
+                    if joystick_moved:
+                        self.pov_popup_counter = 0
                 # vertical joystick movement
                 if events['joyaxismotion_y']:
                     event = events['joyaxismotion_y']
                     self.joystick_movement[1] = event.value
                     # down
-                    if event.value > 0.3 and not self.joystick_moved:
+                    if event.value > 0.7 and not self.joystick_moved:
                         if self.joystick_counter >= 0:
                             self.joystick_counter -= 1
                             if self.joystick_counter < 0:
                                 self.joystick_counter = 0
-                            self.joystick_moved = True
-                            joystick_moved = -1
                         if self.joystick_counter < 0:
                             self.joystick_counter += 1
                             if self.joystick_counter > 0:
                                 self.joystick_counter = 0
-                            self.joystick_moved = True
-                            joystick_moved = -1
+                        self.joystick_moved = True
+                        joystick_moved = -1
                     # up
-                    if event.value < -0.3 and not self.joystick_moved:
+                    if event.value < -0.7 and not self.joystick_moved:
                         if self.joystick_counter >= 0:
                             self.joystick_counter += 1
                             if self.joystick_counter > joystick_counter_cap:
                                 self.joystick_counter = 0
-                            self.joystick_moved = True
-                            joystick_moved = 1
                         if self.joystick_counter < 0:
                             self.joystick_counter -= 1
                             if self.joystick_counter < -joystick_counter_cap:
                                 self.joystick_counter = 0
-                            self.joystick_moved = True
-                            joystick_moved = 1
-                    if event.value == 0:
+                        self.joystick_moved = True
+                        joystick_moved = 1
+                    if abs(event.value) < 0.02:
                         self.joystick_moved = False
+                    if joystick_moved:
+                        self.pov_popup_counter = 0
 
             if events['joybuttondown']:
                 event = events['joybuttondown']
                 self.no_controller_counter = 0
                 self.pov_popup_counter = 0
                 # bumper input
-                if event.button == 4 or event.button == self.controls['configuration'][1]:
+                if event.button == self.controls['configuration'][1]:
                     joystick_tab_left = True
-                if event.button == 5 or event.button == self.controls['configuration'][2]:
+                if event.button == self.controls['configuration'][2]:
                     joystick_tab_right = True
+                # hat input
+                if self.controls['configuration'][0]:
+                    if event.button == self.controls['configuration'][0][0]:  # right
+                        self.hat_value[0] = 1
+                    if event.button == self.controls['configuration'][0][1]:  # down
+                        self.hat_value[1] = -1
+                    if event.button == self.controls['configuration'][0][2]:  # left
+                        self.hat_value[0] = -1
+                    if event.button == self.controls['configuration'][0][3]:  # up
+                        self.hat_value[1] = 1
                 # controller press visualization buttons (down)
                 try:
                     key = self.cont_overlay_key[event.button]
@@ -921,65 +969,71 @@ class SettingsMenu:
                     self.controller_presses[key][0] = False
                 except KeyError:
                     pass
+                # hat input button up
+                if self.controls['configuration'][0]:
+                    if event.button in [self.controls['configuration'][0][0], self.controls['configuration'][0][2]]:
+                        self.hat_value[0] = 0
+                    if event.button in [self.controls['configuration'][0][1], self.controls['configuration'][0][3]]:
+                        self.hat_value[1] = 0
 
             if events['mousebuttondown'] or events['keydown']:
                 self.no_controller_counter = 0
                 self.pov_popup_counter = 0
 
             # D-pad input
-            if joysticks:
-                hat_value = joysticks[0].get_hat(0)
+            if joysticks and joysticks[0].get_numhats() > 0:
+                self.hat_value = joysticks[0].get_hat(0)
 
-                # controller press visualization D-pad management
-                self.controller_presses['left'][0] = False
-                self.controller_presses['right'][0] = False
-                self.controller_presses['up'][0] = False
-                self.controller_presses['down'][0] = False
-                if hat_value[0] == -1:
-                    self.controller_presses['left'][0] = True
-                if hat_value[0] == 1:
-                    self.controller_presses['right'][0] = True
-                if hat_value[1] == -1:
-                    self.controller_presses['down'][0] = True
-                if hat_value[1] == 1:
-                    self.controller_presses['up'][0] = True
+            # controller press visualization D-pad management
+            self.controller_presses['left'][0] = False
+            self.controller_presses['right'][0] = False
+            self.controller_presses['up'][0] = False
+            self.controller_presses['down'][0] = False
+            if self.hat_value[0] == -1:
+                self.controller_presses['left'][0] = True
+            if self.hat_value[0] == 1:
+                self.controller_presses['right'][0] = True
+            if self.hat_value[1] == -1:
+                self.controller_presses['down'][0] = True
+            if self.hat_value[1] == 1:
+                self.controller_presses['up'][0] = True
 
-                if not self.hat_x_pressed:
-                    if abs(hat_value[0]) == 1:
-                        self.joystick_counter = self.joystick_counter * -1
-                        self.hat_x_pressed = True
-                if not self.hat_y_pressed:
-                    # down
-                    if hat_value[1] == -1:
-                        if self.joystick_counter >= 0:
-                            self.joystick_counter -= 1
-                            if self.joystick_counter < 0:
-                                self.joystick_counter = 0
-                            self.joystick_moved = True
+            if not self.hat_x_pressed:
+                if abs(self.hat_value[0]) == 1:
+                    self.joystick_counter = self.joystick_counter * -1
+                    self.hat_x_pressed = True
+            if not self.hat_y_pressed:
+                # down
+                if self.hat_value[1] == -1:
+                    if self.joystick_counter >= 0:
+                        self.joystick_counter -= 1
                         if self.joystick_counter < 0:
-                            self.joystick_counter += 1
-                            if self.joystick_counter > 0:
-                                self.joystick_counter = 0
-                        joystick_moved = -1
-                        self.hat_y_pressed = True
-                    # up
-                    if hat_value[1] == 1:
-                        if self.joystick_counter >= 0:
-                            self.joystick_counter += 1
-                            if self.joystick_counter > joystick_counter_cap:
-                                self.joystick_counter = 0
-                            self.joystick_moved = True
-                        if self.joystick_counter < 0:
-                            self.joystick_counter -= 1
-                            if self.joystick_counter < -joystick_counter_cap:
-                                self.joystick_counter = 0
-                        joystick_moved = 1
-                        self.hat_y_pressed = True
-                # if not pressed
-                if hat_value[0] == 0:
-                    self.hat_x_pressed = False
-                if hat_value[1] == 0:
-                    self.hat_y_pressed = False
+                            self.joystick_counter = 0
+                        self.joystick_moved = True
+                    if self.joystick_counter < 0:
+                        self.joystick_counter += 1
+                        if self.joystick_counter > 0:
+                            self.joystick_counter = 0
+                    joystick_moved = -1
+                    self.hat_y_pressed = True
+                # up
+                if self.hat_value[1] == 1:
+                    if self.joystick_counter >= 0:
+                        self.joystick_counter += 1
+                        if self.joystick_counter > joystick_counter_cap:
+                            self.joystick_counter = 0
+                        self.joystick_moved = True
+                    if self.joystick_counter < 0:
+                        self.joystick_counter -= 1
+                        if self.joystick_counter < -joystick_counter_cap:
+                            self.joystick_counter = 0
+                    joystick_moved = 1
+                    self.hat_y_pressed = True
+            # if not pressed
+            if self.hat_value[0] == 0:
+                self.hat_x_pressed = False
+            if self.hat_value[1] == 0:
+                self.hat_y_pressed = False
                     
         if self.joystick_counter > joystick_counter_cap:
             self.joystick_counter = joystick_counter_cap
@@ -1080,7 +1134,8 @@ class SettingsMenu:
             self.arrow_button_outline_surf.set_alpha(self.arrow_button_outline_alpha * 40)
 
         # drawing and updating the menu/back button --------------------------------------------------------------------
-        menu_press, over = self.menu_btn.draw_button(settings_screen, False, mouse_adjustment, events, joystick_over0)
+        menu_press, over = self.menu_btn.draw_button(settings_screen, False, mouse_adjustment, events, joystick_over0,
+                                                     use_btn)
 
         button_text_center = self.center + 65
 
@@ -1185,7 +1240,7 @@ class SettingsMenu:
             if self.walk_counter > 1:
                 walking_left_press, over1 = self.walking_btn_left.draw_button(self.control_screen,
                                                                               False, mouse_adjustment, events,
-                                                                              joystick_over4)
+                                                                              joystick_over4, use_btn)
             else:
                 self.control_screen.blit(self.left_button_gray, (self.left_btn_x, self.control_row1_y))
                 if joystick_over4:
@@ -1194,7 +1249,7 @@ class SettingsMenu:
             if self.walk_counter < 2:
                 walking_right_press, over2 = self.walking_btn_right.draw_button(self.control_screen,
                                                                                 False, mouse_adjustment, events,
-                                                                                joystick_over_4)
+                                                                                joystick_over_4, use_btn)
             else:
                 self.control_screen.blit(self.right_button_gray, (self.right_btn_x, self.control_row1_y))
                 if joystick_over_4:
@@ -1203,7 +1258,7 @@ class SettingsMenu:
             if self.jump_counter > 1:
                 jumping_left_press, over3 = self.jumping_btn_left.draw_button(self.control_screen,
                                                                               False, mouse_adjustment, events,
-                                                                              joystick_over3)
+                                                                              joystick_over3, use_btn)
             else:
                 self.control_screen.blit(self.left_button_gray, (self.left_btn_x, self.control_row2_y))
                 if joystick_over3:
@@ -1212,7 +1267,7 @@ class SettingsMenu:
             if self.jump_counter < 3:
                 jumping_right_press, over4 = self.jumping_btn_right.draw_button(self.control_screen,
                                                                                 False, mouse_adjustment, events,
-                                                                                joystick_over_3)
+                                                                                joystick_over_3, use_btn)
             else:
                 self.control_screen.blit(self.right_button_gray, (self.right_btn_x, self.control_row2_y))
                 if joystick_over_3:
@@ -1221,7 +1276,7 @@ class SettingsMenu:
             if self.cards_counter > 1:
                 rumble_left_press, over5 = self.rumble_btn_left.draw_button(self.control_screen,
                                                                             False, mouse_adjustment, events,
-                                                                            joystick_over2)
+                                                                            joystick_over2, use_btn)
             else:
                 self.control_screen.blit(self.left_button_gray, (self.left_btn_x, self.control_row3_y))
                 if joystick_over2:
@@ -1230,7 +1285,7 @@ class SettingsMenu:
             if self.cards_counter < 2:
                 rumble_right_press, over6 = self.rumble_btn_right.draw_button(self.control_screen,
                                                                               False, mouse_adjustment, events,
-                                                                              joystick_over_2)
+                                                                              joystick_over_2, use_btn)
             else:
                 self.control_screen.blit(self.right_button_gray, (self.right_btn_x, self.control_row3_y))
                 if joystick_over_2:
@@ -1243,7 +1298,7 @@ class SettingsMenu:
 
             if not self.controller_calibration:
                 calib_press, over5 = self.calibration_btn.draw_button(self.control_screen, False, mouse_adjustment,
-                                                                      events, config_over)
+                                                                      events, config_over, use_btn)
             else:
                 calib_press = False
 
@@ -1386,7 +1441,7 @@ class SettingsMenu:
             if self.resolution_counter > 1:
                 res_left_press, over1 = self.resolution_btn_left.draw_button(self.visual_screen,
                                                                              False, mouse_adjustment, events,
-                                                                             joystick_over4)
+                                                                             joystick_over4, use_btn)
             else:
                 self.visual_screen.blit(self.left_button_gray, (self.left_btn_x, self.vis_sound_button_start_y + self.gap))
                 if joystick_over4:
@@ -1396,7 +1451,7 @@ class SettingsMenu:
             if self.resolution_counter < 4:
                 res_right_press, over2 = self.resolution_btn_right.draw_button(self.visual_screen,
                                                                                False, mouse_adjustment, events,
-                                                                               joystick_over_4)
+                                                                               joystick_over_4, use_btn)
             else:
                 self.visual_screen.blit(self.right_button_gray, (self.right_btn_x,
                                                                  self.vis_sound_button_start_y + self.gap))
@@ -1407,30 +1462,30 @@ class SettingsMenu:
             if self.pov_counter > 1:
                 pov_left_press, over3 = self.performance_btn_left.draw_button(self.visual_screen,
                                                                               False, mouse_adjustment, events,
-                                                                              joystick_over3)
+                                                                              joystick_over3, use_btn)
             else:
                 self.visual_screen.blit(self.left_button_gray, (self.left_btn_x,
                                                                 self.vis_sound_button_start_y + self.gap * 2))
                 if joystick_over3:
-                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.left_btn_x,
-                                                                             self.vis_sound_button_start_y + self.gap * 2))
+                    self.visual_screen.blit(self.arrow_button_outline_surf,
+                                            (self.left_btn_x, self.vis_sound_button_start_y + self.gap * 2))
 
             if self.pov_counter < 2:
                 pov_right_press, over4 = self.performance_btn_right.draw_button(self.visual_screen,
                                                                                 False, mouse_adjustment, events,
-                                                                                joystick_over_3)
+                                                                                joystick_over_3, use_btn)
             else:
                 self.visual_screen.blit(self.right_button_gray, (self.right_btn_x,
                                                                  self.vis_sound_button_start_y + self.gap * 2))
 
                 if joystick_over_3:
-                    self.visual_screen.blit(self.arrow_button_outline_surf, (self.right_btn_x,
-                                                                             self.vis_sound_button_start_y + self.gap * 2))
+                    self.visual_screen.blit(self.arrow_button_outline_surf,
+                                            (self.right_btn_x, self.vis_sound_button_start_y + self.gap * 2))
 
             if self.hitbox_counter > 1:
                 hit_left_press, over5 = self.hitbox_btn_left.draw_button(self.visual_screen,
                                                                          False, mouse_adjustment, events,
-                                                                         joystick_over2)
+                                                                         joystick_over2, use_btn)
             else:
                 self.visual_screen.blit(self.left_button_gray, (self.left_btn_x,
                                                                 self.vis_sound_button_start_y + self.gap * 3))
@@ -1442,7 +1497,7 @@ class SettingsMenu:
             if self.hitbox_counter < 2:
                 hit_right_press, over6 = self.hitbox_btn_right.draw_button(self.visual_screen,
                                                                            False, mouse_adjustment, events,
-                                                                           joystick_over_2)
+                                                                           joystick_over_2, use_btn)
             else:
                 self.visual_screen.blit(self.right_button_gray, (self.right_btn_x,
                                                                  self.vis_sound_button_start_y + self.gap * 3))
@@ -1462,7 +1517,7 @@ class SettingsMenu:
                 if self.speedrun_counter > 1 and not game_paused:
                     speedrun_left_press, over7 = self.speedrun_btn_left.draw_button(self.visual_screen,
                                                                                     False, mouse_adjustment, events,
-                                                                                    joystick_over1)
+                                                                                    joystick_over1, use_btn)
                 else:
                     self.visual_screen.blit(speedrun_gray_btn_img_left, (self.left_btn_x,
                                                                     self.vis_sound_button_start_y + self.gap * 4))
@@ -1480,7 +1535,7 @@ class SettingsMenu:
                 if self.speedrun_counter < 2 and not game_paused:
                     speedrun_right_press, over8 = self.speedrun_btn_right.draw_button(self.visual_screen,
                                                                                       False, mouse_adjustment, events,
-                                                                                      joystick_over_1)
+                                                                                      joystick_over_1, use_btn)
                 else:
                     self.visual_screen.blit(speedrun_gray_btn_img_right, (self.right_btn_x,
                                                                      self.vis_sound_button_start_y + self.gap * 4))
@@ -1494,6 +1549,17 @@ class SettingsMenu:
                         else:
                             self.visual_screen.blit(self.arrow_button_outline_surf,
                                                     (self.right_btn_x, self.vis_sound_button_start_y + self.gap * 4))
+            else:
+                if self.joystick_counter > 0:
+                    if joystick_moved == -1:
+                        self.joystick_counter -= 1
+                    elif joystick_moved == 1:
+                        self.joystick_counter += 1
+                elif self.joystick_counter < 0:
+                    if joystick_moved == -1:
+                        self.joystick_counter += 1
+                    elif joystick_moved == 1:
+                        self.joystick_counter -= 1
 
         if res_left_press and self.resolution_counter > 1:
             self.resolution_counter -= 1
@@ -1551,7 +1617,7 @@ class SettingsMenu:
             if self.volume_counter > 1:
                 vol_left_press, over1 = self.volume_btn_left.draw_button(self.sound_screen,
                                                                          False, mouse_adjustment, events,
-                                                                         joystick_over2)
+                                                                         joystick_over2, use_btn)
             else:
                 self.sound_screen.blit(self.left_button_gray,
                                        (self.left_btn_x, self.vis_sound_button_start_y + self.gap))
@@ -1561,7 +1627,7 @@ class SettingsMenu:
             if self.volume_counter < volume_cap:
                 vol_right_press, over2 = self.volume_btn_right.draw_button(self.sound_screen,
                                                                            False, mouse_adjustment, events,
-                                                                           joystick_over_2)
+                                                                           joystick_over_2, use_btn)
             else:
                 self.sound_screen.blit(self.right_button_gray,
                                        (self.right_btn_x, self.vis_sound_button_start_y + self.gap))
@@ -1575,7 +1641,7 @@ class SettingsMenu:
             if self.sounds_counter > 1:
                 sound_left_press, over3 = self.sounds_btn_left.draw_button(self.sound_screen,
                                                                            False, mouse_adjustment, events,
-                                                                           joystick_over1)
+                                                                           joystick_over1, use_btn)
             else:
                 self.sound_screen.blit(self.left_button_gray,
                                        (self.left_btn_x, self.vis_sound_button_start_y + self.gap * 2))
@@ -1585,7 +1651,7 @@ class SettingsMenu:
             if self.sounds_counter < 2:
                 sound_right_press, over4 = self.sounds_btn_right.draw_button(self.sound_screen,
                                                                              False, mouse_adjustment, events,
-                                                                             joystick_over_1)
+                                                                             joystick_over_1, use_btn)
             else:
                 self.sound_screen.blit(self.right_button_gray,
                                        (self.right_btn_x, self.vis_sound_button_start_y + self.gap * 2))
@@ -1653,7 +1719,7 @@ class SettingsMenu:
         button_width = 0
         if self.draw_control_screen:
             control_btn_trigger, not_over = self.control_btn.draw_button(settings_screen,
-                                                                         False, mouse_adjustment, events, False)
+                                                                         False, mouse_adjustment, events, False, use_btn)
         else:
             settings_screen.blit(self.control_button_select,
                                  (0, 0))
@@ -1661,7 +1727,7 @@ class SettingsMenu:
             x = 0
         if self.draw_visual_screen:
             visual_btn_trigger, not_over = self.visual_btn.draw_button(settings_screen, False, mouse_adjustment,
-                                                                       events, False)
+                                                                       events, False, use_btn)
         else:
             settings_screen.blit(self.visual_button_select,
                                  (self.control_button_select.get_width(), 0))
@@ -1669,7 +1735,7 @@ class SettingsMenu:
             x = self.visual_button_select.get_width()
         if self.draw_sound_screen:
             sound_btn_trigger, not_over = self.sound_btn.draw_button(settings_screen, False, mouse_adjustment,
-                                                                     events, False)
+                                                                     events, False, use_btn)
         else:
             settings_screen.blit(self.sound_button_select,
                                  (self.control_button_select.get_width() + self.visual_button_select.get_width(), 0))
@@ -1758,5 +1824,5 @@ class SettingsMenu:
         self.settings_counters['hitbox'] = self.hitbox_counter
         self.settings_counters['speedrun'] = self.speedrun_counter
 
-        return menu_press, self.controls, final_over1, final_over2, self.pov_counter, resolution, \
+        return menu_press, self.controls, self.pov_counter, resolution, \
                adjust_resolution, self.settings_counters, calibrated, settings_music

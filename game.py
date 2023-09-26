@@ -455,7 +455,7 @@ class Game:
 
         walk_counter = settings_counters['walking']
         jump_counter = settings_counters['jumping']
-        configuration_counter = controls['configuration'][4]
+        configuration_counter = controls['configuration'][7]
         if configuration_counter == 1:
             self.controller_type = 'xbox'
             jump_btn = 'A'
@@ -759,7 +759,7 @@ class Game:
         self.portal_surface_x = portal_position[0] + tile_size / 2 - swidth / 2
         self.portal_surface_y = portal_position[1] + tile_size / 2 - sheight / 2
 
-    def popup_window(self, popup_window, screen, button, mouse_adjustment, events, joystick_over):
+    def popup_window(self, popup_window, screen, button, mouse_adjustment, events, joystick_over, use_btn):
         self.move = False
         if 1.7 > self.level_duration_counter > 1.45:
             scaling = self.level_duration_counter - 1.45
@@ -778,7 +778,7 @@ class Game:
             press, ok_over = button.draw_button(screen,
                                                 False,
                                                 mouse_adjustment,
-                                                events, joystick_over)
+                                                events, joystick_over, use_btn)
             if events['keydown']:
                 if events['keydown'].key == self.controls['jump']:
                     press = True
@@ -790,7 +790,7 @@ class Game:
 
     # updates the controller type during gameplay if one calibrates their controller mid-game
     def update_controller_type(self, joystick_controls, settings_counters):
-        configuration_counter = joystick_controls[4]
+        configuration_counter = joystick_controls[7]
         self.settings_counters = settings_counters
         self.player.settings_counters = joystick_controls[4]
         if configuration_counter == 1:
@@ -909,7 +909,7 @@ class Game:
             if events['keydown'].key == self.controls['jump']:
                 menu_press = True
         if events['joybuttondown']:
-            if events['joybuttondown'].button == 0:
+            if events['joybuttondown'].button in [0, 14]:
                 menu_press = True
 
         text = self.world_completed_text
@@ -956,7 +956,7 @@ class Game:
         if self.fade_counter <= 0:
             end_screen = True
 
-        return end_screen
+        return end_screen, menu_press
 
     def opening_cutscene(self, screen, fps_adjust, events, joystick_calibration):
         screen.fill((0, 0, 0))
@@ -1003,7 +1003,7 @@ class Game:
             if events['keydown'].key == pygame.K_SPACE:
                 press = True
         if events['joybuttondown']:
-            if events['joybuttondown'].button == 0:
+            if events['joybuttondown'].button in [0, 14]:
                 press = True
 
         if dialogue_done and dialogue and not final_step and press:
@@ -1161,6 +1161,10 @@ class Game:
             moving = True
         else:
             moving = False
+
+        if world_count == 4 and self.player_moved:
+            if level_count in [1, 3]:
+                change_music = True
 
         # updating solid tile positions --------------------------------------------------------------------------------
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
@@ -1364,7 +1368,8 @@ class Game:
             if self.level_duration_counter > 3:
                 popup_controls_press, ok_over = self.ok_controls_btn.draw_button(screen,
                                                                                  False, mouse_adjustment,
-                                                                                 events, joystick_over)
+                                                                                 events, joystick_over,
+                                                                                 self.controls['configuration'][5])
                 if events['keydown']:
                     if events['keydown'].key == self.controls['jump']:
                         popup_controls_press = True
@@ -1379,7 +1384,8 @@ class Game:
         elif self.bee_info_popup and not self.bee_info_popup_done and not self.speedrun_mode:
             self.space_btn_count += 1 * fps_adjust
             popup_bees_press = Game.popup_window(self, self.bees_popup, screen, self.ok_bee_btn,
-                                                 mouse_adjustment, events, joystick_over)
+                                                 mouse_adjustment, events, joystick_over,
+                                                 self.controls['configuration'][5])
             if self.level_duration_counter > 1.45:
                 self.bee_banner_y_counter -= 15 * fps_adjust
                 if self.bee_banner_y_counter < 0:
@@ -1397,7 +1403,8 @@ class Game:
         # dash info popup
         elif self.dash_info_popup and not self.dash_info_popup_done and not self.speedrun_mode:
             popup_dash_press = Game.popup_window(self, self.dash_popup, screen, self.ok_dash_btn,
-                                                 mouse_adjustment, events, joystick_over)
+                                                 mouse_adjustment, events, joystick_over,
+                                                 self.controls['configuration'][5])
             if self.level_duration_counter > 1.45:
                 self.dash_banner_y_counter -= 15 * fps_adjust
                 if self.dash_banner_y_counter < 0:
@@ -1420,7 +1427,8 @@ class Game:
             else:
                 if self.level_duration_counter > 1.45:
                     popup_new_card_press = Game.popup_window(self, self.new_card_popup, screen, self.ok_new_card_button,
-                                                             mouse_adjustment, events, joystick_over)
+                                                             mouse_adjustment, events, joystick_over,
+                                                             self.controls['configuration'][5])
 
                     self.eq_manager.new_card(card_type, screen, fps_adjust, self.level_duration_counter)
 
