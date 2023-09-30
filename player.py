@@ -264,6 +264,7 @@ class Player:
         self.mid_air_jump_counter = 0
         self.mid_air_jumps_num = 3
         self.speed_dash = False
+        self.speed_dash_stopped = False
         self.speed_dash_activated = False
         self.speed_dash_landed = True
         self.speed_dash_direction = 1
@@ -404,6 +405,7 @@ class Player:
             'mushroom': False,
             'land': False,
             'death': False,
+            'bubbles': 0
         }
 
         self.controls = controls
@@ -439,8 +441,11 @@ class Player:
         self.left_border = left_border
         self.right_border = right_border
         top_border = 50 / 270 * sheight
+        bottom_border = 180 / 270 * sheight
         if [level_count, world_count] in [[9, 2], [5, 4]]:
             top_border = 135 / 270 * sheight
+        if [level_count, world_count] == [6, 3]:
+            bottom_border = 150 / 270 * sheight
 
         harm = False
 
@@ -483,7 +488,8 @@ class Player:
         if events['joybuttondown']:
             if events['joybuttondown'].button == controls['configuration'][5]:
                 self.player_jump = True
-            event = events['joybuttondown']
+        if events['joyhatdown']:
+            event = events['joyhatdown']
             if controls['configuration'][0]:
                 if event.button == controls['configuration'][0][0]:  # right
                     self.hat_value[0] = 1
@@ -492,10 +498,10 @@ class Player:
         if events['joybuttonup']:
             if events['joybuttonup'].button == controls['configuration'][5]:
                 self.player_jump = False
-            event = events['joybuttonup']
-            if controls['configuration'][0]:
-                if event.button in [controls['configuration'][0][0], controls['configuration'][0][2]]:
-                    self.hat_value[0] = 0
+        if events['joyhatup']:
+            event = events['joyhatup']
+            if event.button in [controls['configuration'][0][0], controls['configuration'][0][2]]:
+                self.hat_value[0] = 0
         if events['joyaxismotion_x']:
             event = events['joyaxismotion_x']
             if event.value > 0.5:
@@ -659,7 +665,8 @@ class Player:
                     self.player_moved = True
                     if self.speed_dash and not self.speed_dash_activated:
                         self.speed_dash_activated = True
-                        sounds['jump'] = True
+                        sounds['bubbles'] = 1
+                        self.speed_dash_stopped = False
                         gem_equipped = False
                         self.screen_shake_counter = 10
                         self.vel_y = 0
@@ -681,6 +688,8 @@ class Player:
                     self.player_moved = True
                     if self.speed_dash and not self.speed_dash_activated:
                         self.speed_dash_activated = True
+                        sounds['bubbles'] = 1
+                        self.speed_dash_stopped = False
                         gem_equipped = False
                         self.screen_shake_counter = 10
                         self.vel_y = 0
@@ -946,10 +955,15 @@ class Player:
             self.sack_rect.top = 0
             dy = 0
 
+        # speed dash sound stop
+        if not self.speed_dash_stopped and not self.speed_dash_activated:
+            self.speed_dash_stopped = True
+            sounds['bubbles'] = -1
+
         # updating player coordinates ----------------------------------------------------------------------------------
         self.camera_movement_x = round(-self.vel_x * fps_adjust)
         dx = 0
-        if self.sack_rect.y > (180 / 270 * sheight) and dy * fps_adjust > 0:
+        if self.sack_rect.y > (bottom_border / 270 * sheight) and dy * fps_adjust > 0:
             self.camera_falling_assist = True
         if self.sack_rect.y < sheight / 2:
             self.camera_falling_assist = False

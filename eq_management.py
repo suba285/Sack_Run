@@ -398,6 +398,7 @@ class eqManager:
                             joystick_info_press = True
                     else:
                         keydown = True
+
             if events['joybuttondown']:
                 event = events['joybuttondown']
                 # buttons
@@ -417,7 +418,19 @@ class eqManager:
                         self.joystick_counter += 1
                         if self.joystick_counter > card_num:
                             self.joystick_counter = 0
+
+                if event.button == self.eq_controls['configuration'][4]:
+                    joystick_info_press = True
+                if event.button == self.eq_controls['configuration'][6]:
+                    joystick_use_press = True
+                if event.button == self.eq_controls['configuration'][5]:
+                    joystick_jump_press = True
+                if (not joystick_info_press or self.card_info or joystick_jump_press) and not bumper_key_pressed:
+                    joystick_action = True
+
+            if events['joyhatdown']:
                 # hat
+                event = events['joyhatdown']
                 if self.eq_controls['configuration'][0]:
                     if event.button == self.eq_controls['configuration'][0][0]:  # right
                         hat_value[0] = 1
@@ -428,14 +441,6 @@ class eqManager:
                     if event.button == self.eq_controls['configuration'][0][3]:  # up
                         hat_value[1] = 1
 
-                if event.button == self.eq_controls['configuration'][4]:
-                    joystick_info_press = True
-                if event.button == self.eq_controls['configuration'][6]:
-                    joystick_use_press = True
-                if event.button == self.eq_controls['configuration'][5]:
-                    joystick_jump_press = True
-                if (not joystick_info_press or self.card_info or joystick_jump_press) and not bumper_key_pressed:
-                    joystick_action = True
             if events['joyaxismotion_x']:
                 if abs(events['joyaxismotion_x'].value) > 0.3:
                     joystick_action = True

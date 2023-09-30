@@ -2,13 +2,11 @@ import time
 import threading
 from screen_info import *
 import pygame._sdl2
-import os
-
-os.environ['SDL_JOYSTICK_HIDAPI_PS4_RUMBLE'] = '1'
 
 pygame.init()
 pygame.joystick.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
+pygame.mixer.set_num_channels(10)
 joysticks = {}
 controller = False
 
@@ -298,33 +296,51 @@ sounds = {
         'world_completed': pygame.mixer.Sound('data/sounds/world_completed_sound.wav'),
         'click': pygame.mixer.Sound('data/sounds/click.wav'),
         'sack_noise': pygame.mixer.Sound('data/sounds/sack_noise.wav'),
-    }
+        'rumble': pygame.mixer.Sound('data/sounds/rumble.wav'),
+        'bubbles': pygame.mixer.Sound('data/sounds/bubbles.wav'),
+        'buzz_left': pygame.mixer.Sound('data/sounds/buzzing_left.wav'),
+        'buzz_right': pygame.mixer.Sound('data/sounds/buzzing_right.wav'),
+}
 
 # wheat channel
 pygame.mixer.Channel(1)
-pygame.mixer.Channel(1).set_volume(0.3)
+
+# bubbles channel
+pygame.mixer.Channel(7)
+
+# buzz channels
+pygame.mixer.Channel(8)  # left
+pygame.mixer.Channel(9)  # right
+pygame.mixer.Channel(8).set_volume(0)
+pygame.mixer.Channel(9).set_volume(0)
 
 walk_sound_switch = False
 step_sound_volume = 0.7
+max_buzz_volume = 0.7
+max_buzz_distance = 200
+buzz_volume_left = 0
+buzz_volume_right = 0
 
 sounds['card_pull'].set_volume(0.4)
-sounds['lock'].set_volume(2.5)
+sounds['lock'].set_volume(1)
 sounds['bear_trap_cling'].set_volume(0.6)
-sounds['button_click'].set_volume(1.4)
+sounds['button_click'].set_volume(1)
 sounds['world_completed'].set_volume(0.6)
 sounds['step_grass1'].set_volume(step_sound_volume)
 sounds['step_grass2'].set_volume(step_sound_volume)
-sounds['step_wood'].set_volume(0.15)
-sounds['step_rock1'].set_volume(0.5)
-sounds['step_rock2'].set_volume(0.2)
+sounds['step_wood'].set_volume(0.2)
+sounds['step_rock1'].set_volume(0.55)
+sounds['step_rock2'].set_volume(0.25)
 sounds['landing'].set_volume(0.1)
 sounds['death'].set_volume(0.7)
-sounds['jump'].set_volume(0.3)
+sounds['jump'].set_volume(0.4)
 sounds['mid_air_jump'].set_volume(0.8)
 sounds['gem'].set_volume(0.3)
 sounds['click'].set_volume(0.3)
 sounds['sack_noise'].set_volume(0.5)
 sounds['mushroom'].set_volume(1.2)
+sounds['rumble'].set_volume(0.5)
+sounds['bubbles'].set_volume(0.4)
 
 music_data = {
     '1': 'game_song1',
@@ -388,9 +404,6 @@ world_phase_limit = {
 
 paused_music_volume = 0.1
 speedrun_volume = 0.6
-
-pygame.mixer.music.load('data/sounds/game_song1.wav')
-pygame.mixer.music.set_volume(music_volumes[str(settings_counters['music_volume'])])
 
 # when True: adjust volume to background level (it was increased for demonstration purposes)
 adjust_settings_music_volume = False
@@ -497,6 +510,31 @@ game_duration_counter = 0
 
 # MAIN LOOP ============================================================================================================
 while run:
+    # sound triggers
+    button_sound_trigger3 = False
+    sound_triggers = {
+        'card': False,
+        'lock': False,
+        'trap': False,
+        'button': False,
+        'step_grass': False,
+        'step_wood': False,
+        'step_rock': False,
+        'jump': False,
+        'mid_air_jump': False,
+        'mushroom': False,
+        'land': False,
+        'death': False,
+        'wheat': 0,
+        'swoosh': False,
+        'gem': False,
+        'click': False,
+        'sack_noise': False,
+        'bubbles': 0,
+        'rumble': False,
+        'buzz': [],
+    }
+    # events
     try:
         event_list = pygame.event.get()
     except SystemError:
@@ -511,6 +549,8 @@ while run:
         'joyaxismotion_x': False,
         'joybuttondown': False,
         'joybuttonup': False,
+        'joyhatdown': False,
+        'joyhatup': False,
         'joydeviceadded': False,
         'joydeviceremoved': False,
         'mousewheel': False,
@@ -541,9 +581,15 @@ while run:
                 else:
                     events['joyaxismotion_y'] = event
         if event.type == pygame.JOYBUTTONDOWN:
-            events['joybuttondown'] = event
+            if event.button in controls['configuration'][0]:
+                events['joyhatdown'] = True
+            else:
+                events['joybuttondown'] = event
         if event.type == pygame.JOYBUTTONUP:
-            events['joybuttonup'] = event
+            if event.button in controls['configuration'][0]:
+                events['joyhatup'] = True
+            else:
+                events['joybuttonup'] = event
         if event.type == pygame.JOYDEVICEADDED:
             events['joydeviceadded'] = event
         if event.type == pygame.JOYDEVICEREMOVED:
@@ -559,28 +605,6 @@ while run:
     else:
         events['joyconnected'] = False
     key = pygame.key.get_pressed()
-
-    # sound triggers
-    button_sound_trigger3 = False
-    sound_triggers = {
-        'card': False,
-        'lock': False,
-        'trap': False,
-        'button': False,
-        'step_grass': False,
-        'step_wood': False,
-        'step_rock': False,
-        'jump': False,
-        'mid_air_jump': False,
-        'mushroom': False,
-        'land': False,
-        'death': False,
-        'wheat': False,
-        'swoosh': False,
-        'gem': False,
-        'click': False,
-        'sack_noise': False
-    }
 
     load_music = False
 
@@ -631,6 +655,8 @@ while run:
                 'joyaxismotion_x': False,
                 'joybuttondown': False,
                 'joybuttonup': False,
+                'joyhatdown': False,
+                'joyhatup': False,
                 'joydeviceadded': False,
                 'joydeviceremoved': False,
                 'mousewheel': False,
@@ -774,6 +800,8 @@ while run:
                     'joyaxismotion_x': False,
                     'joybuttondown': False,
                     'joybuttonup': False,
+                    'joyhatdown': False,
+                    'joyhatup': False,
                     'joydeviceadded': False,
                     'joydeviceremoved': False,
                     'mousewheel': False,
@@ -796,7 +824,7 @@ while run:
             run_game = False
             paused = True
             run_level_selection = False
-            if play_background_music:
+            if play_background_music and not opening_scene:
                 pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
             pause_menu.joystick_counter = 0
 
@@ -856,6 +884,8 @@ while run:
                 'joyaxismotion_x': False,
                 'joybuttondown': False,
                 'joybuttonup': False,
+                'joyhatdown': False,
+                'joyhatup': False,
                 'joydeviceadded': False,
                 'joydeviceremoved': False,
                 'mousewheel': False,
@@ -909,7 +939,7 @@ while run:
             run_game = True
             paused = False
             run_level_selection = False
-            if play_background_music:
+            if play_background_music and not opening_scene:
                 if speedrun_mode:
                     pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
                 else:
@@ -953,6 +983,8 @@ while run:
                 'joyaxismotion_x': False,
                 'joybuttondown': False,
                 'joybuttonup': False,
+                'joyhatdown': False,
+                'joyhatup': False,
                 'joydeviceadded': False,
                 'joydeviceremoved': False,
                 'mousewheel': False,
@@ -972,8 +1004,6 @@ while run:
             if world_count != 1:
                 level_count = level_counters[world_count - 1]
             else:
-                level_count = 1
-            if settings_counters['speedrun'] == 2:
                 level_count = 1
             opening_scene = True
             world_data = level_dictionary[f'level{level_count}_{world_count}']
@@ -1041,6 +1071,8 @@ while run:
                 'joyaxismotion_x': False,
                 'joybuttondown': False,
                 'joybuttonup': False,
+                'joyhatdown': False,
+                'joyhatup': False,
                 'joydeviceadded': False,
                 'joydeviceremoved': False,
                 'mousewheel': False,
@@ -1077,12 +1109,16 @@ while run:
             else:
                 settings_volume = music_volumes[str(settings_counters['music_volume'])]
             if play_background_music:
-                pygame.mixer.Channel(current_channel).set_volume(settings_volume)
-            if not game_paused and not adjust_settings_music_volume:
+                if game_paused and not opening_scene:
+                    channel = current_channel
+                else:
+                    channel = 2
+                pygame.mixer.Channel(channel).set_volume(settings_volume)
+            if (not game_paused or opening_scene) and not adjust_settings_music_volume:
                 play_music = True
             adjust_settings_music_volume = True
         elif adjust_settings_music_volume:
-            if game_paused:
+            if game_paused and not opening_scene:
                 if play_background_music:
                     pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
             else:
@@ -1300,7 +1336,7 @@ while run:
             run_game = False
             paused = True
             run_level_selection = False
-            if play_background_music:
+            if play_background_music and not opening_scene:
                 pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
             pause_menu.joystick_counter = 0
 
@@ -1351,8 +1387,6 @@ while run:
 
         if sound_triggers['jump']:
             sounds['jump'].play()
-            if joysticks:
-                joysticks[0].rumble(0.1, 0.2, 10)
 
         if sound_triggers['mid_air_jump']:
             sounds['mid_air_jump'].play()
@@ -1367,10 +1401,51 @@ while run:
             sounds['gem'].play()
 
         if sound_triggers['wheat'] == 1:
-            pygame.mixer.Channel(1).set_volume(0.6)
+            pygame.mixer.Channel(1).set_volume(0.7)
             pygame.mixer.Channel(1).play(sounds['wheat'], -1)
         if sound_triggers['wheat'] == -1:
             pygame.mixer.Channel(1).fadeout(400)
+
+        if sound_triggers['bubbles'] == 1:
+            pygame.mixer.Channel(7).set_volume(0.3)
+            pygame.mixer.Channel(7).play(sounds['bubbles'], -1)
+        if sound_triggers['bubbles'] == -1:
+            pygame.mixer.Channel(7).fadeout(100)
+
+        if [world_count, level_count] in [[2, 7], [2, 8]] and run_game:
+            if not pygame.mixer.Channel(8).get_busy():
+                pygame.mixer.Channel(8).play(sounds['buzz_left'], -1)
+            if not pygame.mixer.Channel(9).get_busy():
+                pygame.mixer.Channel(9).play(sounds['buzz_right'], -1)
+        else:
+            if pygame.mixer.Channel(8).get_busy():
+                pygame.mixer.Channel(8).fadeout(0)
+            if pygame.mixer.Channel(9).get_busy():
+                pygame.mixer.Channel(9).fadeout(0)
+        if sound_triggers['buzz']:
+            prev_distance_r = 500
+            prev_distance_l = -500
+            for distance in sound_triggers['buzz']:
+                if distance > 0:
+                    if prev_distance_r > distance:
+                        prev_distance_r = distance
+                if distance < 0:
+                    if prev_distance_l < distance:
+                        prev_distance_l = distance
+            if prev_distance_r == 500:
+                prev_distance_r = max_buzz_distance
+            if prev_distance_l == -500:
+                prev_distance_l = -max_buzz_distance
+            buzz_volume_right = (max_buzz_distance - prev_distance_r) / max_buzz_distance
+            buzz_volume_left = (max_buzz_distance + prev_distance_l) / max_buzz_distance
+            pygame.mixer.Channel(8).set_volume(buzz_volume_left)
+            pygame.mixer.Channel(9).set_volume(buzz_volume_right)
+        else:
+            pygame.mixer.Channel(8).set_volume(0)
+            pygame.mixer.Channel(9).set_volume(0)
+
+        if sound_triggers['rumble']:
+            sounds['rumble'].play()
 
         if sound_triggers['click']:
             sounds['click'].play()
@@ -1401,17 +1476,22 @@ while run:
             volume = speedrun_volume
         if not play_background_music and not run_settings:
             volume = 0
-        pygame.mixer.Channel(current_channel).set_volume(volume)
-        if not game_paused:
+        if game_paused or not run_settings:
+            pygame.mixer.Channel(current_channel).set_volume(volume)
+        if not game_paused or opening_scene:
             if not run_settings and not speedrun_mode:
                 for channel in range(2, world_phase_limit[world_count] + 2):
-                    if channel != current_channel:
+                    if channel == current_channel:
+                        pygame.mixer.Channel(channel).set_volume(volume)
+                    else:
                         pygame.mixer.Channel(channel).set_volume(0)
                     pygame.mixer.Channel(channel).play(music[f'{world_count}-{channel - 1}'], -1)
             else:
                 pygame.mixer.Channel(2).play(music['1-1'], -1)
+                pygame.mixer.Channel(2).set_volume(volume)
         if speedrun_mode:
             pygame.mixer.Channel(2).play(music['speedrun'], -1)
+            pygame.mixer.Channel(2).set_volume(volume)
         play_music = False
 
     if change_music and not speedrun_mode:
@@ -1428,10 +1508,10 @@ while run:
 
     if fadeout_music:
         if not game_paused:
-            for channel in range(2, 6):
+            for channel in range(2, 7):
                 pygame.mixer.Channel(channel).fadeout(300)
         else:
-            for channel in range(2, 6):
+            for channel in range(2, 7):
                 pygame.mixer.Channel(channel).set_volume(0)
         fadeout_music = False
 

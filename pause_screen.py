@@ -93,8 +93,8 @@ class PauseScreen:
             elif abs(event.value) < 0.02:
                 self.joystick_moved = False
 
-        if events['joybuttondown']:
-            event = events['joybuttondown']
+        if events['joyhatdown']:
+            event = events['joyhatdown']
             # hat input
             if joystick_controls[0]:
                 if event.button == joystick_controls[0][0]:  # right

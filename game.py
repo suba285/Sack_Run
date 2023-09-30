@@ -90,7 +90,7 @@ level_pos_dictionary = {
     "level3_3": (-2, -5),
     "level4_3": (4, -4),
     "level5_3": (3, -4),
-    "level6_3": (-23, 0),
+    "level6_3": (-21, -1),
     "level7_3": (3, -8),
     "level8_3": (2, -8),
     "level1_4": (3, 0),
@@ -114,7 +114,7 @@ world_ending_levels = {
 }
 
 music_change_list = [[2, 7], [3, 5]]
-music_level_phases = [[2, 7, 2], [3, 2, 2], [3, 5, 3], [3, 8, 4]]
+music_level_phases = [[2, 1, 1], [2, 7, 2], [3, 1, 1], [3, 2, 2], [3, 5, 3], [3, 8, 4], [4, 1, 1], [4, 2, 2], [4, 4, 3]]
 
 bee_popup = [2, 7]
 dash_popup = [3, 5]
@@ -377,6 +377,8 @@ class Game:
 
         self.bg_cloud1_pos = [0, 100]
         self.bg_cloud2_pos = [0, 130]
+
+        self.bridge_rumbled = False
 
         # longer level transition (speed run mode when changing worlds)
         self.long_transition = False
@@ -851,7 +853,7 @@ class Game:
         if world_count > 4:
             world_count = 4
 
-        if [world_count, level_count] in music_change_list:
+        if [world_count, level_count] in music_change_list and self.level_check > 1:
             change_music = True
 
         return world_data_level_checker, bg_data, world_count, level_count, change_music
@@ -1080,6 +1082,9 @@ class Game:
             'death': False,
             'wheat': 0,
             'gem': False,
+            'rumble': False,
+            'bubbles': 0,
+            'buzz': [],
         }
         fadeout = False
         change_music = False
@@ -1202,6 +1207,9 @@ class Game:
             change_music = True
         if bridge_screen_shake:
             screen_shake = True
+            if not self.bridge_rumbled:
+                self.bridge_rumbled = True
+                sounds['rumble'] = True
 
         # drawing the player -------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)
@@ -1221,6 +1229,7 @@ class Game:
             self.particles = Particles(particle_num)
             self.blit_card_instructions = False
             self.gem_equipped = False
+            self.bridge_rumbled = False
             self.portal_surface_x = self.world.portal_position[0] + tile_size / 2 - swidth / 2
             self.portal_surface_y = self.world.portal_position[1] + tile_size / 2 - sheight / 2
             if not restart_level:
@@ -1255,8 +1264,9 @@ class Game:
 
         self.world.draw_static_tiles_foreground(self.game_screen)
 
-        self.bee_harm = self.world.update_fg_tiles(self.game_screen, sack_rect, fps_adjust, self.camera_move_x,
-                                                   self.camera_move_y, self.health, self.player_moved)
+        self.bee_harm, sounds['buzz'] = self.world.update_fg_tiles(self.game_screen, sack_rect, fps_adjust,
+                                                                   self.camera_move_x, self.camera_move_y, self.health,
+                                                                   self.player_moved)
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 

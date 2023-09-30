@@ -718,7 +718,7 @@ class SettingsMenu:
                 self.controller_calibration_counter = 0
                 self.calibrated_hat_btns = []
                 self.controller_configuration = [[], -1, -1, -1, -1, -1, -1, -1]
-                self.controller_taken_btns = [1]
+                self.controller_taken_btns = []
                 calibrated = False
                 self.dim_surf_alpha = 0
                 self.dim_surf.set_alpha(self.dim_surf_alpha)
@@ -730,7 +730,7 @@ class SettingsMenu:
             self.controller_calibration_counter = 0
             self.calibrated_hat_btns = []
             self.controller_configuration = [[], -1, -1, -1, -1, -1, -1, -1]
-            self.controller_taken_btns = [1]
+            self.controller_taken_btns = []
             calibrated = False
             self.dim_surf_alpha = 0
             self.dim_surf.set_alpha(self.dim_surf_alpha)
@@ -745,7 +745,7 @@ class SettingsMenu:
             self.controls['configuration'] = self.controller_configuration
             configuration = self.controller_configuration
             self.controller_configuration = [[], -1, -1, -1, -1, -1, -1, -1]
-            self.controller_taken_btns = [1]
+            self.controller_taken_btns = []
             calibration_done = True
             self.dim_surf_alpha = 0
             self.dim_surf.set_alpha(self.dim_surf_alpha)
@@ -797,8 +797,8 @@ class SettingsMenu:
             # D-pad input
             if joysticks and joysticks[0].get_numhats() > 0:
                 hat_value = joysticks[0].get_hat(0)
-            if events['joybuttondown']:
-                event = events['joybuttondown']
+            if events['joyhatdown']:
+                event = events['joyhatdown']
                 if self.controller_configuration[0]:
                     if event.button == self.controller_configuration[0][0]:  # right
                         hat_value[0] = 1
@@ -945,22 +945,23 @@ class SettingsMenu:
                     joystick_tab_left = True
                 if event.button == self.controls['configuration'][2]:
                     joystick_tab_right = True
-                # hat input
-                if self.controls['configuration'][0]:
-                    if event.button == self.controls['configuration'][0][0]:  # right
-                        self.hat_value[0] = 1
-                    if event.button == self.controls['configuration'][0][1]:  # down
-                        self.hat_value[1] = -1
-                    if event.button == self.controls['configuration'][0][2]:  # left
-                        self.hat_value[0] = -1
-                    if event.button == self.controls['configuration'][0][3]:  # up
-                        self.hat_value[1] = 1
                 # controller press visualization buttons (down)
                 try:
                     key = self.cont_overlay_key[event.button]
                     self.controller_presses[key][0] = True
                 except KeyError:
                     pass
+            if events['joyhatdown']:
+                event = events['joyhatdown']
+                # hat input
+                if event.button == self.controls['configuration'][0][0]:  # right
+                    self.hat_value[0] = 1
+                if event.button == self.controls['configuration'][0][1]:  # down
+                    self.hat_value[1] = -1
+                if event.button == self.controls['configuration'][0][2]:  # left
+                    self.hat_value[0] = -1
+                if event.button == self.controls['configuration'][0][3]:  # up
+                    self.hat_value[1] = 1
             if events['joybuttonup']:
                 event = events['joybuttonup']
                 # controller press visualization buttons (up)
@@ -969,13 +970,13 @@ class SettingsMenu:
                     self.controller_presses[key][0] = False
                 except KeyError:
                     pass
-                # hat input button up
-                if self.controls['configuration'][0]:
-                    if event.button in [self.controls['configuration'][0][0], self.controls['configuration'][0][2]]:
-                        self.hat_value[0] = 0
-                    if event.button in [self.controls['configuration'][0][1], self.controls['configuration'][0][3]]:
-                        self.hat_value[1] = 0
-
+            if events['joyhatup']:
+                # hat up input
+                event = events['joyhatup']
+                if event.button in [self.controls['configuration'][0][0], self.controls['configuration'][0][2]]:
+                    self.hat_value[0] = 0
+                if event.button in [self.controls['configuration'][0][1], self.controls['configuration'][0][3]]:
+                    self.hat_value[1] = 0
             if events['mousebuttondown'] or events['keydown']:
                 self.no_controller_counter = 0
                 self.pov_popup_counter = 0

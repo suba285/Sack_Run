@@ -639,7 +639,7 @@ class World:
                 if tile == 10:
                     # gem
                     tile_type = 'gem'
-                    if level_count == 5 and self.world_count == 3:
+                    if [self.world_count, level_count] in [[3, 5], [3, 6]]:
                         offset = tile_size / 2
                     else:
                         offset = 0
@@ -1547,6 +1547,7 @@ class World:
             if self.bee_counter >= 4:
                 self.bee_counter = 4
             self.bee_release_counter = 0
+        distance_list = []
 
         for tile in self.main_fg_tile_list:
             # shockwave mushroom ---------------------------------------------------------------------------------------
@@ -1623,16 +1624,17 @@ class World:
                 if self.bee_counter > 0:
                     for i in range(self.bee_counter - 1):
                         if i <= 4:
-                            bee_harm = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
-                                                             camera_move_x,
-                                                             camera_move_y, tile[1][0], tile[1][1],
-                                                             health,
-                                                             self.shockwave_center_list,
-                                                             player_moved)
+                            bee_harm, distance = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
+                                                                       camera_move_x,
+                                                                       camera_move_y, tile[1][0], tile[1][1],
+                                                                       health,
+                                                                       self.shockwave_center_list,
+                                                                       player_moved)
                             if bee_harm:
                                 self.bee_harm = True
+                            distance_list.append(distance)
 
-        return self.bee_harm
+        return self.bee_harm, distance_list
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -1725,7 +1727,7 @@ class World:
                 self.bridge_collapse_cooldown -= 1*fps_adjust
                 if self.bridge_collapse_cooldown < 0:
                     self.bridge_collapsing = True
-                    self.bridge_collapse_counter = 40
+                    self.bridge_collapse_counter = 100
             if self.bridge_collapsing:
                 offset_x = random.randint(-2, 3)
                 offset_y = random.randint(-2, 3)
@@ -1766,7 +1768,7 @@ class World:
             screen.blit(img, (debris[1][0] - img.get_width() / 2 + tile_size / 2,
                               debris[1][1] - img.get_height() / 2 + tile_size / 2))
 
-        if self.bridge_collapsing and not self.bridge_collapsed:
+        if self.bridge_collapsing and self.bridge_collapse_counter > -40:
             screen_shake = True
 
         return screen_shake, change_music

@@ -163,8 +163,8 @@ class mainMenu:
                 self.joystick_moved = False
 
         # D-pad input
-        if events['joybuttondown']:
-            event = events['joybuttondown']
+        if events['joyhatdown']:
+            event = events['joyhatdown']
             if joystick_controls[0]:
                 if event.button == joystick_controls[0][0]:  # right
                     hat_value[0] = 1

@@ -225,11 +225,12 @@ class LevelSelection:
             if event.button == joystick_controls[2]:
                 self.right_bumper_press = True
                 right_bumper_press = True
-            if joystick_controls[0]:
-                if event.button == joystick_controls[0][0]:  # right
-                    hat_value[0] = 1
-                if event.button == joystick_controls[0][2]:  # left
-                    hat_value[0] = -1
+        if events['joyhatdown']:
+            event = events['joyhatdown']
+            if event.button == joystick_controls[0][0]:  # right
+                hat_value[0] = 1
+            if event.button == joystick_controls[0][2]:  # left
+                hat_value[0] = -1
         if events['joybuttonup']:
             self.left_bumper_press = False
             self.right_bumper_press = False

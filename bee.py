@@ -60,6 +60,8 @@ class Bee:
         self.angry_counter += 1
         self.animation_counter += 1*fps_adjust
 
+        distance = 0
+
         for shockwave in shockwave_data_list:
             radius = shockwave[2]
             shockwave_x = shockwave[0]
@@ -78,7 +80,9 @@ class Bee:
                     self.direction = 0
                 else:
                     self.direction = 1
-
+                distance = math.sqrt((sack_rect.y - self.y)**2 + (sack_rect.x - self.x)**2)
+                if self.x < sack_rect.x:
+                    distance *= -1
             if self.animation_counter > 5:
                 if self.direction == 1:
                     self.image = self.bee0f
@@ -120,7 +124,7 @@ class Bee:
         if self.blit_bee:
             screen.blit(self.image, (self.x, self.y))
 
-        return harm
+        return harm, distance
 
 
 
