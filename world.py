@@ -120,6 +120,7 @@ class World:
         self.pipe_list = []
         self.pipe_pos_list = []
         self.crate_pos_list = []
+        self.freeze_tiles = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -147,6 +148,7 @@ class World:
         self.bridge_debris_list = []
         self.wood_particles = []
         self.gem_particles = []
+        self.mush_particles = []
         self.shock_mush_part_anim_count = 0
         self.shock_mush_part_frame_len_count = 0
         self.copper_wheel_radius = 60
@@ -521,6 +523,7 @@ class World:
         self.pipe_list = []
         self.pipe_pos_list = []
         self.crate_pos_list = []
+        self.freeze_tiles = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -620,6 +623,21 @@ class World:
                 if tile == 99:
                     # background transition border
                     self.bg_border = row_count * tile_size
+                if tile == 98:
+                    # first speed dash freeze (jump)
+                    pos = [column_count * tile_size + 8 - pov_offset, row_count * tile_size + 8]
+                    tile = [pos, 'sd1']
+                    self.freeze_tiles.append(tile)
+                if tile == 97:
+                    # second speed dash freeze (dash)
+                    pos = [column_count * tile_size + 8 - pov_offset, row_count * tile_size + 8]
+                    tile = [pos, 'sd2']
+                    self.freeze_tiles.append(tile)
+                if tile == 96:
+                    # speed dash lock
+                    pos = [column_count * tile_size + 8 - pov_offset, row_count * tile_size + 8]
+                    tile = [pos, 'sd0']
+                    self.freeze_tiles.append(tile)
                 if tile == 6:
                     # garage
                     tile = img_rect_pos(self.garage, column_count, row_count, pov_offset)
@@ -639,7 +657,7 @@ class World:
                 if tile == 10:
                     # gem
                     tile_type = 'gem'
-                    if [self.world_count, level_count] in [[3, 5], [3, 6]]:
+                    if [self.world_count, level_count] in [[3, 5], [3, 6], [3, 7]]:
                         offset = tile_size / 2
                     else:
                         offset = 0
@@ -1223,6 +1241,10 @@ class World:
         for tile in self.updating_tile_list:
             tile[1][0] += camera_move_x
             tile[1][1] += camera_move_y
+
+        for tile in self.freeze_tiles:
+            tile[0][0] += camera_move_x
+            tile[0][1] += camera_move_y
 
         self.tile_surface_pos[0] += camera_move_x
         self.tile_surface_pos[1] += camera_move_y

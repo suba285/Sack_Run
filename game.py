@@ -36,6 +36,7 @@ level_dictionary = {
     "level6_3": level6_3,
     "level7_3": level7_3,
     "level8_3": level8_3,
+    "level9_3": level9_3,
     "level1_4": level1_4,
     "level2_4": level2_4,
     "level3_4": level3_4,
@@ -64,6 +65,7 @@ level_bg_dictionary = {
     "level6_3_bg": level6_3_bg,
     "level7_3_bg": level7_3_bg,
     "level8_3_bg": level8_3_bg,
+    "level9_3_bg": level9_3_bg,
     "level1_4_bg": level1_4_bg,
     "level2_4_bg": level2_4_bg,
     "level3_4_bg": level3_4_bg,
@@ -89,10 +91,11 @@ level_pos_dictionary = {
     "level2_3": (3, -4),
     "level3_3": (-2, -5),
     "level4_3": (4, -4),
-    "level5_3": (3, -4),
+    "level5_3": (0, 0),
     "level6_3": (-21, -1),
-    "level7_3": (3, -8),
-    "level8_3": (2, -8),
+    "level7_3": (3, -4),
+    "level8_3": (3, -8),
+    "level9_3": (2, -8),
     "level1_4": (3, 0),
     "level2_4": (3, -1),
     "level3_4": (1, -8),
@@ -108,13 +111,13 @@ level_card_dictionary = {
 
 world_ending_levels = {
     1: 3,
-    2: 10,
+    2: 9,
     3: 9,
     4: 7
 }
 
 music_change_list = [[2, 7], [3, 5]]
-music_level_phases = [[2, 1, 1], [2, 7, 2], [3, 1, 1], [3, 2, 2], [3, 5, 3], [3, 8, 4], [4, 1, 1], [4, 2, 2], [4, 4, 3]]
+music_level_phases = [[2, 1, 1], [2, 7, 2], [3, 1, 1], [3, 2, 2], [3, 5, 3], [3, 9, 4], [4, 1, 1], [4, 2, 2], [4, 4, 3]]
 
 bee_popup = [2, 7]
 dash_popup = [3, 5]
@@ -378,6 +381,8 @@ class Game:
         self.bg_cloud1_pos = [0, 100]
         self.bg_cloud2_pos = [0, 130]
 
+        self.freeze_tiles = []
+
         self.bridge_rumbled = False
 
         # longer level transition (speed run mode when changing worlds)
@@ -554,21 +559,6 @@ class Game:
             self.banners['bee'] = img_loader('data/images/banner_shockwave.PNG', 200, 100)
             bees_txt = text.make_text(['BEEWARE!'])
             self.bees_popup.blit(bees_txt, (banner_center - bees_txt.get_width() / 2, 6))
-
-        # dash popup window
-        self.dash_popup = popup.copy()
-
-        self.dash_banner_y_counter = sheight - self.banner_final_y
-        self.dash_banner_y = sheight
-        self.dash_banner_x = swidth / 2 - 100
-
-        self.ok_dash_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
-                                  sheight / 2 + self.dash_popup.get_height() / 2 - tile_size * 0.75 - 3,
-                                  ok_button_img, ok_button_press, ok_button_down)
-        if world_count == 3:
-            self.banners['dash'] = img_loader('data/images/banner_dash.PNG', 200, 100)
-            dash_txt = text.make_text(['DASH CHAIN'])
-            self.dash_popup.blit(dash_txt, (banner_center - dash_txt.get_width() / 2, 6))
 
         # NEW CARD POPUP -----------------------------------------------------------------------------------------------
         new_card_txt = text.make_text(['NEW CARD UNLOCKED'])
@@ -853,7 +843,7 @@ class Game:
         if world_count > 4:
             world_count = 4
 
-        if [world_count, level_count] in music_change_list and self.level_check > 1:
+        if [world_count, level_count] in music_change_list and self.level_check > 1 and self.level_check != level_count:
             change_music = True
 
         return world_data_level_checker, bg_data, world_count, level_count, change_music
@@ -1140,25 +1130,27 @@ class Game:
             self.gem_equipped,\
             screen_shake,\
             player_sounds,\
-            border_col = self.player.update_pos_animation(screen,
-                                                          self.tile_list,
-                                                          self.world.next_level_list,
-                                                          level_count,
-                                                          world_count,
-                                                          self.harm,
-                                                          fps_adjust,
-                                                          self.mid_air_jump_trigger,
-                                                          self.speed_dash_trigger,
-                                                          self.left_border,
-                                                          self.right_border,
-                                                          self.move,
-                                                          self.world.shockwave_mushroom_list,
-                                                          events,
-                                                          self.gem_equipped,
-                                                          joysticks,
-                                                          restart_level_procedure,
-                                                          self.controls,
-                                                          )
+            border_col,\
+            self.freeze_tiles = self.player.update_pos_animation(screen,
+                                                                 self.tile_list,
+                                                                 self.world.next_level_list,
+                                                                 level_count,
+                                                                 world_count,
+                                                                 self.harm,
+                                                                 fps_adjust,
+                                                                 self.mid_air_jump_trigger,
+                                                                 self.speed_dash_trigger,
+                                                                 self.left_border,
+                                                                 self.right_border,
+                                                                 self.move,
+                                                                 self.world.shockwave_mushroom_list,
+                                                                 events,
+                                                                 self.gem_equipped,
+                                                                 joysticks,
+                                                                 restart_level_procedure,
+                                                                 self.controls,
+                                                                 self.freeze_tiles
+                                                                 )
         # updating player sounds
         sounds.update(player_sounds)
         # sack motion
@@ -1224,6 +1216,7 @@ class Game:
                                                                                                        level_count,
                                                                                                        world_count)
             self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data, level_count)
+            self.freeze_tiles = self.world.freeze_tiles
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
             self.particles = Particles(particle_num)
@@ -1315,7 +1308,7 @@ class Game:
             screen.blit(self.game_screen, (0, 0))
 
         # respawn instructions -----------------------------------------------------------------------------------------
-        self.player.blit_respawn_instructions(screen, fps_adjust, joystick_connected, self.settings_counters)
+        self.player.blit_button_instructions(screen, fps_adjust, joystick_connected, self.settings_counters)
 
         # updating player health and blitting health bar ---------------------------------------------------------------
         self.world.draw_portal_compass(sack_rect, screen)
@@ -1409,25 +1402,6 @@ class Game:
             if popup_bees_press:
                 self.bee_info_popup = False
                 self.bee_info_popup_done = True
-
-        # dash info popup
-        elif self.dash_info_popup and not self.dash_info_popup_done and not self.speedrun_mode:
-            popup_dash_press = Game.popup_window(self, self.dash_popup, screen, self.ok_dash_btn,
-                                                 mouse_adjustment, events, joystick_over,
-                                                 self.controls['configuration'][5])
-            if self.level_duration_counter > 1.45:
-                self.dash_banner_y_counter -= 15 * fps_adjust
-                if self.dash_banner_y_counter < 0:
-                    self.dash_banner_y_counter = 0
-                self.dash_banner_y = self.banner_final_y + self.dash_banner_y_counter
-                if self.dash_banner_y_counter == 0:
-                    y_offset = math.cos(self.level_duration_counter * 2) * 2
-                else:
-                    y_offset = 0
-                screen.blit(self.banners['dash'], (self.dash_banner_x, self.dash_banner_y + y_offset))
-            if popup_dash_press:
-                self.dash_info_popup = False
-                self.dash_info_popup_done = True
 
         # new card popup and card animation
         elif self.new_card_animation:
