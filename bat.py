@@ -31,6 +31,7 @@ class Bat:
         self.target_set = False
         self.dash = 0
         self.dash_direction = 1
+        self.dash_speed = 5
         self.flash_duration = 2
 
         self.charge_default_flash_count = 2  # length of bat flash when it's charging the sack
@@ -47,7 +48,6 @@ class Bat:
         current_radius = math.sqrt((sack_rect.x - self.x) ** 2 + (sack_rect.y - self.y) ** 2)
 
         # sack follow
-        angle = 0
         angle = math.atan2(sack_rect.y - self.y, sack_rect.x - self.x)
         dx = math.cos(angle) * ((current_radius - self.halt_radius) / 20) * fps_adjust
         dy = math.sin(angle) * ((current_radius - self.halt_radius) / 20) * fps_adjust
@@ -61,15 +61,15 @@ class Bat:
         flash_on = True
         colour = (255, 0, 0)
         girth = 1
-        if 150 > self.laser_counter > 70:
+        if 180 > self.laser_counter > 100:
             aim = True
-            if self.laser_counter > 130:
+            if self.laser_counter > 155:
                 flash = True
-        if self.laser_counter >= 150 and not dead:
+        if self.laser_counter >= 180 and not dead:
             shoot = True
             colour = (255, 255, 255)
             girth = 2
-        if self.laser_counter >= 156:
+        if self.laser_counter >= 186:
             self.laser_counter = 0
             self.target_set = False
 
@@ -155,7 +155,7 @@ class Bat:
             if self.y < sack_y:
                 dy += 1 * fps_adjust
         if sack_y - 2 < self.y < sack_y + 2 and moved and self.dash < - 40 and not dead:
-            self.dash = 50
+            self.dash = 55
             if sack_rect.x > self.x:
                 self.dash_direction = 1
             else:
@@ -163,8 +163,8 @@ class Bat:
 
         # updating bat position
         if self.dash > 0:
-            if self.dash < 45:
-                self.x += 6 * self.dash_direction * fps_adjust + camera_move_x
+            if self.dash < 50:
+                self.x += self.dash_speed * self.dash_direction * fps_adjust + camera_move_x
             else:
                 self.x += camera_move_x
             self.y += camera_move_y
@@ -176,11 +176,11 @@ class Bat:
         if self.dash > 0:
             self.charge_flash_count -= 1 * fps_adjust
             if self.charge_flash_count < 0:
-                if 25 < self.dash < 45:
+                if 30 < self.dash < 50:
                     self.charge_flash_on = not self.charge_flash_on
                 self.charge_flash_count = self.charge_default_flash_count
                 set_silhouette = True
-            if self.dash <= 25:
+            if self.dash <= 30:
                 self.charge_flash_on = True
 
         # animation frames
@@ -235,7 +235,7 @@ class Bat:
         # the actual bit
         screen.blit(bat_img, (self.x - 18, self.y - 11))
 
-        if 45 > self.dash > 25:
+        if 50 > self.dash > 30:
             screen_shake = True
         else:
             screen_shake = False

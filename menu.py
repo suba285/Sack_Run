@@ -149,13 +149,11 @@ class mainMenu:
             if event.value > 0.3 and not self.joystick_moved:
                 self.joystick_counter += 1
                 self.joystick_moved = True
-                joystick_sound = True
                 if self.joystick_counter > 1:
                     self.joystick_counter = 0
             # up
             elif event.value < -0.3 and not self.joystick_moved:
                 self.joystick_counter -= 1
-                joystick_sound = True
                 self.joystick_moved = True
                 if self.joystick_counter < 0:
                     self.joystick_counter = 1
@@ -288,7 +286,4 @@ class mainMenu:
         if (over1 or over2 or over4) and self.opening_animation_counter > 250:
             end_over1 = True
 
-        if joystick_sound:
-            end_over1 = True
-
-        return play, end_over1, end_over2, settings
+        return play, end_over1, settings

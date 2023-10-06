@@ -7,7 +7,6 @@ from eq_management import eqManager
 from image_loader import img_loader
 from font_manager import Text
 from popup_bg_generator import popup_bg_generator
-from scroll_bar import ScrollBar
 from screen_info import swidth, sheight
 import json
 import random
@@ -28,6 +27,7 @@ level_dictionary = {
     "level7_2": level7_2,
     "level8_2": level8_2,
     "level9_2": level9_2,
+    "level10_2": level10_2,
     "level1_3": level1_3,
     "level2_3": level2_3,
     "level3_3": level3_3,
@@ -57,6 +57,7 @@ level_bg_dictionary = {
     "level7_2_bg": level7_2_bg,
     "level8_2_bg": level8_2_bg,
     "level9_2_bg": level9_2_bg,
+    "level10_2_bg": level10_2_bg,
     "level1_3_bg": level1_3_bg,
     "level2_3_bg": level2_3_bg,
     "level3_3_bg": level3_3_bg,
@@ -79,29 +80,31 @@ level_pos_dictionary = {
     "level2_1": (5, -2),
     "level3_1": (5, -2),
     "level1_2": (2, -4),
-    "level2_2": (5, -5),
-    "level3_2": (2, -4),
-    "level4_2": (2, -5),
-    "level5_2": (5, -7),
-    "level6_2": (5, -19),
-    "level7_2": (4, 2),
-    "level8_2": (5, -5),
-    "level9_2": (2, -18),
-    "level1_3": (3, 0),
-    "level2_3": (3, -4),
-    "level3_3": (-2, -5),
-    "level4_3": (4, -4),
-    "level5_3": (0, 0),
+    "level2_2": (2, -1),
+    "level3_2": (5, -5),
+    "level4_2": (2, -4),
+    "level5_2": (4, 0),
+    "level6_2": (5, -7),
+    "level7_2": (-2, -7),
+    "level8_2": (5, -19),
+    "level9_2": (0, 4),
+    "level10_2": (5, -5),
+    "level1_3": (3, -3),
+    "level2_3": (1, -1),
+    "level3_3": (4, -4),
+    "level4_3": (0, 0),
+    "level5_3": (-20, -1),
     "level6_3": (-21, -1),
-    "level7_3": (3, -4),
+    "level7_3": (-2, -5),
     "level8_3": (3, -8),
     "level9_3": (2, -8),
     "level1_4": (3, 0),
-    "level2_4": (3, -1),
-    "level3_4": (1, -8),
-    "level4_4": (4, 1),
-    "level5_4": (3, -7),
-    "level6_4": (-25, 2),
+    "level2_4": (-17, 0),
+    "level3_4": (3, -1),
+    "level4_4": (1, -8),
+    "level5_4": (2, -1),
+    "level6_4": (4, 1),
+    "level7_4": (-25, 2),
 }
 
 level_card_dictionary = {
@@ -111,13 +114,13 @@ level_card_dictionary = {
 
 world_ending_levels = {
     1: 3,
-    2: 9,
-    3: 9,
+    2: 11,
+    3: 10,
     4: 7
 }
 
-music_change_list = [[2, 7], [3, 5]]
-music_level_phases = [[2, 1, 1], [2, 7, 2], [3, 1, 1], [3, 2, 2], [3, 5, 3], [3, 9, 4], [4, 1, 1], [4, 2, 2], [4, 4, 3]]
+music_change_list = [[2, 9], [3, 4]]
+music_level_phases = [[2, 1, 1], [2, 9, 2], [3, 1, 1], [3, 2, 2], [3, 4, 3], [3, 9, 4], [4, 1, 1], [4, 2, 2], [4, 4, 3]]
 
 bee_popup = [2, 7]
 dash_popup = [3, 5]
@@ -341,19 +344,8 @@ def update_leaves(leaf_list, screen, camera_move_x, camera_move_y, fps_adjust, c
         screen.blit(img, (leaf[0][0], leaf[0][1] + offset))
 
 
-def update_clouds(cloud_list, screen, camera_move_x, camera_move_y, fps_adjust):
-    for cloud in cloud_list:
-        cloud[1][0] += (camera_move_x * cloud[2]) - cloud[3] * fps_adjust
-        cloud[1][1] += camera_move_y * cloud[2]
-        if cloud[1][0] < -110:
-            cloud[1][0] += swidth + 100
-        if cloud[1][0] > swidth:
-            cloud[1][0] -= (swidth + 100)
-        screen.blit(cloud[0], cloud[1])
-
-
 class Game:
-    def __init__(self, slow_computer, world_data, bg_data, controls, world_count, settings_counters,
+    def __init__(self, slow_computer, world_data, bg_data, controls, world_count, level_count, settings_counters,
                  joystick_connected):
 
         self.world_data = world_data
@@ -370,11 +362,19 @@ class Game:
         self.speedrun_time = ''
         self.speedrun_time_surf = text.make_text(['00:00:00'])
 
+        if joystick_connected:
+            if controls['configuration'][7] == 1:
+                self.controller_type = 'xbox'
+            else:
+                self.controller_type = 'ps4'
+        else:
+            self.controller_type = 'xbox'
+
         self.game_screen = pygame.Surface((swidth, sheight))
         self.game_screen.set_colorkey((0, 0, 255))
 
         self.cave_background_colour = (46, 27, 47)
-        self.sky_background_colour = (100, 63, 102)
+        self.sky_background_colour = (110, 73, 112)
         self.bg_transition_colour = [0, 0, 0]
         self.brick_colour = (86, 67, 32)
 
@@ -405,12 +405,6 @@ class Game:
 
         self.bg_cloud1 = img_loader('data/images/clouds/cloud_background1.PNG', 500, 190)
         self.bg_cloud2 = img_loader('data/images/clouds/cloud_background2.PNG', 500, 190)
-
-        self.cloud_imgs = []
-        for i in range(3):
-            self.cloud_imgs.append(img_loader(f'data/images/clouds/cloud_big{i + 1}.PNG', 100, 30))
-        for i in range(3):
-            self.cloud_imgs.append(img_loader(f'data/images/clouds/cloud_small{i + 1}.PNG', 50, 20))
 
         # buttons ------------------------------------------------------------------------------------------------------
         self.home_button = Button(swidth - tile_size + (tile_size - home_button_down.get_width()) / 2, 3,
@@ -443,122 +437,6 @@ class Game:
             3: self.text.make_text(['HOME RUN']),
         }
         self.world_prog_txt = self.world_prog_txts[1]
-
-        # POPUP WINDOWS ================================================================================================
-
-        # controls popup window
-        if world_count == 1:
-            self.popup_window_controls = True
-        else:
-            self.popup_window_controls = False
-
-        self.nums_to_text = {
-            'walk1': 'A and D',
-            'walk2': 'arrow keys',
-            'jump1': 'space',
-            'jump2': 'W',
-            'jump3': 'up key',
-        }
-
-        walk_counter = settings_counters['walking']
-        jump_counter = settings_counters['jumping']
-        configuration_counter = controls['configuration'][7]
-        if configuration_counter == 1:
-            self.controller_type = 'xbox'
-            jump_btn = 'A'
-        elif configuration_counter == 2:
-            self.controller_type = 'ps4'
-            jump_btn = 'Cross'
-        else:
-            self.controller_type = 'other'
-            jump_btn = 'A or cross'
-
-        controls_text = {}
-
-        if world_count == 1:
-            controls_text[1] = text.make_text(['CONTROLS'])
-            if not joystick_connected:
-                controls_text[2] = text.make_text([f"walking: {self.nums_to_text[f'walk{walk_counter}']}"])
-                controls_text[3] = text.make_text([f"jumping: {self.nums_to_text[f'jump{jump_counter}']}"])
-                controls_text[4] = text.make_text(['cards: mouse'])
-            else:
-                controls_text[2] = text.make_text(['walking: Left stick or D-pad'])
-                controls_text[3] = text.make_text([f'jumping: {jump_btn} button'])
-                controls_text[4] = text.make_text(['cards: RB and LB'])
-
-            instructions = {
-                1: text.make_text(['Follow the compass in the top-left corner,']),
-                2: text.make_text(['it will lead you to portals.']),
-                3: text.make_text(['Use cards to gain special abilities.']),
-                4: text.make_text(['Collect gems to use cards.']),
-            }
-            instruction_width = instructions[1].get_width()
-        else:
-            instructions = {}
-            instruction_width = 1
-
-        self.controls_popup_text_surface = pygame.Surface((instruction_width + 6, 180)).convert_alpha()
-        self.controls_popup_text_space = pygame.Surface((instruction_width + 6, 115)).convert_alpha()
-        self.popup_bg_colour = (79, 70, 81)
-        self.controls_popup_text_space.fill(self.popup_bg_colour)
-        self.controls_popup_text_surface.set_colorkey((0, 0, 0))
-
-        self.controls_popup_gradient = Gradient(instruction_width + 10, 15, (1, 101))
-
-        self.controls_popup = popup_bg_generator((instruction_width + 6, 140))
-        self.clean_popup = self.controls_popup
-        cont_bg_center = self.controls_popup.get_width() / 2
-
-        self.ok_controls_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
-                                      sheight / 2 + self.controls_popup.get_height() / 2 - tile_size * 0.75 - 3,
-                                      ok_button_img, ok_button_press, ok_button_down)
-
-        if world_count == 1:
-            self.controls_popup_text_surface.blit(controls_text[1],
-                                                  (cont_bg_center - controls_text[1].get_width() / 2, 6))
-            self.controls_popup_text_surface.blit(controls_text[2],
-                                                  (cont_bg_center - controls_text[2].get_width() / 2, 30))
-            self.controls_popup_text_surface.blit(controls_text[3],
-                                                  (cont_bg_center - controls_text[3].get_width() / 2, 45))
-            self.controls_popup_text_surface.blit(controls_text[4],
-                                                  (cont_bg_center - controls_text[4].get_width() / 2, 60))
-
-            self.controls_popup_text_surface.blit(instructions[1],
-                                                  (cont_bg_center - instructions[1].get_width() / 2, 90))
-            self.controls_popup_text_surface.blit(instructions[2],
-                                                  (cont_bg_center - instructions[2].get_width() / 2, 105))
-            self.controls_popup_text_surface.blit(instructions[3],
-                                                  (cont_bg_center - instructions[3].get_width() / 2, 120))
-            self.controls_popup_text_surface.blit(instructions[4],
-                                                  (cont_bg_center - instructions[4].get_width() / 2, 135))
-
-            self.controls_popup_text_space.blit(self.controls_popup_text_surface, (0, 0))
-            self.controls_popup.blit(self.controls_popup_text_space, (2, 1))
-
-            self.controls_popup.blit(ok_button_down, (cont_bg_center - ok_button_img.get_width() / 2,
-                                                      self.controls_popup.get_height() - tile_size * 0.75 - 3))
-
-        # INSTRUCTION POPUPS -------------------------------------------------------------------------------------------
-        popup = popup_bg_generator((220, 150))
-        self.banners = {}
-
-        # bees popup window
-        self.bees_popup = popup.copy()
-
-        self.banner_final_y = sheight / 2 - 52
-        self.bee_banner_y_counter = sheight - self.banner_final_y
-        self.bee_banner_y = sheight
-        self.bee_banner_x = swidth / 2 - 100
-
-        banner_center = self.bees_popup.get_width() / 2
-
-        self.ok_bee_btn = Button(swidth / 2 - ok_button_img.get_width() / 2,
-                                 sheight / 2 + self.bees_popup.get_height() / 2 - tile_size * 0.75 - 3,
-                                 ok_button_img, ok_button_press, ok_button_down)
-        if world_count == 2:
-            self.banners['bee'] = img_loader('data/images/banner_shockwave.PNG', 200, 100)
-            bees_txt = text.make_text(['BEEWARE!'])
-            self.bees_popup.blit(bees_txt, (banner_center - bees_txt.get_width() / 2, 6))
 
         # NEW CARD POPUP -----------------------------------------------------------------------------------------------
         new_card_txt = text.make_text(['NEW CARD UNLOCKED'])
@@ -717,28 +595,13 @@ class Game:
 
         self.bridge_collapsing = False
 
-        self.clouds = []
-        for cloud in range(1, 11):
-            img = random.choice(self.cloud_imgs)
-            perspective = (random.randrange(11, 14)) / 10
-            pos = [random.randrange(-50, swidth), random.randrange(170, sheight)]
-            speed = (random.randrange(2, 3)) / 10
-            package = [img, pos, perspective, speed]
-            self.clouds.append(package)
-
         # initiating classes -------------------------------------------------------------------------------------------
         self.world = World(world_data, self.game_screen, slow_computer, bg_data,
                            settings_counters, world_count)
-        self.world.create_world(self.start_x, self.start_y, world_data, bg_data, 1)
+        self.world.create_world(self.start_x, self.start_y, world_data, bg_data, 1, world_count)
         self.player = Player(self.game_screen, self.controls, self.settings_counters, world_count)
         self.particles = Particles(particle_num)
         self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
-        cont_width = self.controls_popup.get_width() / 2
-        cont_height = self.controls_popup.get_height() / 2
-        self.controls_popup_scrollbar = ScrollBar(self.controls_popup.get_height() - 4,
-                                                  self.controls_popup_text_space.get_height(),
-                                                  self.controls_popup_text_surface.get_height(),
-                                                  (swidth / 2 + cont_width + 3, sheight / 2 - cont_height + 2))
 
         # class variables ----------------------------------------------------------------------------------------------
         self.tile_list = self.world.tile_list
@@ -787,10 +650,8 @@ class Game:
         self.player.settings_counters = joystick_controls[4]
         if configuration_counter == 1:
             self.controller_type = 'xbox'
-            jump_btn = 'A'
         elif configuration_counter == 2:
             self.controller_type = 'ps4'
-            jump_btn = 'cross'
 
 # LEVEL CHECKING =======================================================================================================
     def level_checker(self, level_count, world_count):
@@ -799,7 +660,7 @@ class Game:
 
         change_music = False
 
-        max_level = 10
+        max_level = 11
         max_world = 4
         if level_count >= max_level:
             level_count = max_level
@@ -1078,6 +939,7 @@ class Game:
         }
         fadeout = False
         change_music = False
+        music_slowdown = self.player.freeze
 
         if joysticks:
             joystick_connected = True
@@ -1116,6 +978,10 @@ class Game:
         # preventing movement when calibrating joystick
         if joystick_calibration:
             self.move = False
+
+        # no tutorial in speedrun mode
+        if self.speedrun_mode:
+            self.freeze_tiles = []
 
         # updating player variables ------------------------------------------------------------------------------------
         level_count,\
@@ -1160,7 +1026,7 @@ class Game:
             moving = False
 
         if world_count == 4 and self.player_moved:
-            if level_count in [1, 3]:
+            if level_count in [1, 4]:
                 change_music = True
 
         # updating solid tile positions --------------------------------------------------------------------------------
@@ -1215,7 +1081,7 @@ class Game:
             self.world_data, self.bg_data, world_count, level_count, change_music = Game.level_checker(self,
                                                                                                        level_count,
                                                                                                        world_count)
-            self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data, level_count)
+            self.world.create_world(self.start_x, self.start_y, self.world_data, self.bg_data, level_count, world_count)
             self.freeze_tiles = self.world.freeze_tiles
             self.tile_list, self.level_length = self.world.return_tile_list()
             self.right_border = self.left_border + self.level_length * 32
@@ -1248,18 +1114,21 @@ class Game:
                 fadeout = True
 
         # --------------------------------------------------------------------------------------------------------------
-        if world_count == 3:
+        if world_count in [2, 3]:
             self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
 
         if world_count < 3 or level_count == 1:
-            sounds['wheat'] = self.world.draw_wheat(self.game_screen, sack_rect, moving)
+            sounds['wheat'] = self.world.draw_wheat(self.game_screen, sack_rect, moving, fps_adjust)
             self.world.draw_green_mushrooms(self.game_screen, sack_rect)
 
         self.world.draw_static_tiles_foreground(self.game_screen)
 
+        shock_mush_tutorial = False
+        if [world_count, level_count] == [2, 9] and not self.speedrun_mode:
+            shock_mush_tutorial = True
         self.bee_harm, sounds['buzz'] = self.world.update_fg_tiles(self.game_screen, sack_rect, fps_adjust,
                                                                    self.camera_move_x, self.camera_move_y, self.health,
-                                                                   self.player_moved)
+                                                                   self.player_moved, shock_mush_tutorial)
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 
@@ -1283,6 +1152,9 @@ class Game:
                 screen_shake = True
             if bat_change_music:
                 change_music = True
+
+        # drawing bean popup -------------------------------------------------------------------------------------------
+        self.world.draw_bean_popup(self.game_screen, fps_adjust)
 
         # drawing the border -------------------------------------------------------------------------------------------
         if border_col != 0:
@@ -1342,69 +1214,8 @@ class Game:
         else:
             joystick_over = False
 
-        # controls popup
-        if self.popup_window_controls and not self.speedrun_mode:
-            self.move = False
-            if 3 > self.level_duration_counter > 2.75:
-                scaling = self.level_duration_counter - 2.75
-                popup = pygame.transform.scale(self.controls_popup, (self.controls_popup.get_width() * scaling * 4,
-                                                                     self.controls_popup.get_height() * scaling * 4))
-            else:
-                popup = self.controls_popup
-
-            if self.level_duration_counter > 3:
-                controls_popup_percentage = self.controls_popup_scrollbar.draw_scroll_bar(screen,
-                                                                                          mouse_adjustment, events,
-                                                                                          joysticks,
-                                                                                          self.controls['configuration'])
-                self.controls_popup_text_space.fill(self.popup_bg_colour)
-                self.controls_popup_text_space.blit(self.controls_popup_text_surface,
-                                                    (0, -controls_popup_percentage * (self.controls_popup_text_surface.get_height() - self.controls_popup_text_space.get_height())))
-                popup.blit(self.controls_popup_text_space, (2, 1))
-                self.controls_popup_gradient.draw_gradient(popup)
-
-            if self.level_duration_counter > 2.75:
-                screen.blit(popup,
-                            (swidth / 2 - popup.get_width() / 2,
-                             sheight / 2 - popup.get_height() / 2))
-
-            if self.level_duration_counter > 3:
-                popup_controls_press, ok_over = self.ok_controls_btn.draw_button(screen,
-                                                                                 False, mouse_adjustment,
-                                                                                 events, joystick_over,
-                                                                                 self.controls['configuration'][5])
-                if events['keydown']:
-                    if events['keydown'].key == self.controls['jump']:
-                        popup_controls_press = True
-                        events['keydown'] = False
-            else:
-                popup_controls_press = False
-
-            if popup_controls_press:
-                self.popup_window_controls = False
-
-        # bee info popup
-        elif self.bee_info_popup and not self.bee_info_popup_done and not self.speedrun_mode:
-            self.space_btn_count += 1 * fps_adjust
-            popup_bees_press = Game.popup_window(self, self.bees_popup, screen, self.ok_bee_btn,
-                                                 mouse_adjustment, events, joystick_over,
-                                                 self.controls['configuration'][5])
-            if self.level_duration_counter > 1.45:
-                self.bee_banner_y_counter -= 15 * fps_adjust
-                if self.bee_banner_y_counter < 0:
-                    self.bee_banner_y_counter = 0
-                self.bee_banner_y = self.banner_final_y + self.bee_banner_y_counter
-                if self.bee_banner_y_counter == 0:
-                    y_offset = math.cos(self.level_duration_counter * 2) * 2
-                else:
-                    y_offset = 0
-                screen.blit(self.banners['bee'], (self.bee_banner_x, self.bee_banner_y + y_offset))
-            if popup_bees_press:
-                self.bee_info_popup = False
-                self.bee_info_popup_done = True
-
         # new card popup and card animation
-        elif self.new_card_animation:
+        if self.new_card_animation:
             card_type = level_card_dictionary[f"level{level_count}_{world_count}"]
             if card_type in self.eq_power_list:
                 self.new_card_animation = False
@@ -1444,4 +1255,4 @@ class Game:
 
         # returns
         return level_count, world_count, play_music, sounds,\
-            fadeout, popup_lvl_completed_press, self.world_completed, change_music
+            fadeout, popup_lvl_completed_press, self.world_completed, change_music, music_slowdown

@@ -150,6 +150,7 @@ from world_selection import LevelSelection
 from game import level_dictionary, level_bg_dictionary
 from settings import SettingsMenu
 from image_loader import img_loader
+from popup import draw_popup
 import random
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -241,6 +242,7 @@ play_music = False
 play_music_trigger = False
 fadeout_music = False
 change_music = False
+slow_music = False
 world_completed_sound_played = False
 play_background_music = True
 play_sounds = True
@@ -361,6 +363,7 @@ music = {
     '4-2': pygame.mixer.Sound('data/sounds/game_song4-2.wav'),
     '4-3': pygame.mixer.Sound('data/sounds/game_song4-3.wav'),
     '3-4-transition': pygame.mixer.Sound('data/sounds/game_song3-4_transition.wav'),
+    '3-3-slow': pygame.mixer.Sound('data/sounds/game_song3-3-slow.wav'),
     'speedrun': pygame.mixer.Sound('data/sounds/Speedrun-song.wav')
 }
 
@@ -413,8 +416,6 @@ one_time_play_card_pull = True
 one_time_play_button1 = True
 one_time_play_button2 = True
 one_time_play_lock = True
-card_swoosh_chest = False
-card_swoosh_counter = 0
 
 # joystick variables
 joystick_moved = False
@@ -456,7 +457,8 @@ cursor = pygame.transform.scale(cursor_raw, (tile_size/4, tile_size/4))
 cursor.set_colorkey((0, 0, 0))
 
 # initiating classes ---------------------------------------------------------------------------------------------------
-main_game = Game(slow_computer, world_data, bg_data, controls, world_count, settings_counters, joystick_connected)
+main_game = Game(slow_computer, world_data, bg_data, controls, world_count, level_count, settings_counters,
+                 joystick_connected)
 main_menu = mainMenu()
 pause_menu = PauseScreen(pause_screen)
 level_select = LevelSelection(world_count)
@@ -469,9 +471,9 @@ game_loaded = False
 loading = False
 
 
-def load_game(local_world_data, local_bg_data, local_world_count, local_joystick_connected):
+def load_game(local_world_data, local_bg_data, local_world_count, local_level_count, local_joystick_connected):
     global main_game, game_loaded
-    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count,
+    main_game = Game(slow_computer, local_world_data, local_bg_data, controls, local_world_count, local_level_count,
                      settings_counters, local_joystick_connected)
     game_loaded = True
 
@@ -494,8 +496,8 @@ controller_connected_popup = popup_bg_generator((controller_connected_txt.get_wi
 controller_disconnected_popup = popup_bg_generator((controller_disconnected_txt.get_width() + 10, 15))
 controller_connected_popup.blit(controller_connected_txt, (7, 7))
 controller_disconnected_popup.blit(controller_disconnected_txt, (7, 7))
-controller_connected_counter = 0
-controller_disconnected_counter = -10
+controller_connected_counter = 400
+controller_disconnected_counter = 400
 controller_popup = controller_connected_popup
 
 controller_calibration = False
@@ -582,12 +584,12 @@ while run:
                     events['joyaxismotion_y'] = event
         if event.type == pygame.JOYBUTTONDOWN:
             if event.button in controls['configuration'][0]:
-                events['joyhatdown'] = True
+                events['joyhatdown'] = event
             else:
                 events['joybuttondown'] = event
         if event.type == pygame.JOYBUTTONUP:
             if event.button in controls['configuration'][0]:
-                events['joyhatup'] = True
+                events['joyhatup'] = event
             else:
                 events['joybuttonup'] = event
         if event.type == pygame.JOYDEVICEADDED:
@@ -633,10 +635,10 @@ while run:
     joystick_moved = False
     joystick_over_card = False
     game_duration_counter += 1 * fps_adjust
-    if game_duration_counter > 20:
-        controller_disconnected_counter -= 1 * fps_adjust
-        controller_connected_counter -= 1 * fps_adjust
     calibration_start_counter += 1 * fps_adjust
+    if game_duration_counter > 20:
+        controller_connected_counter += 1 * fps_adjust
+        controller_disconnected_counter += 1 * fps_adjust
 
     # running the menu -------------------------------------------------------------------------------------------------
     if run_menu:
@@ -663,10 +665,9 @@ while run:
                 'videoresize': False
             }
         controller_not_configured_counter -= 1 * fps_adjust
-        level_selection, sound_triggers['button'],\
-            button_sound_trigger3, settings = main_menu.menu(menu_screen,
-                                                             mouse_adjustment, menu_events, fps_adjust,
-                                                             joysticks, speedrun_mode, controls['configuration'])
+        level_selection, sound_triggers['button'], settings = main_menu.menu(menu_screen, mouse_adjustment, menu_events,
+                                                                             fps_adjust, joysticks, speedrun_mode,
+                                                                             controls['configuration'])
 
         # settings not saved error
         if settings_not_saved_error:
@@ -682,7 +683,8 @@ while run:
                 bg_data = level_bg_dictionary[f'level1_1_bg']
                 world_count = 1
                 level_count = 1
-                threading.Thread(target=load_game, args=[world_data, bg_data, world_count, joystick_connected]).start()
+                threading.Thread(target=load_game,
+                                 args=[world_data, bg_data, world_count, level_count, joystick_connected]).start()
                 loading = True
                 proceed_with_transition = False
                 if level_count > 1:
@@ -770,10 +772,11 @@ while run:
                 fadeout_music,\
                 lvl_selection_press,\
                 world_completed,\
-                change_music = main_game.game(screen, level_count, fps_adjust,
-                                              draw_hitbox, mouse_adjustment, events,
-                                              game_counter, world_count, controls,
-                                              controller_calibration, joysticks, level_restart_procedure)
+                change_music,\
+                slow_music = main_game.game(screen, level_count, fps_adjust,
+                                            draw_hitbox, mouse_adjustment, events,
+                                            game_counter, world_count, controls,
+                                            controller_calibration, joysticks, level_restart_procedure)
             level_restart_procedure = False
             sound_triggers.update(game_sounds)
         else:
@@ -1008,7 +1011,8 @@ while run:
             opening_scene = True
             world_data = level_dictionary[f'level{level_count}_{world_count}']
             bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
-            threading.Thread(target=load_game, args=[world_data, bg_data, world_count, joystick_connected]).start()
+            threading.Thread(target=load_game,
+                             args=[world_data, bg_data, world_count, level_count, joystick_connected]).start()
             loading = True
             proceed_with_transition = False
             if level_count > 1:
@@ -1088,9 +1092,10 @@ while run:
             adjust_resolution,\
             settings_counters,\
             calibrated_press,\
-            settings_music_control = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment,
-                                                                      settings_events, fps_adjust, joystick_connected,
-                                                                      joysticks, game_paused)
+            settings_music_control,\
+            sound_triggers['button'] = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment,
+                                                                        settings_events, fps_adjust, joystick_connected,
+                                                                        joysticks, game_paused)
 
         if performance_counter == 1:
             slow_computer = False
@@ -1256,7 +1261,7 @@ while run:
         joystick_connected = True
         joystick_name = str(joystick.get_name())
         if joystick_name in controllers:
-            controller_connected_counter = 90
+            controller_connected_counter = 0
             joystick_configured = True
             controller_popup = controller_connected_popup
         elif 'XBOX' in str(joystick_name) or 'Xbox' in str(joystick_name):
@@ -1278,7 +1283,7 @@ while run:
                     except FileNotFoundError:
                         settings_not_saved_error = True
         else:
-            controller_connected_counter = 90
+            controller_connected_counter = 0
             settings_counters['configuration'] = 1
             settings_menu.update_settings_counters(settings_counters, controls)
             joystick_configured = False
@@ -1302,7 +1307,7 @@ while run:
             joystick_connection_error = True
 
     if events['joydeviceremoved'] and game_duration_counter > 20:
-        controller_disconnected_counter = 90
+        controller_disconnected_counter = 00
         joysticks = {}
         if not joystick_configured:
             del controllers[joystick_name]
@@ -1316,14 +1321,14 @@ while run:
         if joystick_idle_x and abs(event.value) > 0.3:
             joystick_moved = True
             joystick_idle_x = False
-        if abs(event.value) < 0.02:
+        if abs(event.value) < 0.2:
             joystick_idle_x = True
     if events['joyaxismotion_y']:
         event = events['joyaxismotion_y']
         if joystick_idle_y and abs(event.value) > 0.3:
             joystick_moved = True
             joystick_idle_y = False
-        if abs(event.value) < 0.02:
+        if abs(event.value) < 0.2:
             joystick_idle_y = True
 
     if events['joybuttondown'] and not controller_calibration:
@@ -1352,20 +1357,8 @@ while run:
         if not sound_triggers['card']:
             one_time_play_card_pull = True
 
-        if button_sound_trigger3 and one_time_play_button2:
-            sounds['button_click'].play()
-            one_time_play_button2 = False
-        if not button_sound_trigger3:
-            one_time_play_button2 = True
-
         if not sound_triggers['lock']:
             one_time_play_lock = True
-        if card_swoosh_chest:
-            card_swoosh_counter += 1 * fps_adjust
-            if card_swoosh_counter >= 20:
-                sounds['card_pull'].play()
-                card_swoosh_chest = False
-                card_swoosh_counter = 0
 
         if sound_triggers['step_grass']:
             sounds[f'step_grass{random.choice([1, 2, 2, 2])}'].play()
@@ -1411,8 +1404,12 @@ while run:
             pygame.mixer.Channel(7).play(sounds['bubbles'], -1)
         if sound_triggers['bubbles'] == -1:
             pygame.mixer.Channel(7).fadeout(100)
+        if game_paused:
+            pygame.mixer.Channel(7).set_volume(0)
+        if not game_paused and pygame.mixer.Channel(7).get_busy():
+            pygame.mixer.Channel(7).set_volume(0.3)
 
-        if [world_count, level_count] in [[2, 7], [2, 8]] and run_game:
+        if [world_count, level_count] in [[2, 9], [2, 10]] and run_game:
             if not pygame.mixer.Channel(8).get_busy():
                 pygame.mixer.Channel(8).play(sounds['buzz_left'], -1)
             if not pygame.mixer.Channel(9).get_busy():
@@ -1455,13 +1452,26 @@ while run:
         sounds['lock'].play()
     if sound_triggers['swoosh']:
         sounds['jump'].play()
+
     # button sounds
-    if (sound_triggers['button'] and one_time_play_button1)\
-            or (joystick_moved and (run_menu or run_settings or run_level_selection or paused)):
+    hat_press = False
+    if joysticks:
+        if joysticks[0].get_numhats() > 0:
+            if joysticks[0].get_hat(0) != (0, 0):
+                hat_press = True
+    # mouse button click
+    if sound_triggers['button'] and one_time_play_button1:
         sounds['button_click'].play()
         one_time_play_button1 = False
-    if not sound_triggers['button'] and joystick_idle_x and joystick_idle_y:
+    if not sound_triggers['button']:
         one_time_play_button1 = True
+    # joystick button click (sth here is broken, it might be hat input)
+    if (joystick_moved or events['joyhatdown'] or hat_press) and \
+        (run_menu or run_settings or run_level_selection or paused) and one_time_play_button2:
+        sounds['button_click'].play()
+        one_time_play_button2 = False
+    if not joystick_idle_x and joystick_idle_y and not events['joyhatdown'] and not hat_press:
+        one_time_play_button2 = True
 
     # music
     if play_background_music:
@@ -1500,11 +1510,22 @@ while run:
             music_changed_levels[level_count] = True
             pygame.mixer.Channel(current_channel).set_volume(music_volumes[str(settings_counters['music_volume'])])
             pygame.mixer.Channel(current_channel - 1).set_volume(0)
-            if [world_count, level_count] == [3, 7]:
+            if [world_count, level_count] == [3, 8]:
                 pygame.mixer.Channel(6).set_volume(music_volumes[str(settings_counters['music_volume'])] + 0.1)
                 pygame.mixer.Channel(6).play(music['3-4-transition'], 1)
                 pygame.mixer.Channel(6).fadeout(1200)
         change_music = False
+
+    if slow_music and not pygame.mixer.Channel(6).get_busy() and [world_count, level_count] == [3, 4] \
+            and not game_paused:
+        pygame.mixer.Channel(6).set_volume(music_volumes[str(settings_counters['music_volume'])])
+        pygame.mixer.Channel(current_channel).set_volume(0)
+        pygame.mixer.Channel(6).play(music['3-3-slow'], 1)
+    elif pygame.mixer.Channel(6).get_busy() and \
+            (([world_count, level_count] == [3, 4] and not slow_music) or game_paused):
+        pygame.mixer.Channel(6).fadeout(100)
+        if not game_paused:
+            pygame.mixer.Channel(current_channel).set_volume(music_volumes[str(settings_counters['music_volume'])])
 
     if fadeout_music:
         if not game_paused:
@@ -1574,21 +1595,13 @@ while run:
         main_screen = menu_screen.copy()
 
     # controller errors and messages -----------------------------------------------------------------------------------
-
-    # controller connected message
-    if controller_connected_counter > -10 and game_duration_counter > 20:
-        cont_connect_y = 10
-        if controller_connected_counter < 5:
-            cont_connect_y = controller_connected_counter * 2
-        main_screen.blit(controller_popup,
-                         (swidth / 2 - controller_popup.get_width() / 2, cont_connect_y))
-    # controller disconnected message
-    if controller_disconnected_counter > -10 and game_duration_counter > 20:
-        cont_connect_y = 10
-        if controller_disconnected_counter < 5:
-            cont_connect_y = controller_disconnected_counter * 2
-        main_screen.blit(controller_disconnected_popup,
-                         (swidth / 2 - controller_disconnected_popup.get_width() / 2, cont_connect_y))
+    if game_duration_counter > 20:
+        # controller connected message
+        if 400 > controller_connected_counter >= 0:
+            draw_popup(main_screen, controller_connected_popup, [], controller_connected_counter)
+        # controller disconnected message
+        if 400 > controller_disconnected_counter >= 0:
+            draw_popup(main_screen, controller_disconnected_popup, [], controller_disconnected_counter)
 
     # controller calibration
     if controller_calibration and calibration_start_counter > 60 and joystick_connected:

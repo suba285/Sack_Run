@@ -1807,6 +1807,10 @@ class SettingsMenu:
         if over2 or over4 or over6 or over8:
             final_over2 = True
 
+        final_over = False
+        if final_over1 or final_over2:
+            final_over = True
+
         if res_right_press or res_left_press:
             adjust_resolution = True
         else:
@@ -1826,4 +1830,4 @@ class SettingsMenu:
         self.settings_counters['speedrun'] = self.speedrun_counter
 
         return menu_press, self.controls, self.pov_counter, resolution, \
-               adjust_resolution, self.settings_counters, calibrated, settings_music
+               adjust_resolution, self.settings_counters, calibrated, settings_music, final_over

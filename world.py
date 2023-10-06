@@ -7,8 +7,11 @@ from font_manager import Text
 from shockwave import Shockwave
 from bat import Bat
 from screen_info import swidth, sheight
+from popup_bg_generator import popup_bg_generator
+from popup import draw_popup
 import random
 import math
+import json
 
 pygame.mixer.init()
 pygame.init()
@@ -53,6 +56,10 @@ class CircleAnimation:
         self.radius2 = 0
         self.max_radius = 25
         self.radius_speed = 2
+        self.surface = pygame.Surface((tile_size * 2, tile_size * 2))
+        self.surface.fill((0, 0, 0))
+        self.surface.set_colorkey((0, 0, 0))
+        self.surface.set_alpha(150)
 
     def draw_circle_animation(self, position, screen, fps_adjust):
         self.counter += 0.8 * fps_adjust
@@ -66,10 +73,13 @@ class CircleAnimation:
         width = self.radius1 - self.radius2
 
         if width > 0:
-            pygame.draw.circle(screen, (255, 255, 255), position, int(self.radius1), int(width))
+            self.surface.fill((0, 0, 0))
+            pygame.draw.circle(self.surface, (255, 255, 255), (tile_size, tile_size), int(self.radius1), int(width))
             finished = False
         else:
             finished = True
+
+        screen.blit(self.surface, (position[0] - tile_size / 2, position[1] - tile_size / 2))
 
         return finished
 
@@ -86,6 +96,7 @@ class World:
         self.slow_computer = slow_computer
 
         self.world_count = world_count
+        self.level_count = 1
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.main_tile_list = []
@@ -121,6 +132,7 @@ class World:
         self.pipe_pos_list = []
         self.crate_pos_list = []
         self.freeze_tiles = []
+        self.beans_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -138,7 +150,7 @@ class World:
         self.log_counter = 0
         self.wood_num = 0
         self.playing_wheat_sound = False
-        self.gem_bob_counter = 0
+        self.collectible_bob_counter = 0
         self.gem_flicker_counter = 0
         self.gem_equipped = False
         self.bridge_collapse_counter = 0
@@ -154,6 +166,7 @@ class World:
         self.copper_wheel_radius = 60
         self.copper_wheel_count = 0
         self.copper_wheel_frame = 0
+        self.arrow_bob_counter = 0
 
         self.key_press_counter = 0
 
@@ -169,6 +182,13 @@ class World:
         self.level_height = 0
 
         self.portal_position = (0, 0)
+
+        # load bean data
+        try:
+            with open('data/collected_beans.json', 'r') as json_file:
+                self.collected_beans = json.load(json_file)
+        except FileNotFoundError:
+            self.collected_beans = [0]
 
         # tile images --------------------------------------------------------------------------------------------------
         self.dirt_tile = img_loader(f'data/images/tile_dirt.PNG', tile_size, tile_size)
@@ -372,6 +392,9 @@ class World:
         # bee hive tile images -----------------------------------------------------------------------------------------
         self.bee_hive = img_loader('data/images/bee_hive.PNG', tile_size, 1.5 * tile_size)
         self.bee_hive.set_colorkey((0, 0, 0))
+        self.bee_bar = pygame.Surface((20, 3))
+        self.bee_bar.fill((10, 10, 10))
+        self.honey_colour = (192, 163, 10)
 
         # crate --------------------------------------------------------------------------------------------------------
         self.crate = img_loader('data/images/crate.PNG', 22, 22)
@@ -460,7 +483,7 @@ class World:
         }
 
         # wheat --------------------------------------------------------------------------------------------------------
-        self.wheat = img_loader('data/images/light_wheat_plant.PNG', 3, tile_size)
+        self.wheat = img_loader('data/images/wheat.PNG', 3, 40)
 
         # lava ---------------------------------------------------------------------------------------------------------
         self.set_lava = img_loader('data/images/lava.PNG', tile_size, 5)
@@ -479,6 +502,11 @@ class World:
         self.mill = img_loader('data/images/mill.PNG', tile_size * 8, tile_size * 6)
         self.garage = img_loader('data/images/garage.PNG', tile_size * 4, tile_size * 3)
 
+        # beans --------------------------------------------------------------------------------------------------------
+        self.beans = img_loader('data/images/beans.PNG', 13, 20)
+        self.beans_popup = popup_bg_generator((60, 15))
+        self.beans_popup_counter = 0
+
         # guidance arrows and keys -------------------------------------------------------------------------------------
         self.white_arrow_up = img_loader('data/images/white_arrow.PNG', tile_size / 2, tile_size / 2)
         self.white_arrow_down = pygame.transform.flip(self.white_arrow_up, False, True)
@@ -490,7 +518,7 @@ class World:
         eq_full_text = Text()
         self.eq_full_txt = eq_full_text.make_text(['eq is full, bin cards to free up space'])
 
-    def create_world(self, start_x, start_y, data, bg_data, level_count):
+    def create_world(self, start_x, start_y, data, bg_data, level_count, world_count):
 
         # lists (a lot of lists) ---------------------------------------------------------------------------------------
         self.main_tile_list = []
@@ -524,6 +552,7 @@ class World:
         self.pipe_pos_list = []
         self.crate_pos_list = []
         self.freeze_tiles = []
+        self.beans_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -555,6 +584,22 @@ class World:
 
         self.data = data
         self.bg_data = bg_data
+
+        # load bean data
+        try:
+            with open('data/collected_beans.json', 'r') as json_file:
+                self.collected_beans = json.load(json_file)
+        except FileNotFoundError:
+            self.collected_beans = [0]
+
+        self.level_count = level_count
+        self.world_count = world_count
+
+        # bean popup
+        self.beans_popup = popup_bg_generator((60, 15))
+        bean_text = Text().make_text([f'{self.collected_beans[0] + 1} of 5'])
+        self.beans_popup.blit(bean_text, (30, 7))
+        self.beans_popup_counter = 400
 
         # TILE DATA ENCODING SYSTEM ====================================================================================
 
@@ -597,7 +642,7 @@ class World:
         # 42 - tree
         # 43 - flowers
         # 44 - crate
-        # 45 - free tile
+        # 45 - beans
         # 46 - free tile
 
         lava_start = []
@@ -625,17 +670,17 @@ class World:
                     self.bg_border = row_count * tile_size
                 if tile == 98:
                     # first speed dash freeze (jump)
-                    pos = [column_count * tile_size + 8 - pov_offset, row_count * tile_size + 8]
+                    pos = [column_count * tile_size - pov_offset, row_count * tile_size]
                     tile = [pos, 'sd1']
                     self.freeze_tiles.append(tile)
                 if tile == 97:
                     # second speed dash freeze (dash)
-                    pos = [column_count * tile_size + 8 - pov_offset, row_count * tile_size + 8]
+                    pos = [column_count * tile_size - pov_offset, row_count * tile_size]
                     tile = [pos, 'sd2']
                     self.freeze_tiles.append(tile)
                 if tile == 96:
                     # speed dash lock
-                    pos = [column_count * tile_size + 8 - pov_offset, row_count * tile_size + 8]
+                    pos = [column_count * tile_size - pov_offset, row_count * tile_size]
                     tile = [pos, 'sd0']
                     self.freeze_tiles.append(tile)
                 if tile == 6:
@@ -657,13 +702,18 @@ class World:
                 if tile == 10:
                     # gem
                     tile_type = 'gem'
-                    if [self.world_count, level_count] in [[3, 5], [3, 6], [3, 7]]:
+                    if [self.world_count, level_count] in [[3, 4], [3, 5], [3, 6]]:
                         offset = tile_size / 2
                     else:
                         offset = 0
-                    rect = self.gem.get_rect()
-                    rect.x = column_count * tile_size + 8 - pov_offset
-                    rect.y = row_count * tile_size + 8 + offset
+                    if [self.world_count, level_count] == [3, 4]:
+                        rect = pygame.Rect(0, 0, tile_size, tile_size)
+                        rect.x = column_count * tile_size - pov_offset
+                        rect.y = row_count * tile_size + offset
+                    else:
+                        rect = self.gem.get_rect()
+                        rect.x = column_count * tile_size + 8 - pov_offset
+                        rect.y = row_count * tile_size + 8 + offset
                     shake_counter = 7
                     surface = pygame.surface.Surface((tile_size / 2, tile_size / 2))
                     surface.set_colorkey((0, 0, 0))
@@ -727,7 +777,9 @@ class World:
                         rect = self.wheat.get_rect()
                         rect.y = (row_count * tile_size) + random.randrange(0, 6)
                         rect.x = (column_count * tile_size) + wheat_spacer * num - pov_offset
-                        local_list.append(rect)
+                        counter = random.randrange(0, 200)
+                        package = [rect, counter]
+                        local_list.append(package)
                     self.wheat_list.append(local_list)
                 if tile == 19:
                     # bridge
@@ -763,7 +815,7 @@ class World:
                     x = column_count * tile_size - pov_offset
                     y = row_count * tile_size
                     rect = pygame.Rect(x, y, tile_size * 4, tile_size * 4)
-                    if level_count > 2:
+                    if level_count > 3:
                         boxes = [0, 90, 180, 270]
                     else:
                         boxes = [0, 180]
@@ -789,7 +841,7 @@ class World:
                 if tile == 24:
                     # platform
                     img = self.platform
-                    dimension_img = pygame.transform.scale(img, (tile_size, tile_size/6))
+                    dimension_img = pygame.transform.scale(img, (tile_size, tile_size/4))
                     img_rectangle = dimension_img.get_rect()
                     img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
@@ -1009,6 +1061,19 @@ class World:
                     tile.append('wood')
                     self.tile_list.append(tile)
                     self.crate_pos_list.append([tile[1].x, tile[1].y])
+                if tile == 45 and [world_count, level_count] not in self.collected_beans:
+                    # beans
+                    tile_type = 'beans'
+                    rect = self.beans.get_rect()
+                    rect.x = column_count * tile_size + 9
+                    rect.y = row_count * tile_size + 6
+                    beans_collected = False
+                    collection_counter = 0
+                    size_adder = 0
+                    rotation = 0
+                    speed = 0
+                    tile = [tile_type, rect, beans_collected, collection_counter, size_adder, speed]
+                    self.beans_list.append(tile)
 
                 column_count += 1
                 tile_column += 1
@@ -1217,7 +1282,8 @@ class World:
                                                 tile[1][1] - start_y * tile_size))
 
         bg_tiles = [self.spitting_plant_list_up, self.spitting_plant_list_left, self.spitting_plant_list_right,
-                    self.set_lava_list, self.portal_list, self.gem_list, self.log_list, self.copper_wheel_list]
+                    self.set_lava_list, self.portal_list, self.gem_list, self.beans_list, self.log_list,
+                    self.copper_wheel_list]
 
         for el in bg_tiles:
             self.main_tile_list += el
@@ -1264,8 +1330,8 @@ class World:
 
         for wheat_tile in self.wheat_list:
             for wheat in wheat_tile:
-                wheat[0] += camera_move_x
-                wheat[1] += camera_move_y
+                wheat[0][0] += camera_move_x
+                wheat[0][1] += camera_move_y
 
         self.bg_border += camera_move_y
 
@@ -1289,7 +1355,7 @@ class World:
         self.portal_counter += 1 * fps_adjust
         self.portal_part_counter += 1 * fps_adjust
         # gem variables
-        self.gem_bob_counter += 1 * fps_adjust
+        self.collectible_bob_counter += 1 * fps_adjust
         self.gem_flicker_counter += 1 * fps_adjust
         if self.gem_flicker_counter >= 90:
             self.gem_flicker_counter = 0
@@ -1397,7 +1463,8 @@ class World:
                     tile[2] -= 1.5 * fps_adjust
                     if scale > 0:
                         img = pygame.transform.scale(self.gem, (16 * scale, 16 * scale))
-                    circle_animation_finished = tile[5].draw_circle_animation((tile[1][0] + 8, tile[1][1] + 8),
+                    circle_animation_finished = tile[5].draw_circle_animation((tile[1][0] - (tile_size / 2 - tile[1].width / 2),
+                                                                               tile[1][1] - (tile_size / 2 - tile[1].height / 2)),
                                                                               screen, fps_adjust)
 
                 if circle_animation_finished:
@@ -1406,7 +1473,7 @@ class World:
                     tile[3] = False
                     tile[5] = CircleAnimation()
 
-                gem_y_offset = math.sin((1 / 17) * self.gem_bob_counter) * 3
+                gem_y_offset = math.sin((1 / 17) * self.collectible_bob_counter) * 3
                 if scale > 0 > tile[6]:
                     if tile[6] > -10:
                         shake_offset_x = random.choice([-2, 0, 2])
@@ -1416,11 +1483,50 @@ class World:
                         shake_offset_y = 0
 
                     screen.blit(img,
-                                (tile[1][0] + (8 - img.get_width() / 2) + shake_offset_x,
-                                 tile[1][1] + gem_y_offset + (8 - img.get_height() / 2) + shake_offset_y))
+                                (tile[1][0] + (tile[1].width / 2 - img.get_width() / 2) + shake_offset_x,
+                                 tile[1][1] + gem_y_offset + (tile[1].height / 2 - img.get_height() / 2) + shake_offset_y))
                 elif tile[6] >= 0:
-                    screen.blit(self.gem_outline_surface, (tile[1][0] + (8 - img.get_width() / 2),
-                                                           tile[1][1] + gem_y_offset + (8 - img.get_height() / 2)))
+                    screen.blit(self.gem_outline_surface,
+                                (tile[1][0] + (tile[1].width / 2 - img.get_width() / 2),
+                                 tile[1][1] + gem_y_offset + (tile[1].height / 2 - img.get_height() / 2)))
+
+            # beans ----------------------------------------------------------------------------------------------------
+            if tile[0] == 'beans':
+                self.beans_popup_counter += 1 * fps_adjust
+                if tile[1].colliderect(sack_rect):
+                    if not tile[2]:
+                        try:
+                            with open('data/collected_beans.json', 'w') as json_file:
+                                bean_data = [self.world_count, self.level_count]
+                                self.collected_beans.append(bean_data)
+                                self.collected_beans[0] += 1
+                                json.dump(self.collected_beans, json_file)
+                        except FileNotFoundError:
+                            pass
+                        self.beans_popup_counter = -80
+                    tile[2] = True
+                beans_y_offset = math.sin((1 / 17) * (self.collectible_bob_counter + 4)) * 3
+                if not tile[2]:
+                    screen.blit(self.beans, (tile[1][0], tile[1][1] + beans_y_offset))
+                elif tile[1].y > -20:
+                    tile[3] += 1 * fps_adjust
+                    img = self.beans
+                    if tile[3] < 10:
+                        tile[4] += 0.8 * fps_adjust
+                    if 30 > tile[3] > 10:
+                        tile[4] -= 0.8 * fps_adjust
+                    if 30 < tile[3] < 40:
+                        tile[4] += 0.8 * fps_adjust
+                        if tile[4] > 0:
+                            tile[4] = 0
+                    if tile[3] > 100:
+                        tile[4] = 0
+                        tile[5] += 0.1 * fps_adjust
+                        tile[1].y -= tile[5]
+                    if tile[3] < 20:
+                        img = pygame.transform.scale(self.beans, (tile[1].width + tile[4], tile[1].height + tile[4]))
+                    screen.blit(img, (tile[1][0] + tile[1].width / 2 - img.get_width() / 2,
+                                      tile[1][1] + tile[1].height / 2 - img.get_height() / 2))
 
             # spitting plant left --------------------------------------------------------------------------------------
             if tile[0] == 'spitting_plant_left':
@@ -1557,19 +1663,28 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def update_fg_tiles(self, screen, sack_rect, fps_adjust, camera_move_x, camera_move_y, health, player_moved):
+    def update_fg_tiles(self, screen, sack_rect, fps_adjust, camera_move_x, camera_move_y, health, player_moved,
+                        shock_mush_tutorial):
         # shockwave mushroom variables
         self.shockwave_center_list = []
         # bee tile variables
         self.bee_harm = False
         if player_moved:
             self.bee_release_counter += 1 * fps_adjust
-        if self.bee_release_counter >= 120 and health > 0 and player_moved:
+        bee_release_time = 120
+        bee_num = 3
+        max_bee_timeout = 210
+        if shock_mush_tutorial:
+            bee_release_time = 180
+            bee_num = 2
+        if self.bee_release_counter >= bee_release_time and health > 0 and player_moved:
             self.bee_counter += 1
-            if self.bee_counter >= 4:
-                self.bee_counter = 4
+            if self.bee_counter >= bee_num:
+                self.bee_counter = bee_num
             self.bee_release_counter = 0
         distance_list = []
+
+        self.arrow_bob_counter += 1 * fps_adjust
 
         for tile in self.main_fg_tile_list:
             # shockwave mushroom ---------------------------------------------------------------------------------------
@@ -1638,23 +1753,49 @@ class World:
                     self.shockwave_center_list.append((shockwave_center[0], shockwave_center[1], radius))
 
                     screen.blit(img, (tile[1][0] - squash / 2, tile[1][1] + squash))
+                    if shock_mush_tutorial:
+                        offset = math.sin(self.arrow_bob_counter / 15) * 3
+                        screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size + offset))
 
             # bee hive -------------------------------------------------------------------------------------------------
             if tile[0] == 'bee_hive':
-                if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
-                    screen.blit(self.bee_hive, tile[1])
+                timeout = max_bee_timeout
                 if self.bee_counter > 0:
-                    for i in range(self.bee_counter - 1):
+                    for i in range(self.bee_counter):
                         if i <= 4:
-                            bee_harm, distance = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
+                            bee_harm, distance, bee_timeout = tile[2][i].update_bee(screen, sack_rect, fps_adjust,
                                                                        camera_move_x,
                                                                        camera_move_y, tile[1][0], tile[1][1],
                                                                        health,
                                                                        self.shockwave_center_list,
                                                                        player_moved)
+                            if timeout > bee_timeout:
+                                timeout = bee_timeout
                             if bee_harm:
                                 self.bee_harm = True
                             distance_list.append(distance)
+                # honey bar calculation
+                black_bar_scale = timeout / max_bee_timeout
+                if (bee_release_time - self.bee_release_counter) / bee_release_time < black_bar_scale and \
+                        self.bee_counter < bee_num:
+                    black_bar_scale = (bee_release_time - self.bee_release_counter) / bee_release_time
+                yellow_bar_scale = 1 - black_bar_scale
+                yellow_bar_length = 20 * yellow_bar_scale
+                if yellow_bar_length > 20:
+                    yellow_bar_length = 20
+                # drawing the bee hive
+                if -tile_size < tile[1][0] < swidth and -tile_size < tile[1][1] < sheight:
+                    if yellow_bar_length > 16 and player_moved:
+                        offset = [random.choice([-1, 0, 1]), random.choice([-1, 0, 1])]
+                    else:
+                        offset = [0, 0]
+                    screen.blit(self.bee_hive, (tile[1][0] + offset[0], tile[1][1] + offset[1]))
+                # drawing the honey bar
+                pygame.draw.line(screen, (10, 10, 10),
+                                 (tile[1][0] + 6, tile[1][1] + 20), (tile[1][0] + 26, tile[1][1] + 20), 3)
+                pygame.draw.line(screen, (212, 156, 0),
+                                 (tile[1][0] + 6, tile[1][1] + 20),
+                                 (tile[1][0] + 6 + yellow_bar_length, tile[1][1] + 20), 3)
 
         return self.bee_harm, distance_list
 
@@ -1816,26 +1957,37 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_wheat(self, screen, sack_rect, moving):
+    def draw_wheat(self, screen, sack_rect, moving, fps_adjust):
         sound = 0
         colliding = False
         for list_of_wheat in self.wheat_list:
-            if -tile_size < list_of_wheat[0][0] < swidth and -tile_size < list_of_wheat[0][1] < sheight:
-                for wheat_pos in list_of_wheat:
+            if -tile_size < list_of_wheat[0][0].x < swidth and -tile_size < list_of_wheat[0][0].y < sheight:
+                for wheat_pos_pack in list_of_wheat:
+                    wheat_pos = wheat_pos_pack[0]
+                    wheat_pos_pack[1] += 1 * fps_adjust
+                    counter = wheat_pos_pack[1]
+                    offset = math.sin(1/50 * counter) * 2
                     y = wheat_pos[1]
                     if wheat_pos.colliderect(sack_rect.x - 4, sack_rect.y, sack_rect.width + 8, sack_rect.height):
                         y += 6
+                        offset = 0
                         colliding = True
                         if not self.playing_wheat_sound and moving:
                             sound = 1
                             self.playing_wheat_sound = True
-                    screen.blit(self.wheat, (wheat_pos[0], y))
+                    screen.blit(self.wheat, (wheat_pos[0], y + offset))
         if not colliding or not moving:
             if self.playing_wheat_sound:
                 sound = -1
             self.playing_wheat_sound = False
 
         return sound
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def draw_bean_popup(self, screen, fps_adjust):
+        if 400 > self.beans_popup_counter > 0:
+            draw_popup(screen, self.beans_popup, (self.beans, (7, 2)), self.beans_popup_counter, True, fps_adjust)
 
     # ------------------------------------------------------------------------------------------------------------------
 

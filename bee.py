@@ -1,5 +1,6 @@
 import pygame._sdl2
 import math
+import random
 
 tile_size = 32
 
@@ -23,6 +24,8 @@ class Bee:
         self.blit_bee = True
         self.one_time_adjustment = False
         self.dead = False
+        self.timeout = 0
+        self.default_timeout_value = 210
 
         # bee frames ---------------------------------------------------------------------------------------------------
         self.bee0_raw = pygame.image.load('data/images/bee0.PNG').convert()
@@ -52,8 +55,8 @@ class Bee:
         self.stop_counter += 1
 
         if not self.one_time_adjustment:
-            self.x = x
-            self.y = y
+            self.x = x + random.randrange(0, 16)
+            self.y = y + random.randrange(0, 16)
             self.one_time_adjustment = True
 
         harm = False
@@ -69,9 +72,11 @@ class Bee:
             self.bee_radius = math.sqrt((shockwave_x - self.x) ** 2 + (shockwave_y - self.y) ** 2)
             if radius > self.bee_radius > radius - 10:
                 self.dead = True
+                self.timeout = self.default_timeout_value
 
         # bee speed, direction, animation and death update -------------------------------------------------------------
         if not self.dead and player_moved:
+            self.timeout = self.default_timeout_value
             if (self.angry_counter > 10 * fps_adjust) and health > 0:
                 angle = math.atan2(sack_rect.y - self.y, sack_rect.x - self.x)
                 dx = math.cos(angle) * self.speed * fps_adjust
@@ -107,7 +112,8 @@ class Bee:
         elif self.dead:
             self.image = self.bee_dead
             dy += 2 * fps_adjust
-            if self.y > 360:
+            self.timeout -= 1 * fps_adjust
+            if self.timeout < 0:
                 self.y = 360
                 dy = 0
                 if health > 0:
@@ -124,7 +130,7 @@ class Bee:
         if self.blit_bee:
             screen.blit(self.image, (self.x, self.y))
 
-        return harm, distance
+        return harm, distance, self.timeout
 
 
 

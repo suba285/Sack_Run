@@ -183,14 +183,16 @@ class Player:
         }
 
         self.sack_img = self.sack
-        self.sack_rect = pygame.Rect(0, 0, 18, 28)
+        self.sack_rect = pygame.Rect(0, 0, 18, 23)
         self.sack_rect.x = swidth / 2 - self.sack_rect.width / 2
         self.sack_rect.y = sheight / 2 - self.sack_rect.height / 2
 
         self.player_speed = 2
         self.slide = 0.4
-        self.default_on_ground_counter = 6
+        self.default_on_ground_counter = 7
         self.on_ground_counter = self.default_on_ground_counter
+        self.max_jump_press_counter = 7
+        self.jump_press_counter = 0
         self.sack_width = self.sack_rect.width
         self.sack_height = self.sack_rect.height
         self.vel_y = 0
@@ -234,6 +236,15 @@ class Player:
             surf.set_alpha(40 * (9 - frame))
             self.jump_shock_frames[frame] = surf
 
+        # mid-air-jump numbers -----------------------------------------------------------------------------------------
+        self.mid_air_jump_number_list = []
+        self.mid_air_jump_numbers = {
+            0: img_loader('data/images/mid-air-jump_numbers/0.PNG', tile_size, tile_size),
+            1: img_loader('data/images/mid-air-jump_numbers/1.PNG', tile_size, tile_size),
+            2: img_loader('data/images/mid-air-jump_numbers/2.PNG', tile_size, tile_size),
+            3: img_loader('data/images/mid-air-jump_numbers/3.PNG', tile_size, tile_size),
+        }
+
         # respawn instruction images and variables ---------------------------------------------------------------------
         self.respawn_text = []
         self.respawn_text.append([text.make_text(['R']), 0])
@@ -246,7 +257,7 @@ class Player:
 
         self.a_button = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
         self.cross_button = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
-        self.respawn_keys = {
+        self.jump_keys = {
             '1': img_loader('data/images/buttons/key_space.PNG', tile_size, tile_size / 2),
             '1_press': img_loader('data/images/buttons/key_space_press.PNG', tile_size, tile_size / 2),
             '2': img_loader('data/images/buttons/key_w.PNG', tile_size / 2, tile_size / 2),
@@ -316,6 +327,8 @@ class Player:
         self.surface_type = 'grass'
         self.jump_shock_counter = 100
         self.jump_shock_pos = [0, 0]
+        self.speed_dash_tutorial1 = False
+        self.speed_dash_tutorial1_pos = [0, 0]
 
         self.screen_shake_counter = 0
 
@@ -424,10 +437,12 @@ class Player:
 
         self.jump_shock_counter += 1 * fps_adjust
 
+        self.jump_press_counter -= 1 * fps_adjust
+
         if self.airborn:
-            self.slide = 0.2
-        else:
             self.slide = 0.4
+        else:
+            self.slide = 0.3
 
         if not self.freeze:
             if self.vel_x_l < 0:
@@ -449,9 +464,9 @@ class Player:
         self.right_border = right_border
         top_border = 50 / 270 * sheight
         bottom_border = 180 / 270 * sheight
-        if [level_count, world_count] in [[9, 2], [5, 4]]:
-            top_border = 135 / 270 * sheight
-        if [level_count, world_count] == [6, 3]:
+        if [level_count, world_count] == [5, 4]:
+            top_border = 20 / 270 * sheight
+        if [level_count, world_count] in [[6, 3], [5, 4]]:
             bottom_border = 150 / 270 * sheight
 
         harm = False
@@ -521,6 +536,7 @@ class Player:
                 self.joystick_right = True
                 if self.freeze_type == 'sd2' and self.freeze:
                     self.freeze = False
+                    sounds['bubbles'] = 1
                     self.block_control = False
             else:
                 self.joystick_right = False
@@ -534,17 +550,19 @@ class Player:
             self.player_jump = False
 
         if key[self.controls['right']]:
-            if self.freeze_type == 'sd2':
+            if self.freeze_type == 'sd2' and self.freeze:
                 self.freeze = False
                 self.block_control = False
+                sounds['bubbles'] = 1
 
         # D-pad input
         if joysticks and joysticks[0].get_numhats() > 0:
             self.hat_value = joysticks[0].get_hat(0)
 
         if self.freeze and self.hat_value[0] == 1:
-            if self.freeze_type == 'sd2':
+            if self.freeze_type == 'sd2' and self.freeze:
                 self.freeze = False
+                sounds['bubbles'] = 1
                 self.block_control = False
 
         # special power cards effects ----------------------------------------------------------------------------------
@@ -554,6 +572,9 @@ class Player:
             self.mid_air_jump_counter = 0
         if speed_dash_trigger and not self.speed_dash:
             self.speed_dash = True
+            if [world_count, level_count] == [3, 2]:
+                self.speed_dash_tutorial1 = True
+                self.speed_dash_tutorial1_pos = [swidth / 2 + tile_size, self.sack_rect.y + 2]
             self.speed_dash_sine_counter = 0
             self.speed_dash_sine_offset_counter = 9
 
@@ -562,7 +583,7 @@ class Player:
         if len(self.power_particle_list) < 50:
             if self.mid_air_jump:
                 if self.mid_air_jump_counter == 0:
-                    self.particle_colour = (57, 182, 86)
+                    self.particle_colour = (0, 98, 10)
                 elif self.mid_air_jump_counter == 1:
                     self.particle_colour = (100, 215, 96)
                 else:
@@ -581,7 +602,7 @@ class Player:
                 x_value = int(self.sack_rect.x)
                 y_value = int(self.sack_rect.y)
                 append([random.randrange(x_value, x_value + self.sack_width),
-                       random.randrange(y_value, y_value + self.sack_height),
+                       random.randrange(y_value - 2, y_value + 16),
                        random.randrange(6, 14),
                        self.particle_colour])
 
@@ -599,6 +620,7 @@ class Player:
                                                                unsetcolor=(0, 0, 0))
             self.sack_silhouette.set_colorkey((0, 0, 0))
             self.dead = True
+            self.button_press_counter = 0  # respawn instructions
             sounds['death'] = True
             self.harmed = True
             self.speed_dash = False
@@ -646,14 +668,18 @@ class Player:
         if self.freeze_type == 'sd0':
             self.player_jump = False
 
+        # jump counter
+        if self.player_jump:
+            self.jump_press_counter = self.max_jump_press_counter
+
         # movement and animation ---------------------------------------------------------------------------------------
         if self.new_level_cooldown >= 30 and not self.dead and self.teleport_count < 20\
                 and not (self.col_types['right'] or self.col_types['left']) and move and not self.transition\
                 and not self.freeze:
             # player control
-            if self.player_jump and not self.jumped:
+            if self.jump_press_counter > 0 and not self.jumped:
                 self.teleport_count = 0
-                if self.speed_dash_activated:
+                if self.speed_dash_activated and self.player_jump:
                     self.speed_dash_activated = False
                     if not gem_equipped:
                         self.speed_dash = False
@@ -667,7 +693,11 @@ class Player:
                         sounds['mid_air_jump'] = True
                         self.jump_shock_counter = 5
                         self.jump_shock_pos = [self.sack_rect.x + 10, self.sack_rect.y + 20]
-                    if self.mid_air_jump:
+                        if [world_count, level_count] in [[1, 2], [2, 7]]:  # mid-air-jump numbers
+                            num_img = self.mid_air_jump_numbers[self.mid_air_jumps_num - self.mid_air_jump_counter]
+                            num_tile = [num_img, [swidth / 2 + tile_size, self.sack_rect.y - 16], 255]
+                            self.mid_air_jump_number_list.append(num_tile)
+                    if self.mid_air_jump and self.player_jump:
                         self.vel_y = -11
                     else:
                         self.vel_y = -7.5
@@ -690,8 +720,8 @@ class Player:
             walking_right = False
 
             if not self.speed_dash_activated:
-                if self.sack_rect.height != 28:
-                    self.sack_rect.height = 28
+                if self.sack_rect.height != 23:
+                    self.sack_rect.height = 23
                 # walking left
                 if key[self.controls['left']] or self.joystick_left or self.hat_value[0] == -1:
                     self.player_moved = True
@@ -769,7 +799,8 @@ class Player:
                         self.sack_img = pygame.transform.flip(self.sack_img, True, False)
 
             elif self.speed_dash_activated:
-                self.sack_rect.height = 20
+                self.speed_dash_tutorial1 = False
+                self.sack_rect.height = 10
                 self.sack_offset = 0
                 self.speed_dash_landed = False
                 if self.speed_dash_direction == -1:
@@ -815,7 +846,7 @@ class Player:
                     self.sack_img = self.sack_idle2[self.idle_counter]
             else:
                 self.sack_img = self.sack
-            if self.idle_counter > 15:
+            if self.idle_counter > 10:
                 self.idle_animation = random.randint(1, 2)
                 self.idle_counter = 1
             if self.direction == -1:
@@ -905,10 +936,11 @@ class Player:
         # freeze tile collisions
         removal_list = []
         for tile in freeze_tiles:
-            if temp_rect.colliderect(tile[0][0], tile[0][1], tile_size, tile_size):
+            if temp_rect.colliderect(tile[0][0], tile[0][1], tile_size, tile_size * 2):
                 self.freeze_type = tile[1]
                 if self.freeze_type != 'sd0':
                     self.freeze = True
+                    sounds['bubbles'] = -1
                 removal_list.append(tile[1])
         for tile in freeze_tiles:
             if tile[1] in removal_list:
@@ -966,7 +998,7 @@ class Player:
                     self.col_types['top'] = True
             col_counter += 1
 
-        self.on_ground_counter -= 1
+        self.on_ground_counter -= 1 * fps_adjust
 
         # mushroom collisions
         for mushroom in shockwave_mush_list:
@@ -1149,12 +1181,12 @@ class Player:
             if self.speed_dash_direction == 1:
                 screen.blit(self.speed_dash_animation_surface,
                             (self.sack_rect.x - self.speed_dash_animation_surface.get_width() + 10 - self.sack_offset,
-                             self.sack_rect.y - 1))
+                             self.sack_rect.y - 6))
 
             elif self.speed_dash_direction == -1:
                 screen.blit(pygame.transform.flip(self.speed_dash_animation_surface, True, False),
                             (self.sack_rect.x + 10 - self.sack_offset,
-                             self.sack_rect.y - 1))
+                             self.sack_rect.y - 6))
 
             self.sack_img = sack_speed_dash_img
 
@@ -1164,7 +1196,7 @@ class Player:
 
         # drawing player onto the screen
         if self.blit_plr:
-            screen.blit(self.sack_img, (self.sack_rect.x - 1 - self.sack_offset, self.sack_rect.y - 4 + squash_offset))
+            screen.blit(self.sack_img, (self.sack_rect.x - 1 - self.sack_offset, self.sack_rect.y - 9 + squash_offset))
 
         if draw_hitbox and not self.dead:
             pygame.draw.rect(screen, (255, 255, 255), self.sack_rect, 1)
@@ -1188,10 +1220,13 @@ class Player:
             if self.button_press_counter > 80:
                 self.button_press_counter = 10
         self.icn_bob_counter += 1 * fps_adjust
+        self.button_press_counter += 1 * fps_adjust
+        speedrun = False
+        if settings_counters['speedrun'] == 2:
+            speedrun = True
 
         if self.health == 0 and self.dead_counter >= 36 and self.restart_counter == 0:
             x = swidth / 2 - 3 * 8
-            self.button_press_counter += 1 * fps_adjust
 
             if self.controls['configuration'][4] == 1:
                 controller_btn = self.a_button
@@ -1215,11 +1250,12 @@ class Player:
             if joystick_connected:
                 screen.blit(controller_btn, (swidth / 2 - tile_size / 4, sheight / 3 + 16))
             else:
-                key_img = self.respawn_keys[str(settings_counters['jumping'])]
+                key_img = self.jump_keys[str(settings_counters['jumping'])]
                 if press:
-                    key_img = self.respawn_keys[f'{settings_counters["jumping"]}_press']
+                    key_img = self.jump_keys[f'{settings_counters["jumping"]}_press']
                 if self.button_press_counter > 8:
                     screen.blit(key_img, (swidth / 2 - key_img.get_width() / 2, sheight / 3 + 16))
+
         if self.freeze:
             if self.freeze_type == 'sd1':
                 if self.controls['configuration'][4] == 1:
@@ -1229,12 +1265,28 @@ class Player:
                 if joystick_connected:
                     screen.blit(controller_btn, (swidth / 2 + 3 * tile_size / 4, sheight / 3 + 16))
                 else:
-                    key_img = self.respawn_keys[str(settings_counters['jumping'])]
+                    key_img = self.jump_keys[str(settings_counters['jumping'])]
                     if press:
-                        key_img = self.respawn_keys[f'{settings_counters["jumping"]}_press']
-                    if self.button_press_counter > 8:
-                        screen.blit(key_img, (swidth / 2 + tile_size - key_img.get_width() / 2, sheight / 3 + 16))
+                        key_img = self.jump_keys[f'{settings_counters["jumping"]}_press']
+                    screen.blit(key_img, (swidth / 2 + tile_size, sheight / 3 + 16))
             if self.freeze_type == 'sd2':
                 offset = math.sin(self.icn_bob_counter / 15) * 2
                 screen.blit(self.right_arrow, (swidth / 2 + tile_size + offset, self.sack_rect.y + 2))
+
+        if self.speed_dash_tutorial1 and not speedrun:
+            self.speed_dash_tutorial1_pos[1] += self.camera_movement_y
+            offset = math.sin(self.icn_bob_counter / 15) * 3
+            screen.blit(self.right_arrow, (self.speed_dash_tutorial1_pos[0] + offset, self.speed_dash_tutorial1_pos[1]))
+
+        if self.mid_air_jump_number_list and not speedrun:
+            for num in self.mid_air_jump_number_list:
+                num[2] -= 5 * fps_adjust
+                num[1][0] += self.camera_movement_x
+                num[1][1] += self.camera_movement_y
+                if num[2] < 0:
+                    self.mid_air_jump_number_list.remove(num)
+                else:
+                    num[0].set_alpha(num[2])
+                screen.blit(num[0], num[1])
+
 
