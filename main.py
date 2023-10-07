@@ -500,6 +500,12 @@ controller_connected_counter = 400
 controller_disconnected_counter = 400
 controller_popup = controller_connected_popup
 
+# progress saved
+progress_saved_txt = text.make_text(['Progress saved'])
+progress_saved_popup = popup_bg_generator((progress_saved_txt.get_width() + 10, 15))
+progress_saved_popup.blit(progress_saved_txt, (7, 7))
+progress_saved_counter = 400
+
 controller_calibration = False
 calibration_start_counter = 0
 
@@ -639,6 +645,7 @@ while run:
     if game_duration_counter > 20:
         controller_connected_counter += 1 * fps_adjust
         controller_disconnected_counter += 1 * fps_adjust
+        progress_saved_counter += 1 * fps_adjust
 
     # running the menu -------------------------------------------------------------------------------------------------
     if run_menu:
@@ -933,6 +940,7 @@ while run:
 
                 except FileNotFoundError:
                     pass
+                progress_saved_counter = -10
 
         if restart_level:
             resume = True
@@ -1470,7 +1478,7 @@ while run:
         (run_menu or run_settings or run_level_selection or paused) and one_time_play_button2:
         sounds['button_click'].play()
         one_time_play_button2 = False
-    if not joystick_idle_x and joystick_idle_y and not events['joyhatdown'] and not hat_press:
+    if joystick_idle_x and joystick_idle_y and not events['joyhatdown'] and not hat_press:
         one_time_play_button2 = True
 
     # music
@@ -1598,10 +1606,13 @@ while run:
     if game_duration_counter > 20:
         # controller connected message
         if 400 > controller_connected_counter >= 0:
-            draw_popup(main_screen, controller_connected_popup, [], controller_connected_counter)
+            draw_popup(main_screen, controller_connected_popup, [], controller_connected_counter, 220)
         # controller disconnected message
         if 400 > controller_disconnected_counter >= 0:
-            draw_popup(main_screen, controller_disconnected_popup, [], controller_disconnected_counter)
+            draw_popup(main_screen, controller_disconnected_popup, [], controller_disconnected_counter, 220)
+        # progress saved message
+        if 400 > progress_saved_counter >= 0:
+            draw_popup(main_screen, progress_saved_popup, [], progress_saved_counter, 160)
 
     # controller calibration
     if controller_calibration and calibration_start_counter > 60 and joystick_connected:

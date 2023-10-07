@@ -34,6 +34,8 @@ class Bat:
         self.dash_speed = 5
         self.flash_duration = 2
 
+        self.silhouette_counter = 0
+
         self.charge_default_flash_count = 2  # length of bat flash when it's charging the sack
         self.charge_flash_count = self.charge_default_flash_count
         self.charge_flash_on = False
@@ -137,6 +139,7 @@ class Bat:
         set_silhouette = False
 
         self.dash -= 1 * fps_adjust
+        self.silhouette_counter -= 1 * fps_adjust
 
         # checking if the bat is far away enough from the sack
         current_radius = math.sqrt((sack_rect.x - self.x) ** 2 + (sack_rect.y - self.y) ** 2)
@@ -179,7 +182,9 @@ class Bat:
                 if 30 < self.dash < 50:
                     self.charge_flash_on = not self.charge_flash_on
                 self.charge_flash_count = self.charge_default_flash_count
-                set_silhouette = True
+                if self.silhouette_counter < 0:
+                    set_silhouette = True
+                    self.silhouette_counter = 2
             if self.dash <= 30:
                 self.charge_flash_on = True
 

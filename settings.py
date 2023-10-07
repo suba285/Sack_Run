@@ -482,7 +482,7 @@ class SettingsMenu:
         self.controller_conf_popup6 = popup_bg_generator((200, 100))
         self.controller_conf_popup7 = popup_bg_generator((200, 100))
         self.controller_conf_title = text.make_text(['CONTROLLER CALIBRATION'])
-        self.controller_conf_cal0 = text.make_text(['move the left stick as shown below'])
+        self.controller_conf_cal0 = text.make_text(['press the button shown below'])
         self.controller_conf_cal1 = text.make_text(['press the LB button (left bumper)'])
         self.controller_conf_cal2 = text.make_text(['press the RB button (right bumper)'])
         self.controller_conf_cal3 = text.make_text(['press the options button (pause)'])
@@ -574,7 +574,7 @@ class SettingsMenu:
         popup_width = self.controller_conf_popup1.get_width()
         popup_height = self.controller_conf_popup1.get_height()
         face_center_x = popup_width / 2 - 8
-        face_y = popup_height / 2 - 8
+        face_y = popup_height / 2 + 4
         self.controller_conf_popup0.blit(self.controller_conf_title,
                                          (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
         self.controller_conf_popup0.blit(self.controller_conf_cal0,
@@ -590,7 +590,7 @@ class SettingsMenu:
         self.controller_conf_popup3.blit(self.controller_conf_title,
                                          (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
         self.controller_conf_popup3.blit(self.controller_conf_cal3,
-                                         (popup_width / 2 - self.controller_conf_cal3.get_width() / 2, 30))
+                                         (popup_width / 2 - self.controller_conf_cal3.get_width() / 2, 45))
         self.controller_conf_popup4.blit(self.controller_conf_title,
                                          (popup_width / 2 - self.controller_conf_title.get_width() / 2, 6))
         self.controller_conf_popup4.blit(self.controller_conf_cal4,
@@ -722,6 +722,13 @@ class SettingsMenu:
                 calibrated = False
                 self.dim_surf_alpha = 0
                 self.dim_surf.set_alpha(self.dim_surf_alpha)
+
+        # already calibrated hat input in case hat buttons are assigned
+        if events['joyhatdown'] and self.controller_calibration_counter > 0.25:
+            event = events['joyhatdown']
+            if self.controller_calibration_step_counter == 0 and event.button not in self.controller_taken_btns:
+                self.calibrated_hat_btns.append(event.button)
+                self.controller_taken_btns.append(event.button)
 
         if events['joydeviceremoved']:
             self.controller_calibration = False

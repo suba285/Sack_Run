@@ -133,6 +133,7 @@ class World:
         self.crate_pos_list = []
         self.freeze_tiles = []
         self.beans_list = []
+        self.lamp_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -485,6 +486,10 @@ class World:
         # wheat --------------------------------------------------------------------------------------------------------
         self.wheat = img_loader('data/images/wheat.PNG', 3, 40)
 
+        # lamp ---------------------------------------------------------------------------------------------------------
+        self.lamp = img_loader('data/images/lamp.PNG', 13, 9)
+        self.lamp_direction = 1
+
         # lava ---------------------------------------------------------------------------------------------------------
         self.set_lava = img_loader('data/images/lava.PNG', tile_size, 5)
         self.set_lava2 = img_loader('data/images/lava2.PNG', tile_size, 5)
@@ -553,6 +558,7 @@ class World:
         self.crate_pos_list = []
         self.freeze_tiles = []
         self.beans_list = []
+        self.lamp_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -643,7 +649,7 @@ class World:
         # 43 - flowers
         # 44 - crate
         # 45 - beans
-        # 46 - free tile
+        # 46 - lamp
 
         lava_start = []
 
@@ -1074,6 +1080,18 @@ class World:
                     speed = 0
                     tile = [tile_type, rect, beans_collected, collection_counter, size_adder, speed]
                     self.beans_list.append(tile)
+                if tile == 46:
+                    # lamp
+                    tile_type = 'lamp'
+                    x = column_count * tile_size - pov_offset
+                    y = row_count * tile_size
+                    rect = pygame.Rect(x, y, tile_size, tile_size * 1.5)
+                    vel_x = 0
+                    r = 25
+                    s = [rect.x + (tile_size / 2 - 1), rect.y]
+                    sine_counter = 0
+                    tile = [tile_type, rect, vel_x, r, s, sine_counter]
+                    self.lamp_list.append(tile)
 
                 column_count += 1
                 tile_column += 1
@@ -1206,6 +1224,7 @@ class World:
         # 49 - background brick tile
         # 50 - background brick way out tile
         # 51 - background brick window tile
+        # 52 - background brick support
 
         bg_row_count = start_y * 2
         self.background_y = start_y * tile_size
@@ -1283,7 +1302,7 @@ class World:
 
         bg_tiles = [self.spitting_plant_list_up, self.spitting_plant_list_left, self.spitting_plant_list_right,
                     self.set_lava_list, self.portal_list, self.gem_list, self.beans_list, self.log_list,
-                    self.copper_wheel_list]
+                    self.copper_wheel_list, self.lamp_list]
 
         for el in bg_tiles:
             self.main_tile_list += el
@@ -1307,6 +1326,9 @@ class World:
         for tile in self.updating_tile_list:
             tile[1][0] += camera_move_x
             tile[1][1] += camera_move_y
+            if tile[0] == 'lamp':
+                tile[4][0] += camera_move_x
+                tile[4][1] += camera_move_y
 
         for tile in self.freeze_tiles:
             tile[0][0] += camera_move_x
@@ -1659,6 +1681,52 @@ class World:
                         harm = True
                         tile[-1] = img
 
+            # lamp -----------------------------------------------------------------------------------------------------
+            if tile[0] == 'lamp':
+                # tile[2] -> velocity
+                gravity = 0.2
+                given_vel = 2
+                r = tile[3]
+                s = tile[4]
+
+                tile[5] -= 0.1 * fps_adjust
+
+                default_swing = 14
+
+                if tile[1].colliderect(sack_rect) and tile[5] < 6:
+                    tile[5] = default_swing
+                    if camera_move_x > 0:
+                        self.lamp_direction = -1
+                    elif camera_move_x < 0:
+                        self.lamp_direction = 1
+                    else:
+                        self.lamp_direction = 0
+
+                if tile[5] > 0:
+                    offset = math.sin((default_swing - tile[5])) * tile[5] * self.lamp_direction
+                else:
+                    offset = 0
+
+                x = tile[1].x + (tile_size / 2 - 1) + offset
+
+                # circle math
+                M = (r*r - s[0]*s[0] - s[1]*s[1] - x*x + 2*x*s[0])
+                y1 = (2*s[1] - math.sqrt(abs(4*s[1]*s[1] + 4*M))) / 2
+                y2 = (2*s[1] + math.sqrt(abs(4*s[1]*s[1] + 4*M))) / 2
+                y = max([y1, y2])
+
+                # lamp rotation
+                if offset != 0:
+                    b = y - s[1]
+                    a = offset
+                    angle = math.atan2(b, a) * 57.3
+                    img = pygame.transform.rotate(self.lamp, 90 - angle)
+                else:
+                    img = self.lamp
+
+                pygame.draw.line(screen, (173, 173, 173), s, (x, y), 1)
+                screen.blit(img, (x - img.get_width() / 2 + 1, y - img.get_height() / 2))
+
         return harm, gem_equipped, gem_sound
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -1987,7 +2055,7 @@ class World:
 
     def draw_bean_popup(self, screen, fps_adjust):
         if 400 > self.beans_popup_counter > 0:
-            draw_popup(screen, self.beans_popup, (self.beans, (7, 2)), self.beans_popup_counter, True, fps_adjust)
+            draw_popup(screen, self.beans_popup, (self.beans, (7, 2)), self.beans_popup_counter, True)
 
     # ------------------------------------------------------------------------------------------------------------------
 

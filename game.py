@@ -1069,8 +1069,11 @@ class Game:
                 self.bridge_rumbled = True
                 sounds['rumble'] = True
 
-        # drawing the player -------------------------------------------------------------------------------------------
+        # drawing the sack ---------------------------------------------------------------------------------------------
         self.player.blit_player(self.game_screen, draw_hitbox, fps_adjust)
+
+        # drawing sack particles ---------------------------------------------------------------------------------------
+        self.player.draw_sack_particles(self.game_screen)
 
         # updating level border positions ------------------------------------------------------------------------------
         self.right_border += self.camera_move_x

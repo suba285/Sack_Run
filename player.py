@@ -218,6 +218,38 @@ class Player:
 
         self.hat_value = [0, 0]
 
+        # PARTICLE ANIMATIONS ------------------------------------------------------------------------------------------
+        self.walking_particles_left = []
+        self.walking_particles_right = []
+        for frame in range(9):
+            img = img_loader(f'data/images/particle_animation/walking_particles/walking_particles{frame + 1}.PNG',
+                             16, 16)
+            self.walking_particles_right.append(img)
+            img = pygame.transform.flip(img, True, False)
+            self.walking_particles_left.append(img)
+        self.jumping_particles_right = []
+        self.jumping_particles_left = []
+        self.jumping_particles_up = []
+        for frame in range(8):
+            img = img_loader(f'data/images/particle_animation/jumping_particles/jumping_particles{frame + 1}.PNG',
+                             16, 28)
+            self.jumping_particles_up.append(img)
+            img_l = pygame.transform.rotate(img, 30)
+            img_r = pygame.transform.rotate(img, -30)
+            self.jumping_particles_left.append(img_l)
+            self.jumping_particles_right.append(img_r)
+        self.landing_particles = []
+        for frame in range(9):
+            img = img_loader(f'data/images/particle_animation/landing_particles/landing_particles{frame + 1}.PNG',
+                             40, 12)
+            self.landing_particles.append(img)
+        # particle animation lists
+        self.walking_part_animations = []
+        self.jumping_part_animations = []  # one cell -> [pos, counter, direction]
+        self.landing_part_animations = []
+        self.particle_frame_counter = 0
+        self.particle_frame_duration = 3
+
         # teleportation particles frames -------------------------------------------------------------------------------
         self.particles1 = img_loader('data/images/particles1.PNG', tile_size, tile_size)
         self.particles2 = img_loader('data/images/particles2.PNG', tile_size, tile_size)
@@ -235,15 +267,6 @@ class Player:
             surf = pygame.transform.scale(jump_shock_template, (8 * frame, 2 * frame))
             surf.set_alpha(40 * (9 - frame))
             self.jump_shock_frames[frame] = surf
-
-        # mid-air-jump numbers -----------------------------------------------------------------------------------------
-        self.mid_air_jump_number_list = []
-        self.mid_air_jump_numbers = {
-            0: img_loader('data/images/mid-air-jump_numbers/0.PNG', tile_size, tile_size),
-            1: img_loader('data/images/mid-air-jump_numbers/1.PNG', tile_size, tile_size),
-            2: img_loader('data/images/mid-air-jump_numbers/2.PNG', tile_size, tile_size),
-            3: img_loader('data/images/mid-air-jump_numbers/3.PNG', tile_size, tile_size),
-        }
 
         # respawn instruction images and variables ---------------------------------------------------------------------
         self.respawn_text = []
@@ -438,6 +461,10 @@ class Player:
         self.jump_shock_counter += 1 * fps_adjust
 
         self.jump_press_counter -= 1 * fps_adjust
+
+        self.particle_frame_counter += 1 * fps_adjust
+        if self.particle_frame_counter > self.particle_frame_duration:
+            self.particle_frame_counter = 0
 
         if self.airborn:
             self.slide = 0.4
@@ -693,14 +720,18 @@ class Player:
                         sounds['mid_air_jump'] = True
                         self.jump_shock_counter = 5
                         self.jump_shock_pos = [self.sack_rect.x + 10, self.sack_rect.y + 20]
-                        if [world_count, level_count] in [[1, 2], [2, 7]]:  # mid-air-jump numbers
-                            num_img = self.mid_air_jump_numbers[self.mid_air_jumps_num - self.mid_air_jump_counter]
-                            num_tile = [num_img, [swidth / 2 + tile_size, self.sack_rect.y - 16], 255]
-                            self.mid_air_jump_number_list.append(num_tile)
                     if self.mid_air_jump and self.player_jump:
                         self.vel_y = -11
                     else:
                         self.vel_y = -7.5
+                        if self.vel_x_r > 1.2:
+                            jump_part_direction = 1
+                        elif self.vel_x_l < -1.2:
+                            jump_part_direction = -1
+                        else:
+                            jump_part_direction = 0
+                        self.jumping_part_animations.append([[self.sack_rect.x + 9, self.sack_rect.y + 11],
+                                                             0, jump_part_direction])
                     sounds['jump'] = True
                     self.jump_adder = 0
                     self.jumped = True
@@ -789,6 +820,9 @@ class Player:
                         if self.walk_counter in [4, 8]:
                             sounds[f'step_{self.surface_type}'] = True
                         self.animation_counter = 0
+                        if self.walk_counter in [2, 6]:
+                            part = [[self.sack_rect.x, self.sack_rect.y + 6], 0, self.direction]
+                            self.walking_part_animations.append(part)
                     if self.walk_counter > len(self.sack_walk):
                         self.walk_counter = 1
                     if self.walk_counter == 0:
@@ -985,9 +1019,12 @@ class Player:
                     dy = 0
                     self.vel_y = 0
                     self.col_types['bottom'] = True
+                    self.jump_press_counter = 0
                     self.airborn = False
                     self.camera_falling_assist = False
                     self.first_collision = True
+                    if self.on_ground_counter < 0:
+                        self.landing_part_animations.append([[self.sack_rect.x - 11, self.sack_rect.y + 11], 0])
                     self.on_ground_counter = self.default_on_ground_counter
                     self.animate_walk = True
                     self.speed_dash_landed = True
@@ -1212,7 +1249,48 @@ class Player:
             if not transition:
                 self.transition = False
 
-# respawn instructions -------------------------------------------------------------------------------------------------
+# draw sack particles --------------------------------------------------------------------------------------------------
+    def draw_sack_particles(self, screen):
+        # walking
+        for particles in self.walking_part_animations:
+            if self.particle_frame_counter == 0:
+                particles[1] += 1
+            particles[0][0] += self.camera_movement_x
+            particles[0][1] += self.camera_movement_y
+            if particles[2] == 1:
+                img = self.walking_particles_right[particles[1]]
+            else:
+                img = self.walking_particles_left[particles[1]]
+            screen.blit(img, particles[0])
+            if particles[1] == 8:
+                self.walking_part_animations.remove(particles)
+        # jumping
+        for particles in self.jumping_part_animations:
+            if self.particle_frame_counter == 0:
+                particles[1] += 1
+            particles[0][0] += self.camera_movement_x
+            particles[0][1] += self.camera_movement_y
+            if particles[2] == 1:
+                img = self.jumping_particles_right[particles[1]]
+            elif particles[2] == -1:
+                img = self.jumping_particles_left[particles[1]]
+            else:
+                img = self.jumping_particles_up[particles[1]]
+            screen.blit(img, (particles[0][0] - img.get_width() / 2, particles[0][1] - img.get_height() / 2))
+            if particles[1] == 7:
+                self.jumping_part_animations.remove(particles)
+        # landing
+        for particles in self.landing_part_animations:
+            if self.particle_frame_counter == 0:
+                particles[1] += 1
+            particles[0][0] += self.camera_movement_x
+            particles[0][1] += self.camera_movement_y
+            img = self.landing_particles[particles[1]]
+            screen.blit(img, particles[0])
+            if particles[1] == 8:
+                self.landing_part_animations.remove(particles)
+
+# instructions ---------------------------------------------------------------------------------------------------------
     def blit_button_instructions(self, screen, fps_adjust, joystick_connected, settings_counters):
         press = False
         if self.button_press_counter > 65:
@@ -1277,16 +1355,5 @@ class Player:
             self.speed_dash_tutorial1_pos[1] += self.camera_movement_y
             offset = math.sin(self.icn_bob_counter / 15) * 3
             screen.blit(self.right_arrow, (self.speed_dash_tutorial1_pos[0] + offset, self.speed_dash_tutorial1_pos[1]))
-
-        if self.mid_air_jump_number_list and not speedrun:
-            for num in self.mid_air_jump_number_list:
-                num[2] -= 5 * fps_adjust
-                num[1][0] += self.camera_movement_x
-                num[1][1] += self.camera_movement_y
-                if num[2] < 0:
-                    self.mid_air_jump_number_list.remove(num)
-                else:
-                    num[0].set_alpha(num[2])
-                screen.blit(num[0], num[1])
 
 

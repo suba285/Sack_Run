@@ -4,15 +4,15 @@ import math
 
 
 # popup function
-def draw_popup(screen, popup, element, popup_counter, bob=False, fps_adjust=1):
+def draw_popup(screen, popup, element, popup_counter, duration=280):
     popup_scale = 1
     if popup_counter <= 10:
         popup_scale = popup_counter / 10
-    if 270 > popup_counter > 10:
+    if duration - 10 > popup_counter > 10:
         popup_scale = 1
-    if 280 > popup_counter >= 270:
-        popup_scale = (10 - (popup_counter - 270)) / 10
-    if popup_scale > 0 and popup_counter < 280:
+    if duration > popup_counter >= duration - 10:
+        popup_scale = (10 - (popup_counter - (duration - 10))) / 10
+    if popup_scale > 0 and popup_counter < duration:
         if popup_scale != 1:
             final_popup = pygame.transform.scale(popup, (popup.get_width() * popup_scale, popup.get_height()))
         else:

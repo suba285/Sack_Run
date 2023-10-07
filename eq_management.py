@@ -52,6 +52,8 @@ class eqManager:
         self.joystick_card_over_time = 2 * 60
         self.joystick_over_counter = 0
 
+        self.card_sin_counter = 0
+
         self.eq_button_list_length = 0
 
         self.card_x = 0
@@ -130,6 +132,11 @@ class eqManager:
             'speed_dash info2': speed_dash_info2,
             'speed_dash info3': speed_dash_info3,
         }
+
+        # green light
+        self.green_light = pygame.Surface((52, 10))
+        self.green_light.fill((0, 212, 0))
+        self.green_light.set_alpha(18)
 
         # mouse and keys animation images ------------------------------------------------------------------------------
         self.mouse0 = img_loader('data/images/mouse0.PNG', tile_size / 2, tile_size)
@@ -292,6 +299,27 @@ class eqManager:
         for card in self.eq_button_list:
             screen.blit(self.card_back_img, (card_back_x, self.card_back_y))
             card_back_x += tile_size * 2.5
+
+    def card_gem_animation(self, fps_adjust, screen):
+        self.card_sin_counter += 1 * fps_adjust
+        card_back_y = self.card_back_default_y - 5
+        card_back_x = 0
+        counter_offset = 0
+        for card in self.eq_button_list:
+            counter = self.card_sin_counter + counter_offset
+            card_back_y += math.sin(1/13 * counter) * 3
+            screen.blit(self.card_back_img, (card_back_x, card_back_y))
+            card_back_x += tile_size * 2.5
+            counter_offset = 30
+
+    def card_green_light(self, screen):
+        x = 6
+        for card in self.eq_button_list:
+            base_y = sheight - self.green_light.get_height()
+            for y in range(self.green_light.get_height() + 1):
+                screen.blit(self.green_light, (x, base_y + y))
+                base_y += 1
+            x += 2.5 * tile_size
 
     def new_card(self, card_type, screen, fps_adjust, counter):
         self.new_card_y_counter -= 15 * fps_adjust
@@ -545,6 +573,11 @@ class eqManager:
 
         if self.animate_card_jump:
             eqManager.card_jump_animation(self, fps_adjust, screen)
+        elif gem_equipped and self.joystick_over_counter <= 0:
+            eqManager.card_gem_animation(self, fps_adjust, screen)
+
+        if gem_equipped:
+            eqManager.card_green_light(self, screen)
 
         # tutorial on how to use cards ---------------------------------------------------------------------------------
         if self.eq_button_list:
