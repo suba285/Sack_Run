@@ -603,7 +603,7 @@ class World:
 
         # bean popup
         self.beans_popup = popup_bg_generator((60, 15))
-        bean_text = Text().make_text([f'{self.collected_beans[0] + 1} of 5'])
+        bean_text = Text().make_text([f'{self.collected_beans[0] + 1} of 7'])
         self.beans_popup.blit(bean_text, (30, 7))
         self.beans_popup_counter = 400
 
@@ -712,7 +712,7 @@ class World:
                         offset = tile_size / 2
                     else:
                         offset = 0
-                    if [self.world_count, level_count] == [3, 4]:
+                    if [self.world_count, level_count] in [[3, 4], [3, 5], [3, 6]]:
                         rect = pygame.Rect(0, 0, tile_size, tile_size)
                         rect.x = column_count * tile_size - pov_offset
                         rect.y = row_count * tile_size + offset
@@ -2053,9 +2053,9 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_bean_popup(self, screen, fps_adjust):
+    def draw_bean_popup(self, screen):
         if 400 > self.beans_popup_counter > 0:
-            draw_popup(screen, self.beans_popup, (self.beans, (7, 2)), self.beans_popup_counter, True)
+            draw_popup(screen, self.beans_popup, (self.beans, (7, 2)), self.beans_popup_counter)
 
     # ------------------------------------------------------------------------------------------------------------------
 

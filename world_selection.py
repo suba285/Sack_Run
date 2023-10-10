@@ -20,11 +20,22 @@ class LevelSelection:
         try:
             with open('data/unlocked_worlds.json', 'r') as json_file:
                 self.world_status = json.load(json_file)
-
         except FileNotFoundError:
-            self.world_status = [True, False, False, False, False]
+            self.world_status = [True, False, False, False, False, False]
+
+        try:
+            with open('data/collected_beans.json', 'r') as json_file:
+                bean_data = json.load(json_file)
+                beans_collected = False
+                if bean_data[0] == 7:
+                    beans_collected = True
+        except FileNotFoundError:
+            beans_collected = False
 
         self.world_count = world_count
+        self.world_count_cap = 4
+        if beans_collected and self.world_status[5]:
+            self.world_count_cap = 5
 
         self.menu_background = img_loader('data/images/menu_background.PNG', swidth, sheight)
 
@@ -80,20 +91,24 @@ class LevelSelection:
 
         world3_description = text.make_text(["A flour mill obstacle course"])
 
-        self.world_locked_txt = text.make_text(['LEVEL LOCKED'])
+        world4_txt = text.make_text(["Extra beans"])
+
+        world4_description = text.make_text(['A special selection of very hard levels'])
 
         self.descriptions = {
             0: tutorial_description,
             1: world1_description,
             2: world2_description,
-            3: world3_description
+            3: world3_description,
+            4: world4_description
         }
 
         self.titles = {
             0: tutorial_txt,
             1: world1_txt,
             2: world2_txt,
-            3: world3_txt
+            3: world3_txt,
+            4: world4_txt
         }
 
         spacing = 20
@@ -149,8 +164,8 @@ class LevelSelection:
         self.new_world_dim_surf.fill((0, 0, 0))
 
         self.world_count = world_count
-        if self.world_count > 4:
-            self.world_count = 4
+        if self.world_count > self.world_count_cap:
+            self.world_count = self.world_count_cap
 
         update_value = 0
 
@@ -187,13 +202,30 @@ class LevelSelection:
             self.lock_animation_counter += 1/3
 
         if new_world_unlocked:
+            try:
+                with open('data/collected_beans.json', 'r') as json_file:
+                    bean_data = json.load(json_file)
+                    beans_collected = False
+                    if bean_data[0] == 7:
+                        beans_collected = True
+            except FileNotFoundError:
+                beans_collected = False
+
+            self.world_count = world_count
+            self.world_count_cap = 4
+            if beans_collected:
+                self.world_count_cap = 5
+
             self.lock_sound_played = False
             self.new_world_animation_counter = self.new_world_animation_stage0
             self.lock_animation_counter = 0
             self.new_world_circle_radius = 0
             self.new_world_dim_surf.set_alpha(self.new_world_dim_surf_max_alpha)
             self.new_world_dim_surf_alpha = self.new_world_dim_surf_max_alpha
-            self.world_count += 1
+            if beans_collected:
+                self.world_count = 5
+            else:
+                self.world_count += 1
             new_world_unlocked = False
 
         self.object_wobble_counter -= 1 * fps_adjust
@@ -261,7 +293,8 @@ class LevelSelection:
             object_wobble = 0
 
         level_screen.blit(title, (swidth / 2 - title.get_width() / 2 + object_wobble, self.button_y + 6))
-        if self.world_status[self.world_count - 1] and self.new_world_animation_counter > 0:
+        if (self.world_status[self.world_count - 1] or (self.world_count == 5 and self.world_status[5])) and \
+                self.new_world_animation_counter > 0:
             level_screen.blit(description, (swidth / 2 - description.get_width() / 2, self.button_y + 40))
 
         if self.new_world_animation_stage3 < self.new_world_animation_counter < 0:
@@ -274,13 +307,14 @@ class LevelSelection:
                 self.new_world_dim_surf_alpha = 0
 
         if self.new_world_animation_counter >= 0:
-            if not self.world_status[self.world_count - 1]:
+            if (self.world_count < 5 and not self.world_status[self.world_count - 1]) or \
+                    (not self.world_status[5] and self.world_count == 5):
                 self.new_world_dim_surf_alpha += 4 * fps_adjust
                 if self.new_world_dim_surf_alpha <= self.new_world_dim_surf_max_alpha:
                     self.new_world_dim_surf.set_alpha(self.new_world_dim_surf_alpha)
                 if self.new_world_dim_surf_alpha > self.new_world_dim_surf_max_alpha:
                     self.new_world_dim_surf_alpha = self.new_world_dim_surf_max_alpha
-            if self.world_status[self.world_count - 1]:
+            if self.world_status[self.world_count - 1] or (self.world_count == 5 and self.world_status[5]):
                 self.new_world_dim_surf_alpha -= 4 * fps_adjust
                 if self.new_world_dim_surf_alpha >= 0:
                     self.new_world_dim_surf.set_alpha(self.new_world_dim_surf_alpha)
@@ -290,7 +324,8 @@ class LevelSelection:
             level_screen.blit(self.new_world_dim_surf, (0, 0))
 
         # lock icon
-        if not self.world_status[self.world_count - 1]:
+        if (self.world_count < 5 and not self.world_status[self.world_count - 1]) or \
+                (not self.world_status[5] and self.world_count == 5):
             img = self.lock_animation[0]
             level_screen.blit(img, (swidth / 2 - tile_size / 2 - object_wobble / 2, sheight / 2 - tile_size / 2))
 
@@ -313,7 +348,8 @@ class LevelSelection:
                                    sheight / 2 - tile_size / 2 + lock_vibration[1]))
 
         if joysticks:
-            if self.joystick_counter == 1 or not self.world_status[self.world_count - 1]:
+            if self.joystick_counter == 1 or ((self.world_count < 5 and not self.world_status[self.world_count - 1])
+                                              or (not self.world_status[5] and self.world_count == 5)):
                 joystick_over1 = True
             elif self.joystick_counter == -1:
                 joystick_over_1 = True
@@ -326,7 +362,7 @@ class LevelSelection:
                 level_screen.blit(self.left_button_grey, (self.left_x, self.button_y))
                 if joystick_over2:
                     level_screen.blit(self.arrow_button_outline_surf, (self.left_x, self.button_y))
-            if self.world_count < 4:
+            if self.world_count < self.world_count_cap:
                 right_press, over2 = self.right_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
                                                                 joystick_over_2, use_btn)
             else:
@@ -345,7 +381,7 @@ class LevelSelection:
 
         menu_press, over3 = self.menu_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
                                                       joystick_over1, use_btn)
-        if self.world_status[self.world_count - 1]:
+        if self.world_status[self.world_count - 1] or (self.world_count == 5 and self.world_status[5]):
             play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
                                                           joystick_over_1, use_btn)
 
@@ -359,8 +395,8 @@ class LevelSelection:
         self.world_count += update_value
         if self.world_count < 1:
             self.world_count = 1
-        if self.world_count > 4:
-            self.world_count = 4
+        if self.world_count > self.world_count_cap:
+            self.world_count = self.world_count_cap
 
         if over1 or over2 or over3 or over4:
             sounds['button'] = True

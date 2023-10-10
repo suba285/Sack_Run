@@ -491,9 +491,11 @@ class Player:
         self.right_border = right_border
         top_border = 50 / 270 * sheight
         bottom_border = 180 / 270 * sheight
-        if [level_count, world_count] == [5, 4]:
-            top_border = 20 / 270 * sheight
-        if [level_count, world_count] in [[6, 3], [5, 4]]:
+        if [level_count, world_count] == [6, 4]:
+            top_border = 100 / 270 * sheight
+        if [level_count, world_count] == [1, 5]:
+            top_border = 130 / 270 * sheight
+        if [level_count, world_count] in [[6, 3], [6, 4], [5, 4]]:
             bottom_border = 150 / 270 * sheight
 
         harm = False
@@ -821,7 +823,7 @@ class Player:
                             sounds[f'step_{self.surface_type}'] = True
                         self.animation_counter = 0
                         if self.walk_counter in [2, 6]:
-                            part = [[self.sack_rect.x, self.sack_rect.y + 6], 0, self.direction]
+                            part = [[self.sack_rect.x, self.sack_rect.y + 7], 0, self.direction]
                             self.walking_part_animations.append(part)
                     if self.walk_counter > len(self.sack_walk):
                         self.walk_counter = 1
@@ -1306,7 +1308,7 @@ class Player:
         if self.health == 0 and self.dead_counter >= 36 and self.restart_counter == 0:
             x = swidth / 2 - 3 * 8
 
-            if self.controls['configuration'][4] == 1:
+            if self.controls['configuration'][7] == 1:
                 controller_btn = self.a_button
             else:
                 controller_btn = self.cross_button
@@ -1336,7 +1338,7 @@ class Player:
 
         if self.freeze:
             if self.freeze_type == 'sd1':
-                if self.controls['configuration'][4] == 1:
+                if self.controls['configuration'][7] == 1:
                     controller_btn = self.a_button
                 else:
                     controller_btn = self.cross_button

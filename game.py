@@ -43,6 +43,7 @@ level_dictionary = {
     "level4_4": level4_4,
     "level5_4": level5_4,
     "level6_4": level6_4,
+    "level1_5": level1_5,
 }
 
 level_bg_dictionary = {
@@ -73,6 +74,7 @@ level_bg_dictionary = {
     "level4_4_bg": level4_4_bg,
     "level5_4_bg": level5_4_bg,
     "level6_4_bg": level6_4_bg,
+    "level1_5_bg": level1_5_bg,
 }
 
 level_pos_dictionary = {
@@ -103,8 +105,8 @@ level_pos_dictionary = {
     "level3_4": (3, -1),
     "level4_4": (1, -8),
     "level5_4": (2, -1),
-    "level6_4": (4, 1),
-    "level7_4": (-25, 2),
+    "level6_4": (4, -8),
+    "level1_5": (2, -20)
 }
 
 level_card_dictionary = {
@@ -116,7 +118,8 @@ world_ending_levels = {
     1: 3,
     2: 11,
     3: 10,
-    4: 7
+    4: 7,
+    5: 4
 }
 
 music_change_list = [[2, 9], [3, 4]]
@@ -472,7 +475,8 @@ class Game:
             1: 'Seems like you got the hang of it!',
             2: 'The farm is now behind you, further challenges lay ahead',
             3: 'Fresh air, finally... No more damp caves',
-            4: "Thanks for playing! Now you can try speedrun mode [settings]"
+            4: "Thanks for playing! Now you can try speedrun mode [settings]",
+            5: "I like beans"
         }
 
         self.world_completed_text = text.make_text([self.world_completed_texts[world_count]])
@@ -661,7 +665,7 @@ class Game:
         change_music = False
 
         max_level = 11
-        max_world = 4
+        max_world = 5
         if level_count >= max_level:
             level_count = max_level
         if world_count >= max_world:
@@ -701,8 +705,8 @@ class Game:
             bg_data = []
             self.world_completed = True
 
-        if world_count > 4:
-            world_count = 4
+        if world_count > 5:
+            world_count = 5
 
         if [world_count, level_count] in music_change_list and self.level_check > 1 and self.level_check != level_count:
             change_music = True
@@ -762,7 +766,7 @@ class Game:
             if events['keydown'].key == self.controls['jump']:
                 menu_press = True
         if events['joybuttondown']:
-            if events['joybuttondown'].button in [0, 14]:
+            if events['joybuttondown'].button == self.controls['configuration'][5]:
                 menu_press = True
 
         text = self.world_completed_text
@@ -856,7 +860,7 @@ class Game:
             if events['keydown'].key == pygame.K_SPACE:
                 press = True
         if events['joybuttondown']:
-            if events['joybuttondown'].button in [0, 14]:
+            if events['joybuttondown'].button == self.controls['configuration'][5]:
                 press = True
 
         if dialogue_done and dialogue and not final_step and press:
@@ -1033,7 +1037,7 @@ class Game:
         self.tile_list = self.world.update_tile_list(self.camera_move_x, self.camera_move_y)
 
         # blitting tiles and images in the background ------------------------------------------------------------------
-        if world_count in [1, 2] or (world_count == 4 and level_count == 1):
+        if world_count in [1, 2, 5] or (world_count == 4 and level_count == 1):
             Game.update_cloud_bg(self)
         elif world_count == 4:
             self.game_screen.fill(self.brick_colour)
@@ -1157,7 +1161,7 @@ class Game:
                 change_music = True
 
         # drawing bean popup -------------------------------------------------------------------------------------------
-        self.world.draw_bean_popup(self.game_screen, fps_adjust)
+        self.world.draw_bean_popup(self.game_screen)
 
         # drawing the border -------------------------------------------------------------------------------------------
         if border_col != 0:

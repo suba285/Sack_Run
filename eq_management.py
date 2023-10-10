@@ -1,3 +1,5 @@
+import random
+
 import pygame._sdl2
 import math
 from button import Button
@@ -49,7 +51,7 @@ class eqManager:
         self.level_count = 1
 
         self.joystick_counter = 0
-        self.joystick_card_over_time = 2 * 60
+        self.joystick_card_over_time = 5 * 60
         self.joystick_over_counter = 0
 
         self.card_sin_counter = 0
@@ -470,10 +472,10 @@ class eqManager:
                         hat_value[1] = 1
 
             if events['joyaxismotion_x']:
-                if abs(events['joyaxismotion_x'].value) > 0.3:
+                if abs(events['joyaxismotion_x'].value) > 0.8:
                     joystick_action = True
             if events['joyaxismotion_y']:
-                if abs(events['joyaxismotion_y'].value) > 0.3:
+                if abs(events['joyaxismotion_y'].value) > 0.8:
                     joystick_action = True
 
         if joysticks and joysticks[0].get_numhats() > 0:
@@ -568,8 +570,14 @@ class eqManager:
             self.no_gem_counter = self.default_no_gem_counter
 
         if self.no_gem_counter > 0:
-            screen.blit(self.no_gem_text, (swidth / 2 - self.no_gem_text.get_width() / 2,
-                                           sheight / 2 - self.no_gem_text.get_height() / 2 - 10))
+            if self.no_gem_counter > 97:
+                offset_x = random.choice([2, 0, -2])
+                offset_y = random.choice([2, 0, -2])
+            else:
+                offset_x = 0
+                offset_y = 0
+            screen.blit(self.no_gem_text, (swidth / 2 - self.no_gem_text.get_width() / 2 + offset_x,
+                                           sheight / 2 - self.no_gem_text.get_height() / 2 - 60 + offset_y))
 
         if self.animate_card_jump:
             eqManager.card_jump_animation(self, fps_adjust, screen)

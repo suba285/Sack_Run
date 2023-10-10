@@ -164,7 +164,7 @@ try:
         level_counters = json.load(json_file)
 
 except FileNotFoundError:
-    level_counters = [1, 1, 1, 1]
+    level_counters = [1, 1, 1, 1, 1]
 try:
     with open('data/unlocked_worlds.json', 'r') as json_file:
         unlocked_worlds_data = json.load(json_file)
@@ -299,6 +299,7 @@ sounds = {
         'click': pygame.mixer.Sound('data/sounds/click.wav'),
         'sack_noise': pygame.mixer.Sound('data/sounds/sack_noise.wav'),
         'rumble': pygame.mixer.Sound('data/sounds/rumble.wav'),
+        'page_flip': pygame.mixer.Sound('data/sounds/page_flip.wav'),
         'bubbles': pygame.mixer.Sound('data/sounds/bubbles.wav'),
         'buzz_left': pygame.mixer.Sound('data/sounds/buzzing_left.wav'),
         'buzz_right': pygame.mixer.Sound('data/sounds/buzzing_right.wav'),
@@ -343,6 +344,7 @@ sounds['sack_noise'].set_volume(0.5)
 sounds['mushroom'].set_volume(1.2)
 sounds['rumble'].set_volume(0.5)
 sounds['bubbles'].set_volume(0.4)
+sounds['page_flip'].set_volume(0.2)
 
 music_data = {
     '1': 'game_song1',
@@ -362,6 +364,7 @@ music = {
     '4-1': pygame.mixer.Sound('data/sounds/game_song4-1.wav'),
     '4-2': pygame.mixer.Sound('data/sounds/game_song4-2.wav'),
     '4-3': pygame.mixer.Sound('data/sounds/game_song4-3.wav'),
+    '5-1': pygame.mixer.Sound('data/sounds/game_song1.wav'),
     '3-4-transition': pygame.mixer.Sound('data/sounds/game_song3-4_transition.wav'),
     '3-3-slow': pygame.mixer.Sound('data/sounds/game_song3-3-slow.wav'),
     'speedrun': pygame.mixer.Sound('data/sounds/Speedrun-song.wav')
@@ -402,7 +405,8 @@ world_phase_limit = {
     1: 1,
     2: 2,
     3: 4,
-    4: 3
+    4: 3,
+    5: 1
 }
 
 paused_music_volume = 0.1
@@ -434,7 +438,7 @@ controls_nums = {
     'jump1': pygame.K_SPACE,
     'jump2': pygame.K_w,
     'jump3': pygame.K_UP,
-    'configuration': [[0, 1], 4, 5, 10, 1, 0, 2, 1],  # controller button configuration
+    'configuration': [[], -1, -1, -1, -1, -1, -1, -1],  # controller button configuration
     'cards1': 'mouse',
     'cards2': 'keyboard',
 }
@@ -540,6 +544,7 @@ while run:
         'sack_noise': False,
         'bubbles': 0,
         'rumble': False,
+        'page_flip': False,
         'buzz': [],
     }
     # events
@@ -853,14 +858,29 @@ while run:
                     unlocked_world_data = json.load(json_file)
             except FileNotFoundError:
                 unlocked_world_data = [True, False, False, False, False]
+
             if world_count < 4 and not unlocked_world_data[world_count]:
                 new_world_unlocked = True
             if world_count < 5:
                 unlocked_world_data[world_count] = True
+
+            try:
+                with open('data/collected_beans.json', 'r') as json_file:
+                    bean_data = json.load(json_file)
+                    beans_collected = False
+                    if bean_data[0] == 7:
+                        beans_collected = True
+            except FileNotFoundError:
+                beans_collected = False
+
+            if not unlocked_world_data[5] and beans_collected:
+                unlocked_world_data[5] = True
+                new_world_unlocked = True
+
             try:
                 with open('data/unlocked_worlds.json', 'w') as json_file:
                     json.dump(unlocked_world_data, json_file)
-                    if unlocked_world_data[-1]:
+                    if unlocked_world_data[4]:
                         settings_menu.speedrun_unlocked = True
             except FileNotFoundError:
                 progress_not_saved_error = True
@@ -941,6 +961,29 @@ while run:
                 except FileNotFoundError:
                     pass
                 progress_saved_counter = -10
+            # beans
+            try:
+                with open('data/unlocked_worlds.json', 'r') as json_file:
+                    unlocked_world_data = json.load(json_file)
+            except FileNotFoundError:
+                unlocked_world_data = [True, False, False, False, False]
+            try:
+                with open('data/collected_beans.json', 'r') as json_file:
+                    bean_data = json.load(json_file)
+                    beans_collected = False
+                    if bean_data[0] == 7:
+                        beans_collected = True
+            except FileNotFoundError:
+                beans_collected = False
+
+            if not unlocked_world_data[5] and beans_collected:
+                unlocked_world_data[5] = True
+                new_world_unlocked = True
+            try:
+                with open('data/unlocked_worlds.json', 'w') as json_file:
+                    json.dump(unlocked_world_data, json_file)
+            except FileNotFoundError:
+                progress_not_saved_error = True
 
         if restart_level:
             resume = True
@@ -1101,9 +1144,10 @@ while run:
             settings_counters,\
             calibrated_press,\
             settings_music_control,\
-            sound_triggers['button'] = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment,
-                                                                        settings_events, fps_adjust, joystick_connected,
-                                                                        joysticks, game_paused)
+            sound_triggers['button'],\
+            sound_triggers['page_flip'] = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment,
+                                                                           settings_events, fps_adjust,
+                                                                           joystick_connected, joysticks, game_paused)
 
         if performance_counter == 1:
             slow_computer = False
@@ -1480,6 +1524,9 @@ while run:
         one_time_play_button2 = False
     if joystick_idle_x and joystick_idle_y and not events['joyhatdown'] and not hat_press:
         one_time_play_button2 = True
+    # settings page flip
+    if sound_triggers['page_flip']:
+        sounds['page_flip'].play()
 
     # music
     if play_background_music:

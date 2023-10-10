@@ -21,7 +21,7 @@ class SettingsMenu:
                 unlocked_world_data = json.load(json_file)
         except FileNotFoundError:
             unlocked_world_data = [True, False, False, False, False]
-        if unlocked_world_data[-1]:
+        if unlocked_world_data[4]:
             self.speedrun_unlocked = True
         else:
             self.speedrun_unlocked = False
@@ -706,7 +706,7 @@ class SettingsMenu:
                     self.controller_configuration[self.controller_calibration_step_counter] = event.button
                     self.controller_taken_btns.append(event.button)
                     self.controller_calibration_step_counter += 1
-                    print(self.controller_calibration_step_counter)
+                    print('pressss')
                 else:
                     self.choose_different_btn_counter = 60
 
@@ -1775,6 +1775,11 @@ class SettingsMenu:
             if self.section_counter > 2:
                 self.section_counter = 0
 
+        if control_btn_trigger or visual_btn_trigger or sound_btn_trigger or joystick_tab_left or joystick_tab_right:
+            page_flip_sound_trigger = True
+        else:
+            page_flip_sound_trigger = False
+
         if self.section_counter == 0:
             self.draw_control_screen = False
             self.draw_visual_screen = True
@@ -1837,4 +1842,5 @@ class SettingsMenu:
         self.settings_counters['speedrun'] = self.speedrun_counter
 
         return menu_press, self.controls, self.pov_counter, resolution, \
-               adjust_resolution, self.settings_counters, calibrated, settings_music, final_over
+               adjust_resolution, self.settings_counters, calibrated, settings_music, final_over,\
+               page_flip_sound_trigger
