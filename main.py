@@ -640,7 +640,7 @@ while run:
     last_fps_adjust = fps_adjust
     fps_int = int(real_fps)
 
-    clock.tick(20)
+    clock.tick(60)
 
     # joystick variables and counters
     joystick_moved = False
