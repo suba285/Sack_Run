@@ -500,6 +500,8 @@ class Player:
 
         harm = False
 
+        jump_press = False
+
         if world_count == 1 and level_count == 1 and self.lowering_cooldown == 15:
             self.screen_shake_counter = 10
 
@@ -542,6 +544,7 @@ class Player:
         if events['joybuttondown']:
             if events['joybuttondown'].button == controls['configuration'][5]:
                 self.player_jump = True
+                jump_press = True
                 if self.freeze_type == 'sd1' and self.freeze:
                     self.freeze = False
                     self.block_control = True
@@ -698,7 +701,7 @@ class Player:
             self.player_jump = False
 
         # jump counter
-        if self.player_jump:
+        if jump_press:
             self.jump_press_counter = self.max_jump_press_counter
 
         # movement and animation ---------------------------------------------------------------------------------------
@@ -739,6 +742,7 @@ class Player:
                     self.jumped = True
                     self.animate_walk = False
                     self.airborn = True
+                    self.jump_press_counter = 0
             if not self.mid_air_jump:
                 if self.player_jump and self.jumped and self.jump_adder < 1.5:
                     self.jump_adder += 0.16 * fps_adjust
