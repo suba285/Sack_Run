@@ -760,7 +760,8 @@ class Player:
                 if self.sack_rect.height != 23:
                     self.sack_rect.height = 23
                 # walking left
-                if key[self.controls['left']] or self.joystick_left or self.hat_value[0] == -1:
+                if (key[self.controls['left']] or self.joystick_left or self.hat_value[0] == -1)\
+                        and not self.col_types['left']:
                     self.player_moved = True
                     if self.speed_dash and not self.speed_dash_activated and not self.block_control:
                         self.speed_dash_activated = True
@@ -783,7 +784,8 @@ class Player:
                     self.teleport_count = 0
 
                 # walking right
-                if key[self.controls['right']] or self.joystick_right or self.hat_value[0] == 1 or self.bridge_cutscene_walk:
+                if (key[self.controls['right']] or self.joystick_right or self.hat_value[0] == 1 or
+                        self.bridge_cutscene_walk) and not self.col_types['right']:
                     self.player_moved = True
                     if self.speed_dash and not self.speed_dash_activated and not self.block_control:
                         self.speed_dash_activated = True
@@ -951,18 +953,19 @@ class Player:
 
         # collision detection and position -----------------------------------------------------------------------------
         self.vel_x = self.vel_x_l + self.vel_x_r
-        temp_rect = self.sack_rect
-        temp_rect.x += (self.vel_x + 0.5)
+        temp_x = self.sack_rect.x + round(self.vel_x)
+        adjustment = 0
 
-        bridge_cutscene_trigger = False
+        if self.vel_x != 0:
+            print(self.vel_x)
 
         border_col = 0
 
-        if self.sack_rect.x + 20 > self.right_border:
+        if self.sack_rect.x + self.sack_width > self.right_border:
             if self.vel_x > 0:
                 self.vel_x_r = 0
                 self.vel_x = 0
-                self.sack_rect.x = self.right_border - 20
+                self.sack_rect.x = self.right_border - self.sack_width
                 self.col_types['right'] = True
             border_col = 1
         if self.sack_rect.x < self.left_border:
@@ -976,7 +979,7 @@ class Player:
         # freeze tile collisions
         removal_list = []
         for tile in freeze_tiles:
-            if temp_rect.colliderect(tile[0][0], tile[0][1], tile_size, tile_size * 2):
+            if self.sack_rect.colliderect(tile[0][0], tile[0][1], tile_size, tile_size * 2):
                 self.freeze_type = tile[1]
                 if self.freeze_type != 'sd0':
                     self.freeze = True
@@ -990,16 +993,17 @@ class Player:
         col_y_tile_list = []
         append = col_y_tile_list.append
         for tile in tile_list:
-            if tile[1].colliderect(temp_rect.x + self.vel_x, temp_rect.y, self.sack_width, self.sack_height):
+            if tile[1].colliderect(temp_x, self.sack_rect.y, self.sack_width, self.sack_height):
                 if self.vel_x > 0:
-                    self.sack_rect.right = tile[1].left
-                    self.vel_x = 0
+                    adjustment = tile[1].left - self.sack_rect.right
                     self.vel_x_r = 0
+                    self.vel_x = 0
                     self.col_types['right'] = True
                 if self.vel_x < 0:
-                    self.sack_rect.left = tile[1].right
-                    self.vel_x = 0
+                    adjustment = tile[1].right - self.sack_rect.left
+                    print(adjustment)
                     self.vel_x_l = 0
+                    self.vel_x = 0
                     self.col_types['left'] = True
             if tile[1][0] + tile_size > self.sack_rect.x > tile[1][0] - tile_size:
                 append(tile)
@@ -1081,7 +1085,11 @@ class Player:
 
         # updating player coordinates ----------------------------------------------------------------------------------
         if not self.freeze:
-            self.camera_movement_x = round(-self.vel_x * fps_adjust)
+            self.camera_movement_x = round(-(self.vel_x + adjustment) * fps_adjust)
+            if self.col_types['right'] and self.camera_movement_x < 0:
+                self.camera_movement_x = 0
+            if self.col_types['left'] and self.camera_movement_x > 0:
+                self.camera_movement_y = 0
             dx = 0
             if self.sack_rect.y > (bottom_border / 270 * sheight) and dy * fps_adjust > 0:
                 self.camera_falling_assist = True
