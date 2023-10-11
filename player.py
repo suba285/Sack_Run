@@ -561,7 +561,7 @@ class Player:
                 self.hat_value[0] = 0
         if events['joyaxismotion_x']:
             event = events['joyaxismotion_x']
-            if event.value > 0.5:
+            if event.value > 0.6:
                 self.joystick_right = True
                 if self.freeze_type == 'sd2' and self.freeze:
                     self.freeze = False
@@ -569,7 +569,7 @@ class Player:
                     self.block_control = False
             else:
                 self.joystick_right = False
-            if event.value < -0.5:
+            if event.value < -0.6:
                 self.joystick_left = True
             else:
                 self.joystick_left = False
