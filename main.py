@@ -581,18 +581,19 @@ while run:
         if event.type == pygame.MOUSEBUTTONUP:
             events['mousebuttonup'] = event
         if event.type == pygame.JOYAXISMOTION:
-            if event.axis == 0:
-                if events['joyaxismotion_x']:
-                    if abs(events['joyaxismotion_x'].value) < abs(event.value):
+            if abs(event.value) > 0.4:
+                if event.axis == 0:
+                    if events['joyaxismotion_x']:
+                        if abs(events['joyaxismotion_x'].value) < abs(event.value):
+                            events['joyaxismotion_x'] = event
+                    else:
                         events['joyaxismotion_x'] = event
-                else:
-                    events['joyaxismotion_x'] = event
-            if event.axis == 1:
-                if events['joyaxismotion_y']:
-                    if abs(events['joyaxismotion_y'].value) < abs(event.value):
+                if event.axis == 1:
+                    if events['joyaxismotion_y']:
+                        if abs(events['joyaxismotion_y'].value) < abs(event.value):
+                            events['joyaxismotion_y'] = event
+                    else:
                         events['joyaxismotion_y'] = event
-                else:
-                    events['joyaxismotion_y'] = event
         if event.type == pygame.JOYBUTTONDOWN:
             if event.button in controls['configuration'][0]:
                 events['joyhatdown'] = event
