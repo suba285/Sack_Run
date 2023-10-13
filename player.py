@@ -131,6 +131,7 @@ def magic_animation(self, screen, counter, particle_x):
 class Player:
     def __init__(self, screen, controls, settings_counters, world_count):
         text = Text()
+        self.text = Text()
 
         # player sprite assets -----------------------------------------------------------------------------------------
         self.sack = img_loader('data/images/sack_animations/sack.PNG', player_size_x, player_size_y)
@@ -191,8 +192,9 @@ class Player:
         self.slide = 0.4
         self.default_on_ground_counter = 7
         self.on_ground_counter = self.default_on_ground_counter
-        self.max_jump_press_counter = 7
+        self.max_jump_press_counter = 20
         self.jump_press_counter = 0
+        self.jump_press_length_counter = 0
         self.sack_width = self.sack_rect.width
         self.sack_height = self.sack_rect.height
         self.vel_y = 0
@@ -352,6 +354,7 @@ class Player:
         self.jump_shock_pos = [0, 0]
         self.speed_dash_tutorial1 = False
         self.speed_dash_tutorial1_pos = [0, 0]
+        self.highlight_rects = []
 
         self.screen_shake_counter = 0
 
@@ -535,6 +538,7 @@ class Player:
         if events['keydown']:
             if events['keydown'].key == self.controls['jump']:
                 self.player_jump = True
+                jump_press = True
                 if self.freeze_type == 'sd1' and self.freeze:
                     self.freeze = False
                     self.block_control = True
@@ -701,7 +705,7 @@ class Player:
             self.player_jump = False
 
         # jump counter
-        if jump_press:
+        if self.player_jump:
             self.jump_press_counter = self.max_jump_press_counter
 
         # movement and animation ---------------------------------------------------------------------------------------
@@ -709,7 +713,7 @@ class Player:
                 and not (self.col_types['right'] or self.col_types['left']) and move and not self.transition\
                 and not self.freeze:
             # player control
-            if self.jump_press_counter > 0 and not self.jumped:
+            if ((self.jump_press_counter > 0 and not self.mid_air_jump) or self.player_jump) and not self.jumped:
                 self.teleport_count = 0
                 if self.speed_dash_activated and self.player_jump:
                     self.speed_dash_activated = False
@@ -742,16 +746,14 @@ class Player:
                     self.jumped = True
                     self.animate_walk = False
                     self.airborn = True
-                    self.jump_press_counter = 0
             if not self.mid_air_jump:
-                if self.player_jump and self.jumped and self.jump_adder < 1.5:
+                if (self.player_jump or self.jump_press_counter > 0) and self.jumped and self.jump_adder < 1.5:
                     self.jump_adder += 0.16 * fps_adjust
                     self.vel_y -= 0.35 * fps_adjust
-                if self.jump_adder >= 1.5:
-                    self.player_jump = False
 
             if not self.player_jump:
                 self.jumped = False
+                self.jump_press_counter = 0
 
             walking_left = False
             walking_right = False
@@ -947,17 +949,14 @@ class Player:
                 self.vel_y += grav_speed * fps_adjust
                 if self.vel_y > 8:
                     self.vel_y = 8
-            dy = self.vel_y*fps_adjust
+            dy = round(self.vel_y*fps_adjust)
         if dy > 3:
             self.airborn = True
 
         # collision detection and position -----------------------------------------------------------------------------
         self.vel_x = self.vel_x_l + self.vel_x_r
-        temp_x = self.sack_rect.x + round(self.vel_x)
-        adjustment = 0
-
-        if self.vel_x != 0:
-            print(self.vel_x)
+        temp_x = self.sack_rect.x + round(self.vel_x * fps_adjust)
+        x_adjustment = 0
 
         border_col = 0
 
@@ -975,6 +974,8 @@ class Player:
                 self.sack_rect.x = self.left_border
                 self.col_types['left'] = True
             border_col = -1
+
+        self.highlight_rects = []
 
         # freeze tile collisions
         removal_list = []
@@ -995,17 +996,21 @@ class Player:
         for tile in tile_list:
             if tile[1].colliderect(temp_x, self.sack_rect.y, self.sack_width, self.sack_height):
                 if self.vel_x > 0:
-                    adjustment = tile[1].left - self.sack_rect.right
+                    x_adjustment = tile[1].left - self.sack_rect.right
                     self.vel_x_r = 0
                     self.vel_x = 0
                     self.col_types['right'] = True
+                    package = [tile[1].copy(), 'right']
+                    self.highlight_rects.append(package)
                 if self.vel_x < 0:
-                    adjustment = tile[1].right - self.sack_rect.left
-                    print(adjustment)
+                    x_adjustment = tile[1].right - self.sack_rect.left
                     self.vel_x_l = 0
                     self.vel_x = 0
                     self.col_types['left'] = True
-            if tile[1][0] + tile_size > self.sack_rect.x > tile[1][0] - tile_size:
+                    package = [tile[1].copy(), 'left']
+                    self.highlight_rects.append(package)
+            if tile[1][0] <= temp_x <= tile[1][0] + tile_size or\
+                    tile[1][0] + tile_size >= temp_x + self.sack_width >= tile[1][0]:
                 append(tile)
             col_counter += 1
 
@@ -1017,7 +1022,7 @@ class Player:
 
         col_counter = 0
         for tile in col_y_tile_list:
-            if tile[1].colliderect(self.sack_rect.x, self.sack_rect.y + dy, self.sack_width, self.sack_height):
+            if tile[1].colliderect(self.sack_rect.x + x_adjustment, self.sack_rect.y + dy, self.sack_width, self.sack_height):
                 if dy > 0:
                     self.sack_rect.bottom = tile[1].top
                     self.surface_type = tile[2]
@@ -1029,7 +1034,6 @@ class Player:
                     dy = 0
                     self.vel_y = 0
                     self.col_types['bottom'] = True
-                    self.jump_press_counter = 0
                     self.airborn = False
                     self.camera_falling_assist = False
                     self.first_collision = True
@@ -1038,11 +1042,15 @@ class Player:
                     self.on_ground_counter = self.default_on_ground_counter
                     self.animate_walk = True
                     self.speed_dash_landed = True
+                    package = [tile[1].copy(), 'bottom']
+                    self.highlight_rects.append(package)
                 if dy < 0:
                     self.sack_rect.top = tile[1].bottom
                     dy = 0
                     self.vel_y = 0
                     self.col_types['top'] = True
+                    package = [tile[1].copy(), 'top']
+                    self.highlight_rects.append(package)
             col_counter += 1
 
         self.on_ground_counter -= 1 * fps_adjust
@@ -1085,7 +1093,7 @@ class Player:
 
         # updating player coordinates ----------------------------------------------------------------------------------
         if not self.freeze:
-            self.camera_movement_x = round(-(self.vel_x + adjustment) * fps_adjust)
+            self.camera_movement_x = round(-(self.vel_x + x_adjustment) * fps_adjust)
             if self.col_types['right'] and self.camera_movement_x < 0:
                 self.camera_movement_x = 0
             if self.col_types['left'] and self.camera_movement_x > 0:
@@ -1249,9 +1257,6 @@ class Player:
         if self.blit_plr:
             screen.blit(self.sack_img, (self.sack_rect.x - 1 - self.sack_offset, self.sack_rect.y - 9 + squash_offset))
 
-        if draw_hitbox and not self.dead:
-            pygame.draw.rect(screen, (255, 255, 255), self.sack_rect, 1)
-
         # drawing teleportation particles onto the screen
         if not self.dead and self.teleport_count > 0:
             magic_animation(self, screen, self.teleport_count, particle_x)
@@ -1370,4 +1375,55 @@ class Player:
             offset = math.sin(self.icn_bob_counter / 15) * 3
             screen.blit(self.right_arrow, (self.speed_dash_tutorial1_pos[0] + offset, self.speed_dash_tutorial1_pos[1]))
 
+    def highlight_cols(self, screen):
+        for pack in self.highlight_rects:
+            rect = pack[0]
+            rect.x += self.camera_movement_x
+            rect.y += self.camera_movement_y
+            side = pack[1]
+            if side == 'left':
+                pygame.draw.line(screen, (255, 0, 0), (rect.x + tile_size - 2, rect.y),
+                                 (rect.x + tile_size - 2, rect.y + tile_size), 2)
+            if side == 'right':
+                pygame.draw.line(screen, (255, 0, 0), (rect.x, rect.y),
+                                 (rect.x, rect.y + tile_size), 2)
+            if side == 'bottom':
+                pygame.draw.line(screen, (255, 0, 0), (rect.x, rect.y),
+                                 (rect.x + tile_size, rect.y), 2)
+            if side == 'top':
+                pygame.draw.line(screen, (255, 0, 0), (rect.x, rect.y + tile_size - 2),
+                                 (rect.x + tile_size, rect.y + tile_size - 2), 2)
 
+        x_vel_txt = self.text.make_text([f'x vel: {str(self.vel_x)}'])
+        y_vel_txt = self.text.make_text([f'y vel: {str(self.vel_y)}'])
+        if self.on_ground_counter > 0:
+            can_jump = True
+        else:
+            can_jump = False
+        on_ground_count_txt = self.text.make_text([f'can jump: {str(can_jump)}'])
+        jump_press_txt = self.text.make_text([f'jump press: {str(self.player_jump)}'])
+        if self.jump_press_counter > 0:
+            jump_due = True
+        else:
+            jump_due = False
+        jump_press_count_txt = self.text.make_text([f'jump press counter: {str(jump_due)}'])
+        screen.blit(x_vel_txt, (3, sheight / 2 - 20))
+        screen.blit(y_vel_txt, (3, sheight / 2))
+        screen.blit(on_ground_count_txt, (3, sheight / 2 + 20))
+        screen.blit(jump_press_txt, (3, sheight / 2 + 40))
+        screen.blit(jump_press_count_txt, (3, sheight / 2 + 60))
+
+        if not self.dead:
+            pygame.draw.rect(screen, (255, 255, 255), self.sack_rect, 1)
+            if self.col_types['right']:
+                pygame.draw.line(screen, (0, 0, 250), (self.sack_rect.right - 2, self.sack_rect.top),
+                                 (self.sack_rect.right - 2, self.sack_rect.bottom), 2)
+            if self.col_types['left']:
+                pygame.draw.line(screen, (0, 0, 250), (self.sack_rect.left, self.sack_rect.y),
+                                 (self.sack_rect.left, self.sack_rect.bottom), 2)
+            if self.col_types['top']:
+                pygame.draw.line(screen, (0, 0, 250), (self.sack_rect.left, self.sack_rect.top),
+                                 (self.sack_rect.right, self.sack_rect.top), 2)
+            if self.col_types['bottom']:
+                pygame.draw.line(screen, (0, 0, 250), (self.sack_rect.left, self.sack_rect.bottom - 2),
+                                 (self.sack_rect.right, self.sack_rect.bottom - 2), 2)

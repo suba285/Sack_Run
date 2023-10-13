@@ -1139,6 +1139,11 @@ class Game:
 
         self.trap_harm, sounds['trap'] = self.world.draw_bear_trap_list(self.game_screen, sack_rect)
 
+        # collision hightlight
+        if draw_hitbox:
+            self.player.highlight_cols(self.game_screen)
+            self.world.draw_hitboxes(self.game_screen)
+
         if world_count in [1, 2] or (world_count == 4 and level_count == 1):
             update_leaves(self.particle_leaves, self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust,
                           False)

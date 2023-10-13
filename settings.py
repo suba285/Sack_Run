@@ -260,9 +260,9 @@ class SettingsMenu:
         self.speedrun_conf1_dim.set_alpha(90)
         self.speedrun_conf2_dim = self.speedrun_conf2.copy()
         self.speedrun_conf2_dim.set_alpha(90)
-        self.hitbox_txt = text.make_text(['show hitbox:'])
-        self.hitbox_conf1 = self.off_conf
-        self.hitbox_conf2 = self.on_conf
+        self.nerd_mode_txt = text.make_text(['nerd mode:'])
+        self.nerd_mode_conf1 = self.off_conf
+        self.nerd_mode_conf2 = self.on_conf
         self.unlock_speedrun_txt = text.make_text(['complete game to unlock'])
 
         # sound settings
@@ -1400,8 +1400,8 @@ class SettingsMenu:
         self.visual_screen.blit(self.pov_txt,
                                 (self.center - 10 - self.pov_txt.get_width(),
                                  text_titles_y + self.gap * 2))
-        self.visual_screen.blit(self.hitbox_txt,
-                                (self.center - 10 - self.hitbox_txt.get_width(),
+        self.visual_screen.blit(self.nerd_mode_txt,
+                                (self.center - 10 - self.nerd_mode_txt.get_width(),
                                  text_titles_y + self.gap * 3))
         self.visual_screen.blit(speedrun_txt,
                                 (self.center - 10 - self.speedrun_txt.get_width(),
@@ -1425,9 +1425,9 @@ class SettingsMenu:
             pov_text = self.pov_conf2
 
         if self.hitbox_counter == 1:
-            hit_text = self.hitbox_conf1
+            hit_text = self.nerd_mode_conf1
         else:
-            hit_text = self.hitbox_conf2
+            hit_text = self.nerd_mode_conf2
 
         if self.speedrun_counter == 1:
             speedrun_text = speedrun_conf1

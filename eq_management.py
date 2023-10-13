@@ -584,7 +584,7 @@ class eqManager:
         elif gem_equipped and self.joystick_over_counter <= 0:
             eqManager.card_gem_animation(self, fps_adjust, screen)
 
-        if gem_equipped:
+        if gem_equipped and not self.card_info:
             eqManager.card_green_light(self, screen)
 
         # tutorial on how to use cards ---------------------------------------------------------------------------------

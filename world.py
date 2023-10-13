@@ -134,6 +134,7 @@ class World:
         self.freeze_tiles = []
         self.beans_list = []
         self.lamp_list = []
+        self.hostile_rect_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -559,6 +560,7 @@ class World:
         self.freeze_tiles = []
         self.beans_list = []
         self.lamp_list = []
+        self.hostile_rect_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -842,6 +844,7 @@ class World:
                     img_rectangle.y = (row_count * tile_size) + 24
                     tile = (img, img_rectangle)
                     shut = False
+                    self.hostile_rect_list.append(img_rectangle)
                     self.shut_trap_list.append(shut)
                     self.bear_trap_rect_list.append(tile)
                 if tile == 24:
@@ -921,6 +924,7 @@ class World:
                     offset = 0
                     tile = (img, img_rect, offset, tile_type)
                     self.set_lava_list.append(tile)
+                    self.hostile_rect_list.append(img_rect)
                 if tile == 31:
                     # set lava left
                     tile_type = 'set_lava'
@@ -932,6 +936,7 @@ class World:
                     offset = -10
                     tile = (img, img_rect, offset, tile_type)
                     self.set_lava_list.append(tile)
+                    self.hostile_rect_list.append(img_rect)
                 if tile == 32:
                     # set lava right
                     tile_type = 'set_lava'
@@ -943,6 +948,7 @@ class World:
                     offset = 0
                     tile = (img, img_rect, offset, tile_type)
                     self.set_lava_list.append(tile)
+                    self.hostile_rect_list.append(img_rect)
                 if tile == 33:
                     # short grass
                     img = pygame.transform.scale(self.short_grass, (tile_size, tile_size))
@@ -2050,6 +2056,12 @@ class World:
             self.playing_wheat_sound = False
 
         return sound
+
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def draw_hitboxes(self, screen):
+        for rect in self.hostile_rect_list:
+            pygame.draw.rect(screen, (255, 240, 0), rect, 1)
 
     # ------------------------------------------------------------------------------------------------------------------
 
