@@ -130,7 +130,8 @@ class Bat:
 
         return harm, shoot
 
-    def update_bat_charge(self, sack_rect, fps_adjust, screen, camera_move_x, camera_move_y, moved, dead):
+    def update_bat_charge(self, sack_rect, fps_adjust, screen, camera_move_x, camera_move_y, moved, dead,
+                          draw_hitbox):
         harm = False
 
         dx = 0
@@ -239,6 +240,8 @@ class Bat:
             self.trace_silh.remove(trash)
         # the actual bit
         screen.blit(bat_img, (self.x - 18, self.y - 11))
+        if draw_hitbox:
+            pygame.draw.rect(screen, (255, 240, 0), (self.x - 5, self.y - 4, 10, 8), 1)
 
         if 50 > self.dash > 30:
             screen_shake = True

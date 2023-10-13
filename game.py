@@ -1159,7 +1159,8 @@ class Game:
             self.bat_harm, bat_screen_shake, bat_change_music = self.world.draw_bat(sack_rect, self.game_screen,
                                                                                     fps_adjust, self.camera_move_x,
                                                                                     self.camera_move_y,
-                                                                                    self.player_moved, self.health)
+                                                                                    self.player_moved, self.health,
+                                                                                    draw_hitbox)
             if bat_screen_shake:
                 screen_shake = True
             if bat_change_music:

@@ -135,6 +135,7 @@ class World:
         self.beans_list = []
         self.lamp_list = []
         self.hostile_rect_list = []
+        self.spit_rect_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -561,6 +562,7 @@ class World:
         self.beans_list = []
         self.lamp_list = []
         self.hostile_rect_list = []
+        self.spit_rect_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -886,8 +888,10 @@ class World:
                     wave_counter = 0
                     wave_center = 0
                     collided = False
-                    lava_package = [lava_surface, lava_start, lava_stop, len, wave_counter, wave_center, collided, img]
-                    self.hot_lava_list.append(lava_package)
+                    rect = pygame.Rect(lava_start[0], lava_start[1] + 10, len, tile_size - 10)
+                    package = [lava_surface, lava_start, lava_stop, len, wave_counter, wave_center, collided, img, rect]
+                    self.hot_lava_list.append(package)
+                    self.hostile_rect_list.append(rect)
                 if tile == 28:
                     # bee hive
                     tile_type = 'bee_hive'
@@ -1355,6 +1359,8 @@ class World:
             lava[1][1] += camera_move_y
             lava[2][0] += camera_move_x
             lava[2][1] += camera_move_y
+            lava[8][0] += camera_move_x
+            lava[8][1] += camera_move_y
 
         for wheat_tile in self.wheat_list:
             for wheat in wheat_tile:
@@ -1393,6 +1399,7 @@ class World:
         self.spitting_counter_left += 1 * fps_adjust
         self.spitting_counter_right += 1 * fps_adjust
         self.spitting_counter_up += 1 * fps_adjust
+        self.spit_rect_list = []
         # log variables
         self.log_counter += 1 * fps_adjust
 
@@ -1571,9 +1578,11 @@ class World:
                     self.spitting_plant_img_left = self.spitting_plant1l
 
                 for i in range(self.spit_counter_left):
-                    spit_harm = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
-                                                  tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
-                                                  sack_rect, health, self.tile_list)
+                    spit_harm, spit_pos = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
+                                                                 tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
+                                                                 sack_rect, health, self.tile_list)
+                    if spit_pos != (tile[1][0], tile[1][1] + tile_size / 3):
+                        self.spit_rect_list.append(spit_pos)
                     if spit_harm:
                         harm = True
 
@@ -1594,10 +1603,12 @@ class World:
                 elif self.spitting_counter_right >= 15:
                     self.spitting_plant_img_right = self.spitting_plant1r
 
-                for i in range(self.spit_counter_right):
-                    spit_harm = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
-                                                  tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
-                                                  sack_rect, health, self.tile_list)
+                for i in range(self.spit_counter_left):
+                    spit_harm, spit_pos = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
+                                                                 tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
+                                                                 sack_rect, health, self.tile_list)
+                    if spit_pos != (tile[1][0], tile[1][1] + tile_size / 3):
+                        self.spit_rect_list.append(spit_pos)
                     if spit_harm:
                         harm = True
 
@@ -1618,10 +1629,12 @@ class World:
                 elif self.spitting_counter_up >= 15:
                     self.spitting_plant_img_up = self.spitting_plant_up1
 
-                for i in range(self.spit_counter_up):
-                    spit_harm = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
-                                                  tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
-                                                  sack_rect, health, self.tile_list)
+                for i in range(self.spit_counter_left):
+                    spit_harm, spit_pos = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
+                                                                 tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
+                                                                 sack_rect, health, self.tile_list)
+                    if spit_pos != (tile[1][0], tile[1][1] + tile_size / 3):
+                        self.spit_rect_list.append(spit_pos)
                     if spit_harm:
                         harm = True
 
@@ -1875,7 +1888,7 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_bat(self, sack_rect, screen, fps_adjust, camera_move_x, camera_move_y, moved, health):
+    def draw_bat(self, sack_rect, screen, fps_adjust, camera_move_x, camera_move_y, moved, health, draw_hitbox):
         bat_harm = False
         screen_shake = False
         dead = False
@@ -1885,13 +1898,13 @@ class World:
         for bat in self.bat_list:
             if bat[1] == 17:
                 harm, screen_shake = bat[0].update_bat_laser(sack_rect, fps_adjust, screen, camera_move_x,
-                                                                  camera_move_y, moved, dead)
+                                                             camera_move_y, moved, dead)
                 if screen_shake:
                     change_music = True
 
             else:
                 harm, screen_shake = bat[0].update_bat_charge(sack_rect, fps_adjust, screen, camera_move_x,
-                                                              camera_move_y, moved, dead)
+                                                              camera_move_y, moved, dead, draw_hitbox)
             if harm:
                 bat_harm = True
 
@@ -1905,7 +1918,7 @@ class World:
             package[4] -= 1 * fps_adjust
             package[0].fill((0, 0, 0))
             package[0].blit(package[7], (0, 7))
-            if sack_rect.colliderect(package[1][0], package[1][1] + 10, package[3], tile_size - 10):
+            if sack_rect.colliderect(package[8]):
                 hot_lava_harm = True
                 if not package[6]:
                     package[4] = 120
@@ -2061,6 +2074,9 @@ class World:
 
     def draw_hitboxes(self, screen):
         for rect in self.hostile_rect_list:
+            pygame.draw.rect(screen, (255, 240, 0), rect, 1)
+        for pos in self.spit_rect_list:
+            rect = pygame.Rect(pos[0], pos[1], 6, 6)
             pygame.draw.rect(screen, (255, 240, 0), rect, 1)
 
     # ------------------------------------------------------------------------------------------------------------------

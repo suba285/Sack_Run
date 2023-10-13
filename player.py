@@ -995,17 +995,20 @@ class Player:
         append = col_y_tile_list.append
         for tile in tile_list:
             if tile[1].colliderect(temp_x, self.sack_rect.y, self.sack_width, self.sack_height):
+                self.vel_x = 0
+                if self.speed_dash_activated:
+                    self.speed_dash = False
+                    self.speed_dash_activated = False
+                    self.vel_y = -7.5
                 if self.vel_x > 0:
                     x_adjustment = tile[1].left - self.sack_rect.right
                     self.vel_x_r = 0
-                    self.vel_x = 0
                     self.col_types['right'] = True
                     package = [tile[1].copy(), 'right']
                     self.highlight_rects.append(package)
                 if self.vel_x < 0:
                     x_adjustment = tile[1].right - self.sack_rect.left
                     self.vel_x_l = 0
-                    self.vel_x = 0
                     self.col_types['left'] = True
                     package = [tile[1].copy(), 'left']
                     self.highlight_rects.append(package)
@@ -1395,7 +1398,7 @@ class Player:
                                  (rect.x + tile_size, rect.y + tile_size - 2), 2)
 
         x_vel_txt = self.text.make_text([f'x vel: {str(self.vel_x)}'])
-        y_vel_txt = self.text.make_text([f'y vel: {str(self.vel_y)}'])
+        y_vel_txt = self.text.make_text([f'y vel: {str(self.dy)}'])
         if self.on_ground_counter > 0:
             can_jump = True
         else:
@@ -1414,7 +1417,10 @@ class Player:
         screen.blit(jump_press_count_txt, (3, sheight / 2 + 60))
 
         if not self.dead:
-            pygame.draw.rect(screen, (255, 255, 255), self.sack_rect, 1)
+            colour = (255, 255, 255)
+            if self.col_types['left']:
+                colour = (255, 0, 0)
+            pygame.draw.rect(screen, colour, self.sack_rect, 1)
             if self.col_types['right']:
                 pygame.draw.line(screen, (0, 0, 250), (self.sack_rect.right - 2, self.sack_rect.top),
                                  (self.sack_rect.right - 2, self.sack_rect.bottom), 2)

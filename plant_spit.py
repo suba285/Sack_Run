@@ -143,7 +143,12 @@ class PlantSpit:
                 if not self.spit_particles_hit:
                     self.explode = False
 
-        return self.harm
+        if not self.hit:
+            pos = (self.rect.x, self.rect.y)
+        else:
+            pos = (start_x, start_y)
+
+        return self.harm, pos
 
 
 
