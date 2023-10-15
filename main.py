@@ -213,6 +213,7 @@ proceed_with_transition = False
 reload_world_status = False
 menu_y = 0
 game_y = swidth
+esc_press = False
 
 new_world_unlocked = False
 
@@ -623,6 +624,11 @@ while run:
 
     adjust_resolution = False
 
+    restart_level = False
+
+    if not key[pygame.K_ESCAPE]:
+        esc_press = False
+
     if not run_level_selection:
         reload_world_status = True
 
@@ -834,10 +840,11 @@ while run:
             play_music = True
 
         # pausing (joystick pausing can be found in 'game event handling')
-        if key[pygame.K_ESCAPE]:
+        if key[pygame.K_ESCAPE] and not esc_press:
             run_menu = False
             run_game = False
             paused = True
+            esc_press = True
             run_level_selection = False
             if play_background_music and not opening_scene:
                 pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
@@ -988,10 +995,12 @@ while run:
         if restart_level:
             resume = True
 
-        if resume:
+        if resume or (key[pygame.K_ESCAPE] and not esc_press):
             run_menu = False
             run_game = True
             paused = False
+            if not resume:
+                esc_press = True
             run_level_selection = False
             if play_background_music and not opening_scene:
                 if speedrun_mode:
@@ -1001,6 +1010,7 @@ while run:
             main_game.update_controller_type(controls['configuration'], settings_counters)
             if restart_level:
                 level_restart_procedure = True
+                pygame.mixer.Channel(7).fadeout(10)
 
         if settings:
             run_menu = False
@@ -1388,14 +1398,39 @@ while run:
         if event.button == controls['configuration'][1] or event.button == controls['configuration'][2]:
             joystick_over_card = True
         # game pause
-        if event.button == controls['configuration'][3] and run_game:
+        if event.button == controls['configuration'][3]:
+            if paused:
+                run_menu = False
+                run_game = True
+                paused = False
+                run_level_selection = False
+                if play_background_music and not opening_scene:
+                    if speedrun_mode:
+                        pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
+                    else:
+                        pygame.mixer.Channel(current_channel).set_volume(
+                            music_volumes[str(settings_counters['music_volume'])])
+                main_game.update_controller_type(controls['configuration'], settings_counters)
+            elif run_game:
+                run_menu = False
+                run_game = False
+                paused = True
+                run_level_selection = False
+                if play_background_music and not opening_scene:
+                    pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
+                pause_menu.joystick_counter = 0
+        if event.button == controls['configuration'][4] and paused:
             run_menu = False
-            run_game = False
-            paused = True
+            run_game = True
+            paused = False
             run_level_selection = False
             if play_background_music and not opening_scene:
-                pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
-            pause_menu.joystick_counter = 0
+                if speedrun_mode:
+                    pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
+                else:
+                    pygame.mixer.Channel(current_channel).set_volume(
+                        music_volumes[str(settings_counters['music_volume'])])
+            main_game.update_controller_type(controls['configuration'], settings_counters)
 
     if user_quit1 and user_quit2:
         run = False

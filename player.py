@@ -133,6 +133,8 @@ class Player:
         text = Text()
         self.text = Text()
 
+        self.sounds = {}
+
         # player sprite assets -----------------------------------------------------------------------------------------
         self.sack = img_loader('data/images/sack_animations/sack.PNG', player_size_x, player_size_y)
         self.sack_idle1 = {
@@ -355,6 +357,7 @@ class Player:
         self.speed_dash_tutorial1 = False
         self.speed_dash_tutorial1_pos = [0, 0]
         self.highlight_rects = []
+        self.speedrun_mode = False
 
         self.screen_shake_counter = 0
 
@@ -389,6 +392,8 @@ class Player:
         # --------------------------------------------------------------------------------------------------------------
         self.joystick_left = False
         self.joystick_right = False
+        self.joystick_moved_right = False
+        self.joystick_moved_left = False
         self.player_jump = False
 
         # --------------------------------------------------------------------------------------------------------------
@@ -436,12 +441,14 @@ class Player:
                              mid_air_jump_trigger, speed_dash_trigger,
                              left_border, right_border,
                              move, shockwave_mush_list, events, gem_equipped, joysticks, restart_level_procedure,
-                             controls, freeze_tiles):
+                             controls, freeze_tiles, speedrun_mode):
 
         dx = 0
         dy = 0
 
-        sounds = {
+        self.speedrun_mode = speedrun_mode
+
+        self.sounds = {
             'step_grass': False,
             'step_wood': False,
             'step_rock': False,
@@ -503,8 +510,6 @@ class Player:
 
         harm = False
 
-        jump_press = False
-
         if world_count == 1 and level_count == 1 and self.lowering_cooldown == 15:
             self.screen_shake_counter = 10
 
@@ -534,11 +539,11 @@ class Player:
         if harm_in and self.teleport_count <= 10:
             harm = True
 
+        key = pygame.key.get_pressed()
         # joystick and keyboard input management
         if events['keydown']:
             if events['keydown'].key == self.controls['jump']:
                 self.player_jump = True
-                jump_press = True
                 if self.freeze_type == 'sd1' and self.freeze:
                     self.freeze = False
                     self.block_control = True
@@ -548,7 +553,6 @@ class Player:
         if events['joybuttondown']:
             if events['joybuttondown'].button == controls['configuration'][5]:
                 self.player_jump = True
-                jump_press = True
                 if self.freeze_type == 'sd1' and self.freeze:
                     self.freeze = False
                     self.block_control = True
@@ -570,16 +574,20 @@ class Player:
             event = events['joyaxismotion_x']
             if event.value > 0.6:
                 self.joystick_right = True
+                self.joystick_moved_left = False
                 if self.freeze_type == 'sd2' and self.freeze:
                     self.freeze = False
-                    sounds['bubbles'] = 1
+                    self.sounds['bubbles'] = 1
                     self.block_control = False
             else:
                 self.joystick_right = False
+                self.joystick_moved_right = False
             if event.value < -0.6:
                 self.joystick_left = True
+                self.joystick_moved_right = False
             else:
                 self.joystick_left = False
+                self.joystick_moved_left = False
         if events['joydeviceremoved']:
             self.joystick_left = False
             self.joystick_right = False
@@ -589,7 +597,7 @@ class Player:
             if self.freeze_type == 'sd2' and self.freeze:
                 self.freeze = False
                 self.block_control = False
-                sounds['bubbles'] = 1
+                self.sounds['bubbles'] = 1
 
         # D-pad input
         if joysticks and joysticks[0].get_numhats() > 0:
@@ -598,7 +606,7 @@ class Player:
         if self.freeze and self.hat_value[0] == 1:
             if self.freeze_type == 'sd2' and self.freeze:
                 self.freeze = False
-                sounds['bubbles'] = 1
+                self.sounds['bubbles'] = 1
                 self.block_control = False
 
         # special power cards effects ----------------------------------------------------------------------------------
@@ -657,7 +665,7 @@ class Player:
             self.sack_silhouette.set_colorkey((0, 0, 0))
             self.dead = True
             self.button_press_counter = 0  # respawn instructions
-            sounds['death'] = True
+            self.sounds['death'] = True
             self.harmed = True
             self.speed_dash = False
             self.speed_dash_activated = False
@@ -726,7 +734,7 @@ class Player:
                     if self.mid_air_jump and not (self.on_ground_counter > 0 and not self.airborn):
                         self.mid_air_jump_counter += 1
                         self.screen_shake_counter = 10
-                        sounds['mid_air_jump'] = True
+                        self.sounds['mid_air_jump'] = True
                         self.jump_shock_counter = 5
                         self.jump_shock_pos = [self.sack_rect.x + 10, self.sack_rect.y + 20]
                     if self.mid_air_jump and self.player_jump:
@@ -741,7 +749,7 @@ class Player:
                             jump_part_direction = 0
                         self.jumping_part_animations.append([[self.sack_rect.x + 9, self.sack_rect.y + 11],
                                                              0, jump_part_direction])
-                    sounds['jump'] = True
+                    self.sounds['jump'] = True
                     self.jump_adder = 0
                     self.jumped = True
                     self.animate_walk = False
@@ -765,9 +773,11 @@ class Player:
                 if (key[self.controls['left']] or self.joystick_left or self.hat_value[0] == -1)\
                         and not self.col_types['left']:
                     self.player_moved = True
-                    if self.speed_dash and not self.speed_dash_activated and not self.block_control:
+                    if self.speed_dash and not self.speed_dash_activated and not self.block_control and \
+                            not self.joystick_moved_left:
                         self.speed_dash_activated = True
-                        sounds['bubbles'] = 1
+                        self.joystick_moved_left = True
+                        self.sounds['bubbles'] = 1
                         self.speed_dash_stopped = False
                         gem_equipped = False
                         self.screen_shake_counter = 10
@@ -789,9 +799,11 @@ class Player:
                 if (key[self.controls['right']] or self.joystick_right or self.hat_value[0] == 1 or
                         self.bridge_cutscene_walk) and not self.col_types['right']:
                     self.player_moved = True
-                    if self.speed_dash and not self.speed_dash_activated and not self.block_control:
+                    if self.speed_dash and not self.speed_dash_activated and not self.block_control and \
+                            not self.joystick_moved_right:
                         self.speed_dash_activated = True
-                        sounds['bubbles'] = 1
+                        self.joystick_moved_right = True
+                        self.sounds['bubbles'] = 1
                         self.speed_dash_stopped = False
                         gem_equipped = False
                         self.screen_shake_counter = 10
@@ -828,7 +840,7 @@ class Player:
                     if self.animation_counter > self.walk_animation_speed:
                         self.walk_counter += 1
                         if self.walk_counter in [4, 8]:
-                            sounds[f'step_{self.surface_type}'] = True
+                            self.sounds[f'step_{self.surface_type}'] = True
                         self.animation_counter = 0
                         if self.walk_counter in [2, 6]:
                             part = [[self.sack_rect.x, self.sack_rect.y + 7], 0, self.direction]
@@ -897,8 +909,11 @@ class Player:
                 self.sack_img = pygame.transform.flip(self.sack_img, True, False)
 
         # respawn at the beginning of the level and transition
-        if (self.player_jump and self.dead and self.dead_counter >= 36 and not self.restart_trigger)\
-                or restart_level_procedure:
+        dead_counter_cap = 36
+        if self.speedrun_mode:
+            dead_counter_cap = 10
+        if ((self.player_jump or self.speedrun_mode) and self.dead and self.dead_counter >= dead_counter_cap and
+                not self.restart_trigger) or restart_level_procedure:
             self.restart_trigger = True
             self.single_fadeout = True
             self.teleport_count = 0
@@ -924,6 +939,10 @@ class Player:
             self.player_moved = False
             self.first_collision = False
             self.play_music = True
+            self.vel_x = 0
+            self.vel_y = 0
+            self.joystick_right = False
+            self.joystick_left = False
             self.single_restart = False
 
         if self.restart_counter > 80:
@@ -984,7 +1003,7 @@ class Player:
                 self.freeze_type = tile[1]
                 if self.freeze_type != 'sd0':
                     self.freeze = True
-                    sounds['bubbles'] = -1
+                    self.sounds['bubbles'] = -1
                 removal_list.append(tile[1])
         for tile in freeze_tiles:
             if tile[1] in removal_list:
@@ -1031,8 +1050,8 @@ class Player:
                     self.surface_type = tile[2]
                     if (self.airborn or dy > 10) and self.player_moved and self.squash_counter_y > 4:
                         self.squash_counter_y = -3
-                        sounds[f'step_{self.surface_type}'] = True
-                        sounds['land'] = True
+                        self.sounds[f'step_{self.surface_type}'] = True
+                        self.sounds['land'] = True
                         self.walk_counter = 0
                     dy = 0
                     self.vel_y = 0
@@ -1068,7 +1087,7 @@ class Player:
                 mushroom[3] = 60
                 dy = 0
                 self.vel_y = -7.5
-                sounds['mushroom'] = True
+                self.sounds['mushroom'] = True
 
         # next level position
         if self.new_level:
@@ -1092,7 +1111,7 @@ class Player:
         # speed dash sound stop
         if not self.speed_dash_stopped and not self.speed_dash_activated:
             self.speed_dash_stopped = True
-            sounds['bubbles'] = -1
+            self.sounds['bubbles'] = -1
 
         # updating player coordinates ----------------------------------------------------------------------------------
         if not self.freeze:
@@ -1135,7 +1154,7 @@ class Player:
         return level_count, self.sack_rect, self.direction, self.health,\
                self.camera_movement_x, self.camera_movement_y,\
                self.restart_level, self.player_moved, shockwave_mush_list,\
-               gem_equipped, screen_shake, sounds, border_col, freeze_tiles
+               gem_equipped, screen_shake, self.sounds, border_col, freeze_tiles
 
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================
     def blit_player(self, screen, draw_hitbox, fps_adjust):
@@ -1325,7 +1344,7 @@ class Player:
         if settings_counters['speedrun'] == 2:
             speedrun = True
 
-        if self.health == 0 and self.dead_counter >= 36 and self.restart_counter == 0:
+        if self.health == 0 and self.dead_counter >= 36 and self.restart_counter == 0 and not self.speedrun_mode:
             x = swidth / 2 - 3 * 8
 
             if self.controls['configuration'][7] == 1:

@@ -1019,7 +1019,8 @@ class Game:
                                                                  joysticks,
                                                                  restart_level_procedure,
                                                                  self.controls,
-                                                                 self.freeze_tiles
+                                                                 self.freeze_tiles,
+                                                                 self.speedrun_mode
                                                                  )
         # updating player sounds
         sounds.update(player_sounds)
