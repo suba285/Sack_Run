@@ -206,7 +206,7 @@ class LevelSelection:
                 with open('data/collected_beans.json', 'r') as json_file:
                     bean_data = json.load(json_file)
                     beans_collected = False
-                    if bean_data[0] == 7:
+                    if bean_data[0] == 8:
                         beans_collected = True
             except FileNotFoundError:
                 beans_collected = False

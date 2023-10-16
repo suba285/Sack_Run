@@ -825,7 +825,7 @@ class World:
                     x = column_count * tile_size - pov_offset
                     y = row_count * tile_size
                     rect = pygame.Rect(x, y, tile_size * 4, tile_size * 4)
-                    if level_count > 3:
+                    if level_count > 3 or world_count == 5:
                         boxes = [0, 90, 180, 270]
                     else:
                         boxes = [0, 180]
@@ -1603,7 +1603,7 @@ class World:
                 elif self.spitting_counter_right >= 15:
                     self.spitting_plant_img_right = self.spitting_plant1r
 
-                for i in range(self.spit_counter_left):
+                for i in range(self.spit_counter_right):
                     spit_harm, spit_pos = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
                                                                  tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
                                                                  sack_rect, health, self.tile_list)
@@ -1629,7 +1629,7 @@ class World:
                 elif self.spitting_counter_up >= 15:
                     self.spitting_plant_img_up = self.spitting_plant_up1
 
-                for i in range(self.spit_counter_left):
+                for i in range(self.spit_counter_up):
                     spit_harm, spit_pos = tile[3][i].update_spit(screen, camera_move_x, camera_move_y,
                                                                  tile[1][0], tile[1][1] + tile_size / 3, fps_adjust,
                                                                  sack_rect, health, self.tile_list)

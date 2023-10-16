@@ -44,6 +44,7 @@ level_dictionary = {
     "level5_4": level5_4,
     "level6_4": level6_4,
     "level1_5": level1_5,
+    "level2_5": level2_5,
 }
 
 level_bg_dictionary = {
@@ -75,6 +76,7 @@ level_bg_dictionary = {
     "level5_4_bg": level5_4_bg,
     "level6_4_bg": level6_4_bg,
     "level1_5_bg": level1_5_bg,
+    "level2_5_bg": level2_5_bg,
 }
 
 level_pos_dictionary = {
@@ -106,7 +108,8 @@ level_pos_dictionary = {
     "level4_4": (1, -8),
     "level5_4": (2, -1),
     "level6_4": (4, -8),
-    "level1_5": (2, -20)
+    "level1_5": (2, -20),
+    "level2_5": (-1, -7)
 }
 
 level_card_dictionary = {
@@ -1122,10 +1125,10 @@ class Game:
                 fadeout = True
 
         # --------------------------------------------------------------------------------------------------------------
-        if world_count in [2, 3]:
+        if world_count in [2, 3, 5]:
             self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
 
-        if world_count < 3 or level_count == 1:
+        if world_count != 3:
             sounds['wheat'] = self.world.draw_wheat(self.game_screen, sack_rect, moving, fps_adjust)
             self.world.draw_green_mushrooms(self.game_screen, sack_rect)
 
@@ -1145,7 +1148,7 @@ class Game:
             self.player.highlight_cols(self.game_screen)
             self.world.draw_hitboxes(self.game_screen)
 
-        if world_count in [1, 2] or (world_count == 4 and level_count == 1):
+        if world_count in [1, 2, 5] or (world_count == 4 and level_count == 1):
             update_leaves(self.particle_leaves, self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust,
                           False)
         if world_count == 3 and level_count == 1:

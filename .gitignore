@@ -1,2 +1,9 @@
 __pycache__
 .DS_Store
+data/collected_beans.json
+data/collected_cards.json
+data/controllers.json
+data/level_count.json
+data/settings_configuration.json
+data/times.json
+data/unlocked_worlds.json
