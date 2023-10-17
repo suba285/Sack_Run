@@ -541,67 +541,68 @@ class Player:
 
         key = pygame.key.get_pressed()
         # joystick and keyboard input management
-        if events['keydown']:
-            if events['keydown'].key == self.controls['jump']:
-                self.player_jump = True
-                if self.freeze_type == 'sd1' and self.freeze:
-                    self.freeze = False
-                    self.block_control = True
-        if events['keyup']:
-            if events['keyup'].key == self.controls['jump']:
+        if move:
+            if events['keydown']:
+                if events['keydown'].key == self.controls['jump']:
+                    self.player_jump = True
+                    if self.freeze_type == 'sd1' and self.freeze:
+                        self.freeze = False
+                        self.block_control = True
+            if events['keyup']:
+                if events['keyup'].key == self.controls['jump']:
+                    self.player_jump = False
+            if events['joybuttondown']:
+                if events['joybuttondown'].button == controls['configuration'][5]:
+                    self.player_jump = True
+                    if self.freeze_type == 'sd1' and self.freeze:
+                        self.freeze = False
+                        self.block_control = True
+            if events['joyhatdown']:
+                event = events['joyhatdown']
+                if controls['configuration'][0]:
+                    if event.button == controls['configuration'][0][0]:  # right
+                        self.hat_value[0] = 1
+                    if event.button == controls['configuration'][0][2]:  # left
+                        self.hat_value[0] = -1
+            if events['joybuttonup']:
+                if events['joybuttonup'].button == controls['configuration'][5]:
+                    self.player_jump = False
+            if events['joyhatup']:
+                event = events['joyhatup']
+                if event.button in [controls['configuration'][0][0], controls['configuration'][0][2]]:
+                    self.hat_value[0] = 0
+            if events['joyaxismotion_x']:
+                event = events['joyaxismotion_x']
+                if event.value > 0.6:
+                    self.joystick_right = True
+                    self.joystick_moved_left = False
+                    if self.freeze_type == 'sd2' and self.freeze:
+                        self.freeze = False
+                        self.sounds['bubbles'] = 1
+                        self.block_control = False
+                else:
+                    self.joystick_right = False
+                    self.joystick_moved_right = False
+                if event.value < -0.6:
+                    self.joystick_left = True
+                    self.joystick_moved_right = False
+                else:
+                    self.joystick_left = False
+                    self.joystick_moved_left = False
+            if events['joydeviceremoved']:
+                self.joystick_left = False
+                self.joystick_right = False
                 self.player_jump = False
-        if events['joybuttondown']:
-            if events['joybuttondown'].button == controls['configuration'][5]:
-                self.player_jump = True
-                if self.freeze_type == 'sd1' and self.freeze:
-                    self.freeze = False
-                    self.block_control = True
-        if events['joyhatdown']:
-            event = events['joyhatdown']
-            if controls['configuration'][0]:
-                if event.button == controls['configuration'][0][0]:  # right
-                    self.hat_value[0] = 1
-                if event.button == controls['configuration'][0][2]:  # left
-                    self.hat_value[0] = -1
-        if events['joybuttonup']:
-            if events['joybuttonup'].button == controls['configuration'][5]:
-                self.player_jump = False
-        if events['joyhatup']:
-            event = events['joyhatup']
-            if event.button in [controls['configuration'][0][0], controls['configuration'][0][2]]:
-                self.hat_value[0] = 0
-        if events['joyaxismotion_x']:
-            event = events['joyaxismotion_x']
-            if event.value > 0.6:
-                self.joystick_right = True
-                self.joystick_moved_left = False
+
+            if key[self.controls['right']]:
                 if self.freeze_type == 'sd2' and self.freeze:
                     self.freeze = False
-                    self.sounds['bubbles'] = 1
                     self.block_control = False
-            else:
-                self.joystick_right = False
-                self.joystick_moved_right = False
-            if event.value < -0.6:
-                self.joystick_left = True
-                self.joystick_moved_right = False
-            else:
-                self.joystick_left = False
-                self.joystick_moved_left = False
-        if events['joydeviceremoved']:
-            self.joystick_left = False
-            self.joystick_right = False
-            self.player_jump = False
+                    self.sounds['bubbles'] = 1
 
-        if key[self.controls['right']]:
-            if self.freeze_type == 'sd2' and self.freeze:
-                self.freeze = False
-                self.block_control = False
-                self.sounds['bubbles'] = 1
-
-        # D-pad input
-        if joysticks and joysticks[0].get_numhats() > 0:
-            self.hat_value = joysticks[0].get_hat(0)
+            # D-pad input
+            if joysticks and joysticks[0].get_numhats() > 0:
+                self.hat_value = joysticks[0].get_hat(0)
 
         if self.freeze and self.hat_value[0] == 1:
             if self.freeze_type == 'sd2' and self.freeze:
@@ -660,8 +661,8 @@ class Player:
         if not self.harmed and harm and self.player_moved:
             self.health = 0
             sack_mask = pygame.mask.from_surface(self.sack_img)
-            self.sack_silhouette = pygame.mask.Mask.to_surface(sack_mask, setcolor=(255, 255, 255),
-                                                               unsetcolor=(0, 0, 0))
+            self.sack_silhouette = pygame.mask.Mask.to_surface(sack_mask,
+                                                               setcolor=(255, 255, 255), unsetcolor=(0, 0, 0))
             self.sack_silhouette.set_colorkey((0, 0, 0))
             self.dead = True
             self.button_press_counter = 0  # respawn instructions
