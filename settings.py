@@ -843,7 +843,6 @@ class SettingsMenu:
                     self.controller_configuration[self.controller_calibration_step_counter] = event.button
                     self.controller_taken_btns.append(event.button)
                     self.controller_calibration_step_counter += 1
-                    print('pressss')
                 else:
                     self.choose_different_btn_counter = 60
 
