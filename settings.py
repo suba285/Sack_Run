@@ -1,5 +1,6 @@
 import pygame._sdl2
 import json
+import random
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
@@ -18,9 +19,43 @@ def colour_inversion(surface):
     return output
 
 
+key_to_letter = {
+    pygame.K_q: 'Q',
+    pygame.K_w: 'W',
+    pygame.K_e: 'E',
+    pygame.K_r: 'R',
+    pygame.K_t: 'T',
+    pygame.K_y: 'Y',
+    pygame.K_u: 'U',
+    pygame.K_i: 'I',
+    pygame.K_o: 'O',
+    pygame.K_p: 'P',
+    pygame.K_a: 'A',
+    pygame.K_s: 'S',
+    pygame.K_d: 'D',
+    pygame.K_f: 'F',
+    pygame.K_g: 'G',
+    pygame.K_h: 'H',
+    pygame.K_j: 'J',
+    pygame.K_k: 'K',
+    pygame.K_l: 'L',
+    pygame.K_z: 'Z',
+    pygame.K_x: 'X',
+    pygame.K_c: 'C',
+    pygame.K_v: 'V',
+    pygame.K_b: 'B',
+    pygame.K_n: 'N',
+    pygame.K_m: 'M',
+    pygame.K_SPACE: 'space',
+}
+
+letter_to_key = {v: k for k, v in key_to_letter.items()}
+
+
 class SettingsMenu:
     def __init__(self, controls, settings_counters, resolutions, recommended_res_counter):
         text = Text()
+        self.text = Text()
         # unlocked world data ------------------------------------------------------------------------------------------
         try:
             with open('data/unlocked_worlds.json', 'r') as json_file:
@@ -64,9 +99,17 @@ class SettingsMenu:
         self.menu_button_press = img_loader('data/images/button_back_press.PNG', tile_size * 1.5, tile_size * 0.75)
         self.menu_button_down = img_loader('data/images/button_back_down.PNG', tile_size * 1.5, tile_size * 0.75)
 
+        self.ok_button = img_loader('data/images/button_ok.PNG', tile_size, 24)
+        self.ok_button_press = img_loader('data/images/button_ok_press.PNG', tile_size, 24)
+        self.ok_button_down = img_loader('data/images/button_ok_down.PNG', tile_size, 24)
+
         self.calibrate_btn = img_loader('data/images/button_calibrate.PNG', tile_size * 2, tile_size * 0.75)
         self.calibrate_btn_press = img_loader('data/images/button_calibrate_press.PNG', tile_size * 2, tile_size * 0.75)
         self.calibrate_btn_down= img_loader('data/images/button_calibrate_down.PNG', tile_size * 2, tile_size * 0.75)
+
+        self.bind_btn = img_loader('data/images/button_bind.PNG', 48, 24)
+        self.bind_btn_press = img_loader('data/images/button_bind_press.PNG', 48, 24)
+        self.bind_btn_down = img_loader('data/images/button_bind_down.PNG', 48, 24)
 
         self.keyboard_base = img_loader('data/images/keyboard_highlights/keyboard_base.PNG', tile_size * 3, tile_size)
         self.keyboard_press_surf = pygame.Surface((tile_size * 3, tile_size))
@@ -241,15 +284,14 @@ class SettingsMenu:
         self.off_conf = text.make_text(['off'])
 
         # control settings
-        self.walking_txt = text.make_text(['keyboard walking:'])
-        self.jumping_txt = text.make_text(['keyboard jumping:'])
+        self.binding_txt = text.make_text(['keyboard binds:'])
+        self.instant_card = text.make_text(['instant card use:'])
         self.keyboard_cards = text.make_text(['keyboard cards:'])
         self.configuration_txt = text.make_text(['controller calibration:'])
         self.move_conf1 = text.make_text(['A and D keys'])
         self.move_conf2 = text.make_text(['arrow keys'])
-        self.jump_conf1 = text.make_text(['space bar'])
-        self.jump_conf2 = text.make_text(['W key'])
-        self.jump_conf3 = text.make_text(['up key'])
+        self.insta_card_conf1 = text.make_text(['on'])
+        self.insta_card_conf2 = text.make_text(['off'])
         self.cards_conf1 = text.make_text(['mouse'])
         self.cards_conf2 = text.make_text(['J K L keys'])
 
@@ -288,8 +330,8 @@ class SettingsMenu:
         self.inverted_text = {}
 
         # counters -----------------------------------------------------------------------------------------------------
-        self.walk_counter = settings_counters['walking']
-        self.jump_counter = settings_counters['jumping']
+        self.settings_binding = settings_counters['binding']
+        self.insta_card_counter = settings_counters['instant_card']
         self.cards_counter = settings_counters['cards']
         self.configuration_counter = settings_counters['configuration']
 
@@ -396,10 +438,8 @@ class SettingsMenu:
         self.sound_button_over.blit(self.sound_txt, (swidth / 6 - self.sound_txt.get_width() / 2, 7))
 
         # initiating buttons -------------------------------------------------------------------------------------------
-        self.walking_btn_left = Button(self.center + 10, control_button_start_y + gap,
-                                       self.left_button, self.left_button_press, self.left_button_down)
-        self.walking_btn_right = Button(self.center + interbutton_space, control_button_start_y + gap,
-                                        self.right_button, self.right_button_press, self.right_button_down)
+        self.binding_btn = Button(self.center + 5, control_button_start_y + gap, self.bind_btn, self.bind_btn_press,
+                                  self.bind_btn_down)
         self.jumping_btn_left = Button(self.center + 10, control_button_start_y + gap * 2,
                                        self.left_button, self.left_button_press, self.left_button_down)
         self.jumping_btn_right = Button(self.center + interbutton_space, control_button_start_y + gap * 2,
@@ -484,6 +524,67 @@ class SettingsMenu:
         self.no_controller_popup = popup_bg_generator((self.no_controller_txt.get_width() + 10, 15))
         self.no_controller_popup.blit(self.no_controller_txt, (7, 7))
         self.no_controller_counter = 0
+
+        # key binding popup window
+        self.binding = False
+        self.bind_popup_bg = popup_bg_generator((200, 160))
+        self.bind_surface = pygame.Surface((200, 160))
+        self.bind_surface.fill((0, 0, 0))
+        self.bind_surface.set_colorkey((0, 0, 0))
+        self.bind_ok_btn = Button(swidth / 2 - 20 + 4, sheight / 2 + 80 - 24, self.ok_button, self.ok_button_press,
+                                  self.ok_button_down)
+        self.bind_popup_bg.blit(self.ok_button_down, (100 - 16 + 4, 160 - 20))
+        self.bind_popup_center = 110
+        self.bind_popup_start_y = 25
+        self.bind_popup_gap = 5
+        self.binding_counter = 0
+
+        self.bind_instructions = text.make_text(['Use mouse and keyboard to bind'])
+
+        self.letter_bg = img_loader('data/images/letter_bg.PNG', 11, 11)
+        self.letter_bg_outline = pygame.Surface((11, 11))
+        self.letter_bg_outline_red = pygame.Surface((11, 11))
+        letter_bg_mask = pygame.mask.from_surface(self.letter_bg)
+        letter_bg_outline = pygame.mask.Mask.outline(letter_bg_mask)
+        for pixel in letter_bg_outline:
+            self.letter_bg_outline.set_at(pixel, (255, 255, 255))
+            self.letter_bg_outline_red.set_at(pixel, (255, 0, 0))
+        space_text_width = 33
+        self.space_bg = img_loader('data/images/space_bg.PNG', 33, 11)
+        self.space_bg_outline = pygame.Surface((33, 11))
+        self.space_bg_outline.fill((0, 0, 0,))
+        self.space_bg_outline.set_colorkey((0, 0, 0))
+        self.space_bg_outline_red = pygame.Surface((33, 11))
+        self.space_bg_outline_red.fill((0, 0, 0,))
+        self.space_bg_outline_red.set_colorkey((0, 0, 0))
+        space_bg_mask = pygame.mask.from_surface(self.space_bg)
+        space_bg_outline = pygame.mask.Mask.outline(space_bg_mask)
+        for pixel in space_bg_outline:
+            self.space_bg_outline.set_at(pixel, (255, 255, 255))
+            self.space_bg_outline_red.set_at(pixel ,(255, 0, 0))
+
+        self.left_txt = text.make_text(['Left:'])
+        self.right_txt = text.make_text(['Right:'])
+        self.jump_txt = text.make_text(['Jump:'])
+        self.card_left_txt = text.make_text(['Card left:'])
+        self.card_right_txt = text.make_text(['Card right:'])
+        self.card_info_txt = text.make_text(['Card info:'])
+        self.card_use_txt = text.make_text(['Card use:'])
+        self.text_height = self.left_txt.get_height()
+        self.bind_descriptions = [self.left_txt, self.right_txt, self.jump_txt, self.card_left_txt, self.card_right_txt,
+                                  self.card_info_txt, self.card_use_txt]
+        self.bind_col_rects = []
+        for num in range(7):
+            desc = self.bind_descriptions[num]
+            x = self.bind_popup_center - desc.get_width()
+            letter_bg_x = self.bind_popup_center + 10
+            y = self.bind_popup_start_y + self.text_height * num + self.bind_popup_gap * num
+            self.bind_popup_bg.blit(desc, (x, y))
+            self.bind_popup_bg.blit(self.letter_bg, (letter_bg_x, y - 2))
+            rect = pygame.Rect(letter_bg_x - 4, y - 6, 11, 11)
+            package = [rect, 0]
+            self.bind_col_rects.append(package)
+        self.bind_popup_bg.blit(self.bind_instructions, (100 - self.bind_instructions.get_width() / 2 + 2, 5))
 
         # controller configuration popup window
         self.controller_conf_popup0 = popup_bg_generator((200, 100))
@@ -646,8 +747,8 @@ class SettingsMenu:
 
     def update_settings_counters(self, settings_counters, controls):
         self.settings_counters = settings_counters
-        self.walk_counter = settings_counters['walking']
-        self.jump_counter = settings_counters['jumping']
+        self.settings_binding = settings_counters['binding']
+        self.insta_card_counter = settings_counters['instant_card']
         self.cards_counter = settings_counters['cards']
         self.configuration_counter = settings_counters['configuration']
 
@@ -677,6 +778,29 @@ class SettingsMenu:
             (0, 1): 'up',
         }
         self.nums_to_btns['configuration'] = controls['configuration']
+
+    def key_binding_func(self, local_screen, events, fps_adjust):
+        if self.dim_surf_alpha <= self.dim_surf_target_alpha:
+            self.dim_surf_alpha += 20 * fps_adjust
+        if self.dim_surf_alpha < self.dim_surf_target_alpha:
+            self.dim_surf.set_alpha(self.dim_surf_alpha)
+        if self.dim_surf_alpha > self.dim_surf_target_alpha:
+            self.dim_surf.set_alpha(self.dim_surf_target_alpha)
+
+        raw_popup = self.bind_popup_bg
+
+        self.binding_counter += 0.04 * fps_adjust
+
+        if 0.25 > self.binding_counter > 0:
+            scaling = self.binding_counter
+            popup = pygame.transform.scale(raw_popup,
+                                           (raw_popup.get_width() * scaling * 4,
+                                            raw_popup.get_height() * scaling * 4))
+        else:
+            popup = raw_popup
+
+        local_screen.blit(self.dim_surf, (0, 0))
+        local_screen.blit(popup, (swidth / 2 - popup.get_width() / 2, sheight / 2 - popup.get_height() / 2))
 
     def controller_calibration_func(self, local_screen, events, fps_adjust, in_settings, joysticks):
         calibration_done = False
@@ -892,6 +1016,8 @@ class SettingsMenu:
         mouse_pos = (mouse_pos[0]/mouse_adjustment[0] - mouse_adjustment[2],
                      mouse_pos[1]/mouse_adjustment[0] - mouse_adjustment[1])
 
+        key_press = False
+
         joystick_counter_cap = 0
         if not self.draw_control_screen:
             joystick_counter_cap = 4
@@ -910,7 +1036,12 @@ class SettingsMenu:
 
         joystick_moved = 0
 
-        if not self.controller_calibration:
+        if events['keydown']:
+            event = events['keydown']
+            if event.key in key_to_letter:
+                key_press = key_to_letter[event.key]
+
+        if not self.controller_calibration and not self.binding:
             # axis input
             if events['joyaxismotion_x'] or events['joyaxismotion_y']:
                 # horizontal joystick movement
@@ -975,6 +1106,7 @@ class SettingsMenu:
                 # hat input
                 if event.button == self.controls['configuration'][0][0]:  # right
                     self.hat_value[0] = 1
+                    joystick_right = True
                 if event.button == self.controls['configuration'][0][1]:  # down
                     self.hat_value[1] = -1
                 if event.button == self.controls['configuration'][0][2]:  # left
@@ -982,7 +1114,6 @@ class SettingsMenu:
                     joystick_left = True
                 if event.button == self.controls['configuration'][0][3]:  # up
                     self.hat_value[1] = 1
-                    joystick_right = True
             if events['joybuttonup']:
                 event = events['joybuttonup']
                 # controller press visualization buttons (up)
@@ -1001,6 +1132,7 @@ class SettingsMenu:
             if events['mousebuttondown'] or events['keydown']:
                 self.no_controller_counter = 0
                 self.pov_popup_counter = 0
+
 
             # D-pad input
             if joysticks and joysticks[0].get_numhats() > 0:
@@ -1082,6 +1214,13 @@ class SettingsMenu:
         if self.joystick_counter < 0:
             self.joystick_counter = 0
 
+        if not self.speedrun_unlocked and not self.draw_visual_screen:
+            if self.joystick_counter == 1:
+                if joystick_moved == -1:
+                    self.joystick_counter -= 1
+                elif joystick_moved == 1:
+                    self.joystick_counter += 1
+
         if joystick_connected and not self.controller_calibration:
             if self.joystick_counter == 0:
                 joystick_over0 = True
@@ -1102,8 +1241,8 @@ class SettingsMenu:
         walking_right_press = False
         jumping_left_press = False
         jumping_right_press = False
-        rumble_left_press = False
-        rumble_right_press = False
+        cards_left_press = False
+        cards_right_press = False
         config_left_press = False
         config_right_press = False
 
@@ -1162,17 +1301,11 @@ class SettingsMenu:
         # CONTROL SETTINGS SCREEN ======================================================================================
 
         if not self.draw_control_screen:
-            if self.walk_counter == 1:
-                walk_text = self.move_conf1
-            else:
-                walk_text = self.move_conf2
 
-            if self.jump_counter == 1:
-                jump_text = self.jump_conf1
-            elif self.jump_counter == 2:
-                jump_text = self.jump_conf2
+            if self.insta_card_counter == 1:
+                insta_card_text = self.insta_card_conf1
             else:
-                jump_text = self.jump_conf3
+                insta_card_text = self.insta_card_conf2
 
             if self.cards_counter == 1:
                 cards_text = self.cards_conf1
@@ -1180,32 +1313,25 @@ class SettingsMenu:
                 cards_text = self.cards_conf2
 
             # updating the text showing the player's current controls --------------------------------------------------
-            self.control_screen.blit(self.walking_txt, (self.center - 10 - self.walking_txt.get_width(),
+            self.control_screen.blit(self.binding_txt, (self.center - 10 - self.binding_txt.get_width(),
                                                         self.button_start_y + 7 + self.gap))
-            self.control_screen.blit(self.jumping_txt, (self.center - 10 - self.jumping_txt.get_width(),
-                                                        self.button_start_y + 7 + self.gap * 2))
+            self.control_screen.blit(self.instant_card, (self.center - 10 - self.instant_card.get_width(),
+                                                         self.button_start_y + 7 + self.gap * 2))
             self.control_screen.blit(self.keyboard_cards, (self.center - 10 - self.keyboard_cards.get_width(),
                                                            self.button_start_y + 7 + self.gap * 3))
             self.control_screen.blit(self.configuration_txt, (self.center - 10 - self.configuration_txt.get_width(),
                                                         self.button_start_y + 7 + self.gap * 4))
 
-            if joystick_over4:
-                walk_text = colour_inversion(walk_text.copy())
-                self.control_screen.blit(self.button_highlight, (self.left_btn_x, self.control_row1_y))
             if joystick_over3:
-                jump_text = colour_inversion(jump_text.copy())
+                insta_card_text = colour_inversion(insta_card_text.copy())
                 self.control_screen.blit(self.button_highlight, (self.left_btn_x, self.control_row2_y))
             if joystick_over2:
                 cards_text = colour_inversion(cards_text.copy())
                 self.control_screen.blit(self.button_highlight, (self.left_btn_x, self.control_row3_y))
 
             # keyboard controls visualisation --------------------------------------------------------------------------
-            if self.walk_counter == 2 or self.jump_counter == 3:
-                keyboard_x = swidth / 2 - tile_size
-                mouse_x = swidth / 2 - tile_size * 2
-            else:
-                keyboard_x = swidth / 2 - tile_size * 1.8
-                mouse_x = keyboard_x + tile_size * 3
+            keyboard_x = swidth / 2 - tile_size * 1.8
+            mouse_x = keyboard_x + tile_size * 3
             # mouse button presses
             if events['mousebuttondown']:
                 if events['mousebuttondown'].button in [1, 3]:
@@ -1228,15 +1354,8 @@ class SettingsMenu:
                 self.control_screen.blit(self.keyboard_base, (keyboard_x,
                                                               (175 / 270 * sheight)))
                 self.control_screen.blit(self.mouse_base, (mouse_x,(175 / 270 * sheight)))
-                self.control_screen.blit(self.keyboard_overlays[f'walk{self.walk_counter}'],
-                                         (keyboard_x, (175 / 270 * sheight)))
-                self.control_screen.blit(self.keyboard_overlays[f'jump{self.jump_counter}'],
-                                         (keyboard_x, (175 / 270 * sheight)))
 
-                if self.cards_counter == 2:
-                    self.control_screen.blit(self.keyboard_overlays['keybrd_cards'],
-                                             (keyboard_x, (175 / 270 * sheight)))
-                else:
+                if self.cards_counter == 1:
                     self.control_screen.blit(self.keyboard_overlays['mouse_cards'],
                                              (mouse_x, (175 / 270 * sheight)))
                     if self.mouse_press:
@@ -1261,35 +1380,24 @@ class SettingsMenu:
                                         , 175 / 270 * sheight + 10 + self.joystick_movement[1] * 3), 2, 2)
 
             # displaying the selected option (text) --------------------------------------------------------------------
-            self.control_screen.blit(walk_text, (button_text_center - walk_text.get_width() / 2 + button_size / 2,
-                                                 self.control_row1_y + 7))
-            self.control_screen.blit(jump_text, (button_text_center - jump_text.get_width() / 2 + button_size / 2,
+            self.control_screen.blit(insta_card_text, (button_text_center - insta_card_text.get_width() / 2 + button_size / 2,
                                                  self.control_row2_y + 7))
             self.control_screen.blit(cards_text, (button_text_center - cards_text.get_width() / 2 + button_size / 2,
                                                    self.control_row3_y + 7))
 
-            if self.walk_counter > 1:
-                walking_left_press, over1 = self.walking_btn_left.draw_button(self.control_screen,
-                                                                              False, mouse_adjustment, events,
-                                                                              False, use_btn)
-            else:
-                self.control_screen.blit(self.left_button_gray, (self.left_btn_x, self.control_row1_y))
+            if self.binding:
+                joystick_over4 = False
+            bind_press, over2 = self.binding_btn.draw_button(self.control_screen, False, mouse_adjustment, events,
+                                                             joystick_over4, use_btn)
 
-            if self.walk_counter < 2:
-                walking_right_press, over2 = self.walking_btn_right.draw_button(self.control_screen,
-                                                                                False, mouse_adjustment, events,
-                                                                                False, use_btn)
-            else:
-                self.control_screen.blit(self.right_button_gray, (self.right_btn_x, self.control_row1_y))
-
-            if self.jump_counter > 1:
+            if self.insta_card_counter > 1:
                 jumping_left_press, over3 = self.jumping_btn_left.draw_button(self.control_screen,
                                                                               False, mouse_adjustment, events,
                                                                               False, use_btn)
             else:
                 self.control_screen.blit(self.left_button_gray, (self.left_btn_x, self.control_row2_y))
 
-            if self.jump_counter < 3:
+            if self.insta_card_counter < 2:
                 jumping_right_press, over4 = self.jumping_btn_right.draw_button(self.control_screen,
                                                                                 False, mouse_adjustment, events,
                                                                                 False, use_btn)
@@ -1297,16 +1405,16 @@ class SettingsMenu:
                 self.control_screen.blit(self.right_button_gray, (self.right_btn_x, self.control_row2_y))
 
             if self.cards_counter > 1:
-                rumble_left_press, over5 = self.rumble_btn_left.draw_button(self.control_screen,
-                                                                            False, mouse_adjustment, events,
-                                                                            False, use_btn)
+                cards_left_press, over5 = self.rumble_btn_left.draw_button(self.control_screen,
+                                                                           False, mouse_adjustment, events,
+                                                                           False, use_btn)
             else:
                 self.control_screen.blit(self.left_button_gray, (self.left_btn_x, self.control_row3_y))
 
             if self.cards_counter < 2:
-                rumble_right_press, over6 = self.rumble_btn_right.draw_button(self.control_screen,
-                                                                              False, mouse_adjustment, events,
-                                                                              False, use_btn)
+                cards_right_press, over6 = self.rumble_btn_right.draw_button(self.control_screen,
+                                                                             False, mouse_adjustment, events,
+                                                                             False, use_btn)
             else:
                 self.control_screen.blit(self.right_button_gray, (self.right_btn_x, self.control_row3_y))
 
@@ -1316,11 +1424,6 @@ class SettingsMenu:
             else:
                 calib_press = False
 
-            if joystick_over4:
-                if joystick_left:
-                    walking_left_press = True
-                if joystick_right:
-                    walking_right_press = True
             if joystick_over3:
                 if joystick_left:
                     jumping_left_press = True
@@ -1328,18 +1431,9 @@ class SettingsMenu:
                     jumping_right_press = True
             if joystick_over2:
                 if joystick_left:
-                    rumble_left_press = True
+                    cards_left_press = True
                 if joystick_right:
-                    rumble_right_press = True
-
-            if self.keyboard_control_box1.collidepoint(mouse_pos):
-                control_box1_over = True
-
-            if self.keyboard_control_box2.collidepoint(mouse_pos):
-                control_box2_over = True
-
-            if self.keyboard_control_box3.collidepoint(mouse_pos):
-                control_box3_over = True
+                    cards_right_press = True
 
             # controller calibration trigger
             if calib_press and joystick_connected:
@@ -1347,48 +1441,19 @@ class SettingsMenu:
             if calib_press and not joystick_connected:
                 self.no_controller_counter = 75
 
-            if control_box1_over:
-                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(255)
-                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays['keybrd_cards'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays['mouse_cards'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_highlight_off = False
-
-            elif control_box2_over:
-                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(255)
-                self.keyboard_overlays['keybrd_cards'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays['mouse_cards'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_highlight_off = False
-
-            elif control_box3_over:
-                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(self.keyboard_bg_alpha)
-                self.keyboard_overlays['keybrd_cards'].set_alpha(255)
-                self.keyboard_overlays['mouse_cards'].set_alpha(255)
-                self.keyboard_highlight_off = False
-
-            elif not self.keyboard_highlight_off:
-                self.keyboard_overlays[f'walk{self.walk_counter}'].set_alpha(255)
-                self.keyboard_overlays[f'jump{self.jump_counter}'].set_alpha(255)
-                self.keyboard_overlays['keybrd_cards'].set_alpha(255)
-                self.keyboard_overlays['mouse_cards'].set_alpha(255)
-                self.keyboard_highlight_off = True
+            # binding trigger
+            if bind_press:
+                self.binding = True
 
             # adjusting control counters if buttons are pressed --------------------------------------------------------
-            if walking_left_press and self.walk_counter > 1:
-                self.walk_counter -= 1
-            if walking_right_press and self.walk_counter < 2:
-                self.walk_counter += 1
+            if jumping_left_press and self.insta_card_counter > 1:
+                self.insta_card_counter -= 1
+            if jumping_right_press and self.insta_card_counter < 2:
+                self.insta_card_counter += 1
 
-            if jumping_left_press and self.jump_counter > 1:
-                self.jump_counter -= 1
-            if jumping_right_press and self.jump_counter < 3:
-                self.jump_counter += 1
-
-            if rumble_left_press and self.cards_counter > 1:
+            if cards_left_press and self.cards_counter > 1:
                 self.cards_counter -= 1
-            if rumble_right_press and self.cards_counter < 2:
+            if cards_right_press and self.cards_counter < 2:
                 self.cards_counter += 1
 
             if config_left_press and self.configuration_counter > 1:
@@ -1398,9 +1463,9 @@ class SettingsMenu:
 
         # updating the controls dictionary -----------------------------------------------------------------------------
         if menu_press:
-            self.controls['left'] = self.nums_to_btns[f'left{self.walk_counter}']
-            self.controls['right'] = self.nums_to_btns[f'right{self.walk_counter}']
-            self.controls['jump'] = self.nums_to_btns[f'jump{self.jump_counter}']
+            self.controls['left'] = letter_to_key[self.settings_counters['binding'][0]]
+            self.controls['right'] = letter_to_key[self.settings_counters['binding'][1]]
+            self.controls['jump'] = letter_to_key[self.settings_counters['binding'][2]]
             self.controls['configuration'] = self.nums_to_btns['configuration']
             self.controls['rumble'] = self.nums_to_btns[f'rumble{self.cards_counter}']
 
@@ -1555,13 +1620,6 @@ class SettingsMenu:
                 else:
                     self.visual_screen.blit(speedrun_gray_btn_img_right, (self.right_btn_x,
                                                                      self.vis_sound_button_start_y + self.gap * 4))
-
-            else:
-                if self.joystick_counter > 0:
-                    if joystick_moved == -1:
-                        self.joystick_counter -= 1
-                    elif joystick_moved == 1:
-                        self.joystick_counter += 1
 
             if joystick_over4:
                 if joystick_left:
@@ -1825,6 +1883,63 @@ class SettingsMenu:
                 calibrated = True
                 self.nums_to_btns['configuration'] = configuration
 
+        # binding window -----------------------------------------------------------------------------------------------
+        if self.binding:
+            SettingsMenu.key_binding_func(self, settings_screen, events, fps_adjust)
+            if self.binding_counter > 0.25:
+                if joystick_connected:
+                    joy_over_bind_ok = True
+                else:
+                    joy_over_bind_ok = False
+                bind_ok_press, bind_over = self.bind_ok_btn.draw_button(settings_screen, False, mouse_adjustment, events,
+                                                                        joy_over_bind_ok, use_btn)
+                if bind_ok_press:
+                    self.binding = False
+                    self.binding_counter = 0
+
+            self.bind_surface.fill((0, 0, 0))
+
+            if self.binding_counter > 0.25:
+                for package in self.bind_col_rects:
+                    rect = package[0]
+                    package[1] -= 1 * fps_adjust
+                    index = self.bind_col_rects.index(package)
+
+                    if self.settings_binding[index] == 'space':
+                        self.bind_surface.blit(self.space_bg, rect)
+                        self.bind_col_rects[2][0].width = 33
+                    else:
+                        self.bind_col_rects[2][0].width = 11
+
+                    if rect.collidepoint((mouse_pos[0] - (swidth / 2 - self.bind_surface.get_width() / 2),
+                                          mouse_pos[1] - (sheight / 2 - self.bind_surface.get_height() / 2))):
+                        if key_press:
+                            if key_press not in self.settings_binding:
+                                self.settings_binding[index] = key_press
+                            else:
+                                package[1] = 15
+                        if package[1] > 0:
+                            offset = random.choice([1, 0, -1])
+                        else:
+                            offset = 0
+                        if self.settings_binding[index] == 'space':
+                            if package[1] > 0:
+                                outline = self.space_bg_outline_red
+                            else:
+                                outline = self.space_bg_outline
+                            self.bind_surface.blit(outline, (rect.x + offset, rect.y))
+                        else:
+                            if package[1] > 0:
+                                outline = self.letter_bg_outline_red
+                            else:
+                                outline = self.letter_bg_outline
+                            self.bind_surface.blit(outline, (rect.x + offset, rect.y))
+                    letter = self.text.make_text([self.settings_binding[index]])
+                    self.bind_surface.blit(letter, (rect.x + 2, rect.y + 2))
+
+            settings_screen.blit(self.bind_surface, (swidth / 2 - self.bind_surface.get_width() / 2,
+                                                     sheight / 2 - self.bind_surface.get_height() / 2))
+
         # no controller detected popup
         if self.no_controller_counter > 0:
             settings_screen.blit(self.no_controller_popup,
@@ -1837,13 +1952,18 @@ class SettingsMenu:
                                   sheight / 2 - self.pov_popup.get_height() / 2))
         # --------------------------------------------------------------------------------------------------------------
 
+        if self.controller_calibration or self.binding:
+            window_open = True
+        else:
+            window_open = False
+
         if over or over1 or over3 or over5 or over7:
             final_over1 = True
         if over2 or over4 or over6 or over8:
             final_over2 = True
 
         final_over = False
-        if final_over1 or final_over2:
+        if (final_over1 or final_over2) and not window_open:
             final_over = True
 
         if res_right_press or res_left_press:
@@ -1853,8 +1973,8 @@ class SettingsMenu:
 
         resolution = self.resolutions[str(self.resolution_counter)]
 
-        self.settings_counters['walking'] = self.walk_counter
-        self.settings_counters['jumping'] = self.jump_counter
+        self.settings_counters['binding'] = self.settings_binding
+        self.settings_counters['instant_card'] = self.insta_card_counter
         self.settings_counters['cards'] = self.cards_counter
         self.settings_counters['configuration'] = self.configuration_counter
         self.settings_counters['resolution'] = self.resolution_counter
@@ -1866,4 +1986,4 @@ class SettingsMenu:
 
         return menu_press, self.controls, self.pov_counter, resolution, \
                adjust_resolution, self.settings_counters, calibrated, settings_music, final_over,\
-               page_flip_sound_trigger
+               page_flip_sound_trigger, window_open

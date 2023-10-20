@@ -134,8 +134,10 @@ class World:
         self.freeze_tiles = []
         self.beans_list = []
         self.lamp_list = []
+        self.chute_list = []
         self.hostile_rect_list = []
         self.spit_rect_list = []
+        self.wheel_circle_hit_pos_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.bg_border = 0
@@ -388,6 +390,7 @@ class World:
 
         self.bg_brick_tile = img_loader('data/images/tile_bg_brick.PNG', tile_size, tile_size)
         self.bg_brick_danger = img_loader('data/images/tile_bg_brick_danger.PNG', tile_size, tile_size)
+        self.bg_brick_chute = img_loader('data/images/tile_bg_brick_chute.PNG', tile_size, tile_size)
         self.bg_brick_window = img_loader('data/images/tile_bg_brick_window.PNG', tile_size, tile_size)
         self.bg_brick_support = img_loader('data/images/tile_bg_brick_support1.PNG', tile_size, tile_size)
         self.bg_brick_support_top = img_loader('data/images/tile_bg_brick_support2.PNG', tile_size, tile_size)
@@ -488,6 +491,9 @@ class World:
         # wheat --------------------------------------------------------------------------------------------------------
         self.wheat = img_loader('data/images/wheat.PNG', 3, 40)
 
+        # grain chute --------------------------------------------------------------------------------------------------
+        self.grain_chute = img_loader('data/images/grain_chute.PNG', tile_size * 2, tile_size * 5)
+
         # lamp ---------------------------------------------------------------------------------------------------------
         self.lamp = img_loader('data/images/lamp.PNG', 13, 9)
         self.lamp_direction = 1
@@ -561,8 +567,10 @@ class World:
         self.freeze_tiles = []
         self.beans_list = []
         self.lamp_list = []
+        self.chute_list = []
         self.hostile_rect_list = []
         self.spit_rect_list = []
+        self.wheel_circle_hit_pos_list = []
 
         # variables ----------------------------------------------------------------------------------------------------
         self.portal_counter = 0
@@ -693,6 +701,14 @@ class World:
                     pos = [column_count * tile_size - pov_offset, row_count * tile_size]
                     tile = [pos, 'sd0']
                     self.freeze_tiles.append(tile)
+                if tile == 95:
+                    # grian chute
+                    rect = pygame.rect.Rect(column_count * tile_size - pov_offset,
+                                            row_count * tile_size + tile_size,
+                                            tile_size * 2, tile_size * 2)
+                    tile = ['chute', rect]
+                    self.chute_list.append(tile)
+                    self.next_level_list.append(tile)
                 if tile == 6:
                     # garage
                     tile = img_rect_pos(self.garage, column_count, row_count, pov_offset)
@@ -712,11 +728,11 @@ class World:
                 if tile == 10:
                     # gem
                     tile_type = 'gem'
-                    if [self.world_count, level_count] in [[3, 4], [3, 5], [3, 6]]:
+                    if [self.world_count, level_count] in [[3, 4], [3, 5], [3, 6], [4, 7], [5, 3]]:
                         offset = tile_size / 2
                     else:
                         offset = 0
-                    if [self.world_count, level_count] in [[3, 4], [3, 5], [3, 6]]:
+                    if [self.world_count, level_count] in [[3, 4], [3, 5], [3, 6], [4, 7], [5, 3]]:
                         rect = pygame.Rect(0, 0, tile_size, tile_size)
                         rect.x = column_count * tile_size - pov_offset
                         rect.y = row_count * tile_size + offset
@@ -1258,7 +1274,11 @@ class World:
                     self.bg_tile_list.append(tile)
                 if bg_tile == 50:
                     # bg brick way out tile
-                    tile = bg_img_rect_pos(self.bg_brick_danger, bg_col_count, bg_row_count, pov_offset)
+                    if [world_count, level_count] == [4, 8]:
+                        img = self.bg_brick_chute
+                    else:
+                        img = self.bg_brick_danger
+                    tile = bg_img_rect_pos(img, bg_col_count, bg_row_count, pov_offset)
                     self.bg_tile_list.append(tile)
                 if bg_tile == 51:
                     # bg brick window tile
@@ -1317,7 +1337,7 @@ class World:
         for el in bg_tiles:
             self.main_tile_list += el
 
-        fg_tiles = [self.shockwave_mushroom_list, self.bee_hive_list]
+        fg_tiles = [self.shockwave_mushroom_list, self.bee_hive_list, self.chute_list]
 
         for el in fg_tiles:
             self.main_fg_tile_list += el
@@ -1402,7 +1422,8 @@ class World:
         self.spit_rect_list = []
         # log variables
         self.log_counter += 1 * fps_adjust
-
+        # copper wheel variables
+        self.wheel_circle_hit_pos_list = []
         self.copper_wheel_count += 1 * fps_adjust
         if self.copper_wheel_count > 3.5:
             self.copper_wheel_count = 0
@@ -1466,7 +1487,6 @@ class World:
 
                     if tutorial == 1:
                         screen.blit(self.white_arrow_down, (tile[1][0] + 8, tile[1][1] - tile_size))
-
             # set lava -------------------------------------------------------------------------------------------------
             if (tile[1].width == self.set_lava_rect.width and tile[1].height == self.set_lava_rect.height) or \
                     tile[-1] == 'set_lava':
@@ -1554,7 +1574,7 @@ class World:
                         tile[4] += 0.8 * fps_adjust
                         if tile[4] > 0:
                             tile[4] = 0
-                    if tile[3] > 100:
+                    if tile[3] > 50:
                         tile[4] = 0
                         tile[5] += 0.1 * fps_adjust
                         tile[1].y -= tile[5]
@@ -1694,11 +1714,26 @@ class World:
                     y += 64 + tile[1].y
                     pygame.draw.circle(screen, (0, 0, 0), (x, y), 16, 16)
                     pygame.draw.circle(screen, (255, 255, 255), (x, y), 16, 1)
+                    pos = [x, y]
+                    self.wheel_circle_hit_pos_list.append(pos)
                     # collision
-                    circ_rect = pygame.Rect(x - 9, y - 9, 18, 18)
+                    radius = 9
+                    circ_rect = pygame.Rect(x - radius, y - radius, 18, 18)
                     if circ_rect.colliderect(sack_rect):
-                        harm = True
-                        tile[-1] = img
+                        if sack_rect.left < x < sack_rect.right:
+                            harm = True
+                            tile[-1] = img
+                        elif sack_rect.top < y < sack_rect.bottom:
+                            harm = True
+                            tile[-1] = img
+                        else:
+                            condition1 = abs(sack_rect.right - x) < radius and abs(sack_rect.bottom - y) < radius
+                            condition2 = abs(sack_rect.right - x) < radius and abs(sack_rect.top - y) < radius
+                            condition3 = abs(sack_rect.left - x) < radius and abs(sack_rect.bottom - y) < radius
+                            condition4 = abs(sack_rect.left - x) < radius and abs(sack_rect.top - y) < radius
+                            if condition1 or condition2 or condition3 or condition4:
+                                harm = True
+                                tile[-1] = img
 
             # lamp -----------------------------------------------------------------------------------------------------
             if tile[0] == 'lamp':
@@ -1883,6 +1918,10 @@ class World:
                 pygame.draw.line(screen, (212, 156, 0),
                                  (tile[1][0] + 6, tile[1][1] + 20),
                                  (tile[1][0] + 6 + yellow_bar_length, tile[1][1] + 20), 3)
+
+            # grain chute ----------------------------------------------------------------------------------------------
+            if tile[0] == 'chute':
+                screen.blit(self.grain_chute, (tile[1][0], tile[1][1] - tile_size - 7))
 
         return self.bee_harm, distance_list
 
@@ -2078,6 +2117,8 @@ class World:
         for pos in self.spit_rect_list:
             rect = pygame.Rect(pos[0], pos[1], 6, 6)
             pygame.draw.rect(screen, (255, 240, 0), rect, 1)
+        for pos in self.wheel_circle_hit_pos_list:
+            pygame.draw.circle(screen, (255, 240, 0), pos, 9, 1)
 
     # ------------------------------------------------------------------------------------------------------------------
 

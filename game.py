@@ -43,8 +43,11 @@ level_dictionary = {
     "level4_4": level4_4,
     "level5_4": level5_4,
     "level6_4": level6_4,
+    "level7_4": level7_4,
+    "level8_4": level8_4,
     "level1_5": level1_5,
     "level2_5": level2_5,
+    "level3_5": level3_5,
 }
 
 level_bg_dictionary = {
@@ -75,8 +78,11 @@ level_bg_dictionary = {
     "level4_4_bg": level4_4_bg,
     "level5_4_bg": level5_4_bg,
     "level6_4_bg": level6_4_bg,
+    "level7_4_bg": level7_4_bg,
+    "level8_4_bg": level8_4_bg,
     "level1_5_bg": level1_5_bg,
     "level2_5_bg": level2_5_bg,
+    "level3_5_bg": level3_5_bg,
 }
 
 level_pos_dictionary = {
@@ -108,8 +114,11 @@ level_pos_dictionary = {
     "level4_4": (1, -8),
     "level5_4": (2, -1),
     "level6_4": (4, -8),
+    "level7_4": (2, 1),
+    "level8_4": (4, 1),
     "level1_5": (2, -20),
-    "level2_5": (-1, -7)
+    "level2_5": (-1, -7),
+    "level3_5": (-32, -1),
 }
 
 level_card_dictionary = {
@@ -121,12 +130,14 @@ world_ending_levels = {
     1: 3,
     2: 11,
     3: 10,
-    4: 7,
+    4: 9,
     5: 4
 }
 
-music_change_list = [[2, 9], [3, 4]]
-music_level_phases = [[2, 1, 1], [2, 9, 2], [3, 1, 1], [3, 2, 2], [3, 4, 3], [3, 9, 4], [4, 1, 1], [4, 2, 2], [4, 4, 3]]
+ending_world_level = [4, 9]
+
+music_change_list = [[2, 9], [3, 4], [4, 8]]
+music_level_phases = [[2, 1, 1], [2, 9, 2], [3, 1, 1], [3, 2, 2], [3, 4, 3], [3, 9, 4], [4, 1, 1], [4, 2, 2], [4, 4, 3], [4, 8, 4]]
 
 bee_popup = [2, 7]
 dash_popup = [3, 5]
@@ -412,6 +423,10 @@ class Game:
         self.bg_cloud1 = img_loader('data/images/clouds/cloud_background1.PNG', 500, 190)
         self.bg_cloud2 = img_loader('data/images/clouds/cloud_background2.PNG', 500, 190)
 
+        self.button_surf = pygame.Surface((tile_size, tile_size))
+        self.button_surf_alpha = 0
+        self.button_surf.set_alpha(0)
+
         # buttons ------------------------------------------------------------------------------------------------------
         self.home_button = Button(swidth - tile_size + (tile_size - home_button_down.get_width()) / 2, 3,
                                   home_button_img, home_button_press, home_button_down)
@@ -503,6 +518,37 @@ class Game:
         self.fade_counter = 255
 
         self.new_best = False
+
+        # game completed scene variables -------------------------------------------------------------------------------
+        self.game_completed_scene_step_counter = 1
+        self.toaster_animation_counter = 0
+        self.toaster_animation_frame_counter = 0
+        self.toaster_frame_duration = 2
+        self.toaster_animation = False
+        self.toaster_alpha = 0
+        self.end_counter = 0
+
+        self.smoke_surf = pygame.Surface((tile_size, tile_size))
+        self.smoke_surf.set_alpha(0)
+        self.smoke_surf_alpha = 0
+        self.smoke_counter = 0
+
+        if world_count == 4:
+            self.game_completed_scene_step_controller = {
+                1: Dialogue('The kernels get cleaned and crushed', text),
+                2: Dialogue('Then they get pushed through a screen,', text),
+                3: Dialogue('so the large chunks are separated from the fine powder', text),
+                4: Dialogue('That fine powder is the finished product - flour', text),
+                5: Dialogue('The flour is used to make bread', text),
+                6: Dialogue('The bread is used to make toast', text),
+                7: Dialogue('The toast is then consumed...', text),
+            }
+
+        self.toaster_animation_frames = []
+        for frame in range(0, 5):
+            img = img_loader(f'data/images/toaster/toaster{frame + 1}.PNG', 100, 70)
+            self.toaster_animation_frames.append(img)
+        self.toaster_animation_frames[0].set_alpha(0)
 
         # opening scene variables --------------------------------------------------------------------------------------
         self.opening_scene = False
@@ -608,7 +654,7 @@ class Game:
         self.world.create_world(self.start_x, self.start_y, world_data, bg_data, 1, world_count)
         self.player = Player(self.game_screen, self.controls, self.settings_counters, world_count)
         self.particles = Particles(particle_num)
-        self.eq_manager = eqManager(self.eq_power_list, self.controls, self.settings_counters['walking'])
+        self.eq_manager = eqManager(self.eq_power_list, self.controls)
 
         # class variables ----------------------------------------------------------------------------------------------
         self.tile_list = self.world.tile_list
@@ -766,7 +812,7 @@ class Game:
                 self.world_completed_text_alpha = 255
 
         if events['keydown']:
-            if events['keydown'].key == self.controls['jump']:
+            if events['keydown'].key == pygame.K_SPACE:
                 menu_press = True
         if events['joybuttondown']:
             if events['joybuttondown'].button == self.controls['configuration'][5]:
@@ -817,6 +863,128 @@ class Game:
             end_screen = True
 
         return end_screen, menu_press
+
+    def game_completed_cutscene(self, screen, events, fps_adjust, joysticks, joystick_calibration):
+        screen.fill((0, 0, 0))
+        self.dialogue_surface.fill((0, 0, 0))
+
+        if joystick_calibration:
+            events = {
+                'quit': False,
+                'keydown': False,
+                'keyup': False,
+                'mousebuttondown': False,
+                'mousebuttonup': False,
+                'joyaxismotion': False,
+                'joybuttondown': False,
+                'joybuttonup': False,
+                'joydeviceadded': False,
+                'joydeviceremoved': False,
+                'mousewheel': False,
+                'videoresize': False
+            }
+
+        end_screen = False
+        press = False
+
+        sounds = {
+            'click': False
+        }
+
+        if events['keydown']:
+            if events['keydown'].key == pygame.K_SPACE:
+                press = True
+        if events['joybuttondown']:
+            if events['joybuttondown'].button == self.controls['configuration'][5]:
+                press = True
+
+        if not self.toaster_animation:
+            if self.toaster_alpha > 250:
+                scene_step_type = self.game_completed_scene_step_controller[self.opening_scene_step_counter]
+                dialogue_done, sounds['click'] = scene_step_type.display_dialogue(self.dialogue_surface, fps_adjust)
+                if dialogue_done and press:
+                    self.opening_scene_step_counter += 1
+                    if self.opening_scene_step_counter > len(self.game_completed_scene_step_controller):
+                        self.toaster_animation = True
+                if not dialogue_done and press:
+                    scene_step_type.btn_press = True
+            screen.blit(self.dialogue_surface, (0, 10))
+
+            self.toaster_alpha += 10 * fps_adjust
+            if self.toaster_alpha <= 255:
+                self.toaster_animation_frames[0].set_alpha(self.toaster_alpha)
+            elif self.toaster_alpha < 1000:
+                self.toaster_animation_frames[0].set_alpha(255)
+                self.toaster_alpha = 1000
+            screen.blit(self.toaster_animation_frames[0], (swidth / 2 - 50, sheight / 2 - 35))
+
+            self.smoke_surf_alpha += 6 * fps_adjust
+            if self.smoke_surf_alpha <= 30:
+                self.smoke_surf.set_alpha(self.smoke_surf_alpha)
+            self.smoke_counter += 1 * fps_adjust
+            self.smoke_surf.fill((0, 0, 0))
+            for dot in range(tile_size):
+                x1 = 5
+                x2 = 27
+                offset1 = round(math.sin(1 / 8 * (self.smoke_counter + dot)) * 2)
+                offset2 = round(math.cos(1 / 8 * (self.smoke_counter + dot)) * 2)
+                self.smoke_surf.set_at([x1 + offset1, dot], (255, 255, 255))
+                self.smoke_surf.set_at([x2 + offset2, dot], (255, 255, 255))
+            screen.blit(self.smoke_surf, (swidth / 2 - 16, sheight / 2 - 55))
+
+        else:
+            self.toaster_animation_counter += 1 * fps_adjust
+            if self.toaster_animation_frame_counter < 4:
+                if self.toaster_animation_counter > self.toaster_frame_duration:
+                    self.toaster_animation_counter = 0
+                    self.toaster_animation_frame_counter += 1
+
+            if self.toaster_animation_counter > 130 and press:
+                self.end_counter += 1
+                self.toaster_alpha = 255
+            if self.end_counter > 0:
+                self.end_counter += 1 * fps_adjust
+                self.toaster_alpha -= 8 * fps_adjust
+                if self.toaster_alpha >= 0:
+                    self.toaster_animation_frames[4].set_alpha(self.toaster_alpha)
+                else:
+                    self.toaster_animation_frames[4].set_alpha(0)
+            if self.end_counter > 30:
+                end_screen = True
+
+            img = self.toaster_animation_frames[self.toaster_animation_frame_counter]
+
+            if self.toaster_animation_frame_counter == 3:
+                offset_x = random.choice([-1, 0, 1])
+                offset_y = random.choice([-1, 0, 1])
+            else:
+                offset_x = 0
+                offset_y = 0
+
+            screen.blit(img, (swidth / 2 - 50 + offset_x, sheight / 2 - 35 + offset_y))
+
+            if joysticks:
+                if self.controller_type == 'xbox':
+                    btn_img = self.a_button_img
+                else:
+                    btn_img = self.cross_button_img
+            else:
+                self.space_btn_count += 1 * fps_adjust
+                if self.space_btn_count > 50:
+                    btn_img = self.space_button_press
+                    if self.space_btn_count > 60:
+                        self.space_btn_count = 0
+                else:
+                    btn_img = self.space_button_img
+
+            if self.toaster_animation_counter > 130 and self.end_counter == 0:
+                self.button_surf_alpha += 10 * fps_adjust
+                if self.button_surf_alpha <= 255:
+                    self.button_surf.set_alpha(self.button_surf_alpha)
+                self.button_surf.blit(btn_img, (16 - btn_img.get_width() / 2, 16 - btn_img.get_height() / 2))
+                screen.blit(self.button_surf, (swidth / 2 - 16, sheight / 2 + 45))
+
+        return end_screen, sounds
 
     def opening_cutscene(self, screen, fps_adjust, events, joystick_calibration):
         screen.fill((0, 0, 0))
@@ -1004,27 +1172,28 @@ class Game:
             screen_shake,\
             player_sounds,\
             border_col,\
-            self.freeze_tiles = self.player.update_pos_animation(screen,
-                                                                 self.tile_list,
-                                                                 self.world.next_level_list,
-                                                                 level_count,
-                                                                 world_count,
-                                                                 self.harm,
-                                                                 fps_adjust,
-                                                                 self.mid_air_jump_trigger,
-                                                                 self.speed_dash_trigger,
-                                                                 self.left_border,
-                                                                 self.right_border,
-                                                                 self.move,
-                                                                 self.world.shockwave_mushroom_list,
-                                                                 events,
-                                                                 self.gem_equipped,
-                                                                 joysticks,
-                                                                 restart_level_procedure,
-                                                                 self.controls,
-                                                                 self.freeze_tiles,
-                                                                 self.speedrun_mode
-                                                                 )
+            self.freeze_tiles,\
+            card_active = self.player.update_pos_animation(screen,
+                                                           self.tile_list,
+                                                           self.world.next_level_list,
+                                                           level_count,
+                                                           world_count,
+                                                           self.harm,
+                                                           fps_adjust,
+                                                           self.mid_air_jump_trigger,
+                                                           self.speed_dash_trigger,
+                                                           self.left_border,
+                                                           self.right_border,
+                                                           self.move,
+                                                           self.world.shockwave_mushroom_list,
+                                                           events,
+                                                           self.gem_equipped,
+                                                           joysticks,
+                                                           restart_level_procedure,
+                                                           self.controls,
+                                                           self.freeze_tiles,
+                                                           self.speedrun_mode
+                                                           )
         # updating player sounds
         sounds.update(player_sounds)
         # sack motion
@@ -1128,9 +1297,8 @@ class Game:
         if world_count in [2, 3, 5]:
             self.hot_lava_harm = self.world.draw_hot_lava(self.game_screen, sack_rect, fps_adjust)
 
-        if world_count != 3:
-            sounds['wheat'] = self.world.draw_wheat(self.game_screen, sack_rect, moving, fps_adjust)
-            self.world.draw_green_mushrooms(self.game_screen, sack_rect)
+        sounds['wheat'] = self.world.draw_wheat(self.game_screen, sack_rect, moving, fps_adjust)
+        self.world.draw_green_mushrooms(self.game_screen, sack_rect)
 
         self.world.draw_static_tiles_foreground(self.game_screen)
 
@@ -1148,7 +1316,8 @@ class Game:
             self.player.highlight_cols(self.game_screen)
             self.world.draw_hitboxes(self.game_screen)
 
-        if world_count in [1, 2, 5] or (world_count == 4 and level_count == 1):
+        if (world_count in [1, 2, 5] or (world_count == 4 and level_count == 1)) and \
+                [world_count, level_count] != [5, 3]:
             update_leaves(self.particle_leaves, self.game_screen, self.camera_move_x, self.camera_move_y, fps_adjust,
                           False)
         if world_count == 3 and level_count == 1:
@@ -1218,7 +1387,7 @@ class Game:
                                                          self.health, self.move, self.player_moved,
                                                          self.gem_equipped, self.controls,
                                                          joysticks, self.controller_type,
-                                                         joystick_calibration)
+                                                         joystick_calibration, card_active)
 
         if self.mid_air_jump_trigger or self.speed_dash_trigger:
             self.gem_equipped = False

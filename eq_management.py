@@ -7,6 +7,7 @@ from image_loader import img_loader
 from font_manager import Text
 from popup_bg_generator import popup_bg_generator
 from screen_info import swidth, sheight
+from settings import letter_to_key
 
 tile_size = 32
 
@@ -14,14 +15,14 @@ card_tile_size = 2 * tile_size
 
 
 class eqManager:
-    def __init__(self, eq_list, eq_controls, walk_counter):
+    def __init__(self, eq_list, eq_controls):
         text = Text()
+        self.text = Text()
 
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
 
         self.eq_controls = eq_controls
-        self.card_delete_counter = walk_counter
 
         self.card_info = False
         self.card_info_type = 'blank'
@@ -162,6 +163,10 @@ class eqManager:
         self.l_key_press = img_loader('data/images/buttons/key_l_press.PNG', tile_size / 2, tile_size / 2)
         self.i_key = img_loader('data/images/buttons/key_i.PNG', tile_size / 2, tile_size / 2)
         self.i_key_press = img_loader('data/images/buttons/key_i_press.PNG', tile_size / 2, tile_size / 2)
+        self.key_bg = img_loader('data/images/key_bg.PNG', 11, 14)
+        self.key_bg_press = img_loader('data/images/key_bg_press.PNG', 11, 14)
+        self.key_space = img_loader('data/images/key_space.PNG', 22, 14)
+        self.key_space_press = img_loader('data/images/key_space_press.PNG', 22, 14)
         self.use_text_caps = text.make_text(['USE'])
         self.use_text = text.make_text(['use'])
         self.info_text_caps = text.make_text(['INFO'])
@@ -214,6 +219,7 @@ class eqManager:
         self.arrow_bob_counter = 0
 
         self.no_gem_text = text.make_text(['Collect gems to use cards'])
+        self.no_gem_card_active_text = text.make_text(['You already have an active card'])
         self.no_gem_counter = 0
         self.default_no_gem_counter = 100
 
@@ -336,7 +342,7 @@ class eqManager:
 # DRAWING AND HANDLING EQ BUTTONS ======================================================================================
     def draw_eq(self, screen, eq_list, mouse_adjustment, events, tutorial, fps_adjust, level_count,
                 health, move, player_moved, gem_equipped, eq_controls, joysticks, controller_type,
-                joystick_calibration):
+                joystick_calibration, card_active):
 
         self.mid_air_jump_trigger = False
         self.speed_dash_trigger = False
@@ -378,7 +384,16 @@ class eqManager:
         over3 = False
         over4 = False
 
-        use_btn = self.eq_controls['configuration'][6]
+        if self.eq_controls['insta_card'] == 2:
+            use_btn1 = self.eq_controls['configuration'][6]
+            use_btn2 = self.eq_controls['configuration'][6]
+            use_key1 = letter_to_key[self.eq_controls['binding'][6]]
+            use_key2 = letter_to_key[self.eq_controls['binding'][6]]
+        else:
+            use_btn1 = self.eq_controls['configuration'][1]
+            use_btn2 = self.eq_controls['configuration'][2]
+            use_key1 = letter_to_key[self.eq_controls['binding'][3]]
+            use_key2 = letter_to_key[self.eq_controls['binding'][4]]
 
         hat_value = [0, 0]
 
@@ -405,7 +420,7 @@ class eqManager:
                     event = events['keydown']
                     if self.card_info:
                         keydown = True
-                    if event.key == pygame.K_j:
+                    if event.key == letter_to_key[self.eq_controls['binding'][3]]:
                         bumper_key_pressed = True
                         if self.joystick_over_counter <= 0:
                             self.joystick_counter = 0
@@ -413,7 +428,7 @@ class eqManager:
                             self.joystick_counter -= 1
                             if self.joystick_counter < 0:
                                 self.joystick_counter = card_num
-                    elif event.key == pygame.K_l:
+                    elif event.key == letter_to_key[self.eq_controls['binding'][4]]:
                         bumper_key_pressed = True
                         if self.joystick_over_counter <= 0:
                             self.joystick_counter = card_num
@@ -421,9 +436,9 @@ class eqManager:
                             self.joystick_counter += 1
                             if self.joystick_counter > card_num:
                                 self.joystick_counter = 0
-                    elif event.key == pygame.K_k:
+                    elif event.key == letter_to_key[self.eq_controls['binding'][6]]:
                         joystick_use_press = True
-                    elif event.key == pygame.K_i:
+                    elif event.key == letter_to_key[self.eq_controls['binding'][5]]:
                         if not self.card_info:
                             joystick_info_press = True
                     else:
@@ -505,7 +520,8 @@ class eqManager:
             if button[1] == 'mid-air_jump':
                 if self.card_info_type != 'mid-air_jump':
                     press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events,
-                                                              joystick_over0, use_btn)
+                                                              joystick_over0, use_btn1,
+                                                              use_key1)
                 else:
                     press = False
                     local_over = False
@@ -526,7 +542,8 @@ class eqManager:
             if button[1] == 'speed_dash':
                 if self.card_info_type != 'speed_dash':
                     press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events,
-                                                              joystick_over1, use_btn)
+                                                              joystick_over1, use_btn2,
+                                                              use_key2)
                 else:
                     press = False
                     local_over = False
@@ -576,8 +593,12 @@ class eqManager:
             else:
                 offset_x = 0
                 offset_y = 0
-            screen.blit(self.no_gem_text, (swidth / 2 - self.no_gem_text.get_width() / 2 + offset_x,
-                                           sheight / 2 - self.no_gem_text.get_height() / 2 - 60 + offset_y))
+            if card_active:
+                txt = self.no_gem_card_active_text
+            else:
+                txt = self.no_gem_text
+            screen.blit(txt, (swidth / 2 - txt.get_width() / 2 + offset_x,
+                                           sheight / 2 - txt.get_height() / 2 - 60 + offset_y))
 
         if self.animate_card_jump:
             eqManager.card_jump_animation(self, fps_adjust, screen)
@@ -594,14 +615,28 @@ class eqManager:
             if over:
                 if self.press_counter >= 40:
                     mouse_img = self.mouse_press
-                    key1_img = self.k_key_press
-                    key2_img = self.i_key_press
+                    if self.eq_controls['binding'][6] != 'space':
+                        key1_img = self.key_bg_press.copy()
+                    else:
+                        key1_img = self.key_space_press.copy()
+                    if self.eq_controls['binding'][5] != 'space':
+                        key2_img = self.key_bg_press.copy()
+                    else:
+                        key2_img = self.key_space_press.copy()
                     if self.press_counter >= 50:
                         self.press_counter = 0
+                    y = 4
                 else:
                     mouse_img = self.mouse3
-                    key1_img = self.k_key
-                    key2_img = self.i_key
+                    if self.eq_controls['binding'][6] != 'space':
+                        key1_img = self.key_bg.copy()
+                    else:
+                        key1_img = self.key_space.copy()
+                    if self.eq_controls['binding'][5] != 'space':
+                        key2_img = self.key_bg.copy()
+                    else:
+                        key2_img = self.key_space.copy()
+                    y = 2
 
                 cont_img = self.controller_buttons[controller_type]['1']
                 cont_img2 = self.controller_buttons[controller_type]['2']
@@ -616,6 +651,12 @@ class eqManager:
                     img2 = cont_img2
                     img_y = center_height
                 else:
+                    if self.eq_controls['binding'][6] != 'space':
+                        letter1 = self.text.make_text([self.eq_controls['binding'][6]])
+                        key1_img.blit(letter1, (3, y))
+                    if self.eq_controls['binding'][5] != 'space':
+                        letter2 = self.text.make_text([self.eq_controls['binding'][5]])
+                        key2_img.blit(letter2, (3, y))
                     if self.eq_controls['cards'] == 'keyboard':
                         img_y = center_height
                         img1 = key1_img
@@ -626,7 +667,7 @@ class eqManager:
                         img2 = mouse_img2
 
                 if gem_equipped:
-                    total_tutorial_width = img1.get_width() * 2 + self.use_text_caps.get_width() + \
+                    total_tutorial_width = img1.get_width() + img2.get_width() + self.use_text_caps.get_width() + \
                                            self.info_text_caps.get_width() + 2 + gap * 4
                     tutorial_x = center_width - total_tutorial_width / 2
 
@@ -641,7 +682,7 @@ class eqManager:
                     tutorial_x += (img2.get_width() + gap)
                     screen.blit(self.info_text_caps, (tutorial_x, center_height + 5))
                 else:
-                    total_tutorial_width = img1.get_width() + self.info_text_caps.get_width() + gap
+                    total_tutorial_width = img2.get_width() + self.info_text_caps.get_width() + gap
                     tutorial_x = center_width - total_tutorial_width / 2
 
                     screen.blit(img2, (tutorial_x, img_y))
@@ -667,10 +708,24 @@ class eqManager:
                         screen.blit(mouse_img, (swidth / 2 - tile_size / 4, sheight / 3 - tile_size / 2))
                 else:
                     if self.eq_controls['cards'] == 'keyboard' and not joysticks:
-                        btn1 = self.j_key
-                        btn2 = self.l_key
-                        btn_press1 = self.j_key_press
-                        btn_press2 = self.l_key_press
+                        if self.eq_controls['binding'][3] != 'space':
+                            btn1 = self.key_bg.copy()
+                            btn_press1 = self.key_bg_press.copy()
+                            letter = self.text.make_text([self.eq_controls['binding'][3]])
+                            btn1.blit(letter, (3, 2))
+                            btn_press1.blit(letter, (3, 4))
+                        else:
+                            btn1 = self.key_space
+                            btn_press1 = self.key_space_press
+                        if self.eq_controls['binding'][4] != 'space':
+                            btn2 = self.key_bg.copy()
+                            btn_press2 = self.key_bg_press.copy()
+                            letter = self.text.make_text([self.eq_controls['binding'][4]])
+                            btn2.blit(letter, (3, 2))
+                            btn_press2.blit(letter, (3, 4))
+                        else:
+                            btn2 = self.key_space
+                            btn_press2 = self.key_space_press
                     else:
                         btn1 = self.button_rb
                         btn2 = self.button_lb
@@ -683,9 +738,11 @@ class eqManager:
                     elif 50 > self.press_counter > 40:
                         btn1 = btn_press1
                     if health > 0:
-                        x = swidth / 2 - (tile_size + 6) / 2
-                        screen.blit(btn1, (x, sheight / 3 - tile_size / 4))
-                        screen.blit(btn2, (x + tile_size / 2 + 3, sheight / 3 - tile_size / 4))
+                        x = swidth / 2
+                        y = sheight / 3 - tile_size / 4
+                        gap = 2
+                        screen.blit(btn1, (x - gap - btn1.get_width(), y))
+                        screen.blit(btn2, (x + gap, y))
 
                 self.arrow_bob_counter += 1 * fps_adjust
                 y_arrow_offset = math.sin((1 / 13) * self.arrow_bob_counter) * 3

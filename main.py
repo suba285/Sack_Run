@@ -51,8 +51,8 @@ except FileNotFoundError:
     settings_not_loaded_error = True
 
     settings_counters = {
-        'walking': 1,
-        'jumping': 1,
+        'binding': 1,
+        'instant_card': 1,
         'cards': 1,
         'configuration': 1,
         'resolution': 1,
@@ -140,15 +140,15 @@ background_sky_colour = (100, 63, 102)
 
 # external file imports ------------------------------------------------------------------------------------------------
 from levels import *
-from game import Game, world_ending_levels, music_level_phases
+from game import Game, world_ending_levels, music_level_phases, ending_world_level
 from menu import mainMenu
 from display_fps import FpsDisplay
 from font_manager import Text
 from popup_bg_generator import popup_bg_generator
 from pause_screen import PauseScreen
-from world_selection import LevelSelection
+from world_selection import LevelSelection, bean_num
 from game import level_dictionary, level_bg_dictionary
-from settings import SettingsMenu
+from settings import SettingsMenu, letter_to_key
 from image_loader import img_loader
 from popup import draw_popup
 import random
@@ -218,6 +218,7 @@ esc_press = False
 new_world_unlocked = False
 
 opening_scene = True
+game_end_scene = False
 
 world_completed = False
 world_completed_transition_counter = 0
@@ -365,6 +366,7 @@ music = {
     '4-1': pygame.mixer.Sound('data/sounds/game_song4-1.wav'),
     '4-2': pygame.mixer.Sound('data/sounds/game_song4-2.wav'),
     '4-3': pygame.mixer.Sound('data/sounds/game_song4-3.wav'),
+    '4-4': pygame.mixer.Sound('data/sounds/game_song4-1.wav'),
     '5-1': pygame.mixer.Sound('data/sounds/game_song1.wav'),
     '3-4-transition': pygame.mixer.Sound('data/sounds/game_song3-4_transition.wav'),
     '3-3-slow': pygame.mixer.Sound('data/sounds/game_song3-3-slow.wav'),
@@ -406,7 +408,7 @@ world_phase_limit = {
     1: 1,
     2: 2,
     3: 4,
-    4: 3,
+    4: 4,
     5: 1
 }
 
@@ -445,11 +447,13 @@ controls_nums = {
 }
 
 controls = {
-    'left': controls_nums[f"left{settings_counters['walking']}"],
-    'right': controls_nums[f"right{settings_counters['walking']}"],
-    'jump': controls_nums[f"jump{settings_counters['jumping']}"],
+    'left': letter_to_key[settings_counters['binding'][0]],
+    'right': letter_to_key[settings_counters['binding'][1]],
+    'jump': letter_to_key[settings_counters['binding'][2]],
     'configuration': controls_nums["configuration"],
     'cards': controls_nums[f"cards{settings_counters['cards']}"],
+    'binding': settings_counters['binding'],
+    'insta_card': settings_counters['instant_card']
 }
 
 # custom cursor setup --------------------------------------------------------------------------------------------------
@@ -802,11 +806,20 @@ while run:
             lvl_selection_press = False
 
         if world_completed:
-            lvl_selection_press, world_completed_fadeout = main_game.world_completed_screen(screen, events, fps_adjust,
-                                                                                            joysticks,
-                                                                                            controller_calibration,
-                                                                                            world_count)
-            if world_completed_fadeout:
+            if [world_count, level_count] == ending_world_level and not speedrun_mode:
+                lvl_selection_press, ending_sounds = main_game.game_completed_cutscene(screen, events, fps_adjust,
+                                                                                       joysticks,
+                                                                                       controller_calibration)
+                world_completed_fadeout = False
+                game_end_scene = True
+                sound_triggers.update(ending_sounds)
+            else:
+                lvl_selection_press, world_completed_fadeout = main_game.world_completed_screen(screen, events,
+                                                                                                fps_adjust,
+                                                                                                joysticks,
+                                                                                                controller_calibration,
+                                                                                                world_count)
+            if world_completed_fadeout or lvl_selection_press:
                 fadeout_music = True
             world_completed_transition_counter = 255
             if lvl_selection_press:
@@ -875,7 +888,7 @@ while run:
                 with open('data/collected_beans.json', 'r') as json_file:
                     bean_data = json.load(json_file)
                     beans_collected = False
-                    if bean_data[0] == 7:
+                    if bean_data[0] == bean_num:
                         beans_collected = True
             except FileNotFoundError:
                 beans_collected = False
@@ -928,6 +941,11 @@ while run:
                 'mousewheel': False,
                 'videoresize': False
             }
+
+        scene = False
+        if opening_scene or game_end_scene:
+            scene = True
+
         pause_screen,\
             sound_triggers['button'],\
             resume,\
@@ -935,7 +953,7 @@ while run:
             settings,\
             restart_level = pause_menu.draw_pause_screen(mouse_adjustment, paused_events,
                                                          joysticks, controls['configuration'],
-                                                         fps_adjust, opening_scene)
+                                                         fps_adjust, scene)
 
         if lvl_select:
             if speedrun_mode:
@@ -978,7 +996,7 @@ while run:
                 with open('data/collected_beans.json', 'r') as json_file:
                     bean_data = json.load(json_file)
                     beans_collected = False
-                    if bean_data[0] == 7:
+                    if bean_data[0] == bean_num:
                         beans_collected = True
             except FileNotFoundError:
                 beans_collected = False
@@ -1155,9 +1173,10 @@ while run:
             calibrated_press,\
             settings_music_control,\
             sound_triggers['button'],\
-            sound_triggers['page_flip'] = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment,
-                                                                           settings_events, fps_adjust,
-                                                                           joystick_connected, joysticks, game_paused)
+            sound_triggers['page_flip'],\
+            window_open = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment,
+                                                           settings_events, fps_adjust,
+                                                           joystick_connected, joysticks, game_paused)
 
         if performance_counter == 1:
             slow_computer = False
@@ -1222,6 +1241,12 @@ while run:
                 except FileNotFoundError:
                     settings_not_saved_error = True
 
+        # controller press b to return to menu
+        if events['joybuttondown'] and not (controller_calibration or window_open):
+            event = events['joybuttondown']
+            if event.button == controls['configuration'][4]:
+                menu = True
+
         if menu:
             run_game = False
             run_settings = False
@@ -1264,11 +1289,13 @@ while run:
                 settings_not_saved_error = True
 
             controls = {
-                'left': controls_nums[f"left{settings_counters['walking']}"],
-                'right': controls_nums[f"right{settings_counters['walking']}"],
-                'jump': controls_nums[f"jump{settings_counters['jumping']}"],
+                'left': letter_to_key[settings_counters['binding'][0]],
+                'right': letter_to_key[settings_counters['binding'][1]],
+                'jump': letter_to_key[settings_counters['binding'][2]],
                 'configuration': controls['configuration'],
                 'cards': controls_nums[f"cards{settings_counters['cards']}"],
+                'binding': settings_counters['binding'],
+                'insta_card': settings_counters['instant_card']
             }
 
     # displaying fps ---------------------------------------------------------------------------------------------------
@@ -1419,6 +1446,7 @@ while run:
                 if play_background_music and not opening_scene:
                     pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
                 pause_menu.joystick_counter = 0
+        # resume with b (controller)
         if event.button == controls['configuration'][4] and paused:
             run_menu = False
             run_game = True
@@ -1431,6 +1459,12 @@ while run:
                     pygame.mixer.Channel(current_channel).set_volume(
                         music_volumes[str(settings_counters['music_volume'])])
             main_game.update_controller_type(controls['configuration'], settings_counters)
+        # go back to menu from level selection screen (controller)
+        if event.button == controls['configuration'][4] and run_level_selection:
+            run_menu = True
+            run_game = False
+            paused = False
+            run_level_selection = False
 
     if user_quit1 and user_quit2:
         run = False

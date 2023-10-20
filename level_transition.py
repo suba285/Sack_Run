@@ -20,8 +20,8 @@ class CircleTransition:
         self.txt_alpha = 0
 
     def draw_circle_transition(self, sack_rect, fps_adjust, long_trans):
-        self.x = sack_rect.x + tile_size / 2
-        self.y = sack_rect.y + 15
+        self.x = sack_rect[0] + tile_size / 2
+        self.y = sack_rect[1] + 15
         if long_trans:
             extension = 600
         else:

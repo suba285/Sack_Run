@@ -9,6 +9,8 @@ from screen_info import swidth, sheight
 
 tile_size = 32
 
+bean_num = 9
+
 
 class LevelSelection:
     def __init__(self, world_count):
@@ -27,7 +29,7 @@ class LevelSelection:
             with open('data/collected_beans.json', 'r') as json_file:
                 bean_data = json.load(json_file)
                 beans_collected = False
-                if bean_data[0] == 7:
+                if bean_data[0] == bean_num:
                     beans_collected = True
         except FileNotFoundError:
             beans_collected = False
@@ -206,7 +208,7 @@ class LevelSelection:
                 with open('data/collected_beans.json', 'r') as json_file:
                     bean_data = json.load(json_file)
                     beans_collected = False
-                    if bean_data[0] == 8:
+                    if bean_data[0] == bean_num:
                         beans_collected = True
             except FileNotFoundError:
                 beans_collected = False

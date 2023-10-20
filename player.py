@@ -284,14 +284,10 @@ class Player:
 
         self.a_button = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
         self.cross_button = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
-        self.jump_keys = {
-            '1': img_loader('data/images/buttons/key_space.PNG', tile_size, tile_size / 2),
-            '1_press': img_loader('data/images/buttons/key_space_press.PNG', tile_size, tile_size / 2),
-            '2': img_loader('data/images/buttons/key_w.PNG', tile_size / 2, tile_size / 2),
-            '2_press': img_loader('data/images/buttons/key_w_press.PNG', tile_size / 2, tile_size / 2),
-            '3': img_loader('data/images/buttons/key_up.PNG', tile_size / 2, tile_size / 2),
-            '3_press': img_loader('data/images/buttons/key_up_press.PNG', tile_size / 2, tile_size / 2),
-        }
+        self.key_bg = img_loader('data/images/key_bg.PNG', 11, 14)
+        self.key_bg_press = img_loader('data/images/key_bg_press.PNG', 11, 14)
+        self.key_space = img_loader('data/images/key_space.PNG', 22, 14)
+        self.key_space_press = img_loader('data/images/key_space_press.PNG', 22, 14)
         arrow = img_loader('data/images/white_arrow.PNG', 16, 16)
         self.right_arrow = pygame.transform.rotate(arrow, -90)
         self.icn_bob_counter = 0
@@ -436,6 +432,7 @@ class Player:
 
         # class initiations --------------------------------------------------------------------------------------------
         self.circle_transition = CircleTransition(screen)
+        self.transition_from_centre = False
 
     def update_pos_animation(self, screen, tile_list, next_level_list, level_count, world_count, harm_in, fps_adjust,
                              mid_air_jump_trigger, speed_dash_trigger,
@@ -505,8 +502,10 @@ class Player:
             top_border = 100 / 270 * sheight
         if [level_count, world_count] == [1, 5]:
             top_border = 130 / 270 * sheight
-        if [level_count, world_count] in [[6, 3], [6, 4], [5, 4]]:
-            bottom_border = 150 / 270 * sheight
+        if [level_count, world_count] in [[6, 3], [6, 4], [5, 4], [7, 4]]:
+            bottom_border = 140 / 270 * sheight
+        if [level_count, world_count] == [8, 4]:
+            bottom_border = sheight
 
         harm = False
 
@@ -589,6 +588,9 @@ class Player:
                 else:
                     self.joystick_left = False
                     self.joystick_moved_left = False
+            else:
+                self.joystick_moved_left = False
+                self.joystick_moved_right = False
             if events['joydeviceremoved']:
                 self.joystick_left = False
                 self.joystick_right = False
@@ -688,9 +690,11 @@ class Player:
             if tile[1].colliderect(self.sack_rect.x, self.sack_rect.y,
                                    self.sack_width, self.sack_height) and not self.dead:
                 self.teleport_count += 1*fps_adjust
-                if self.teleport_count >= 20:
+                if self.teleport_count >= 20 or tile[0] == 'chute':
                     if not self.transition:
                         self.circle_transition = CircleTransition(screen)
+                        self.transition_from_centre = True
+                        self.teleport_count = 20
                     self.transition = True
 
                 if self.teleport_count >= 50:
@@ -1129,6 +1133,9 @@ class Player:
             if self.camera_falling_assist:
                 self.camera_movement_y = round(-(dy + 1 / 10 * dy))
                 self.sack_rect.y -= dy / 10
+            elif [world_count, level_count] == [4, 8]:
+                self.camera_movement_y = round(-dy / 8)
+                self.sack_rect.y += round(5/8 * dy)
             elif self.sack_rect.y < top_border and dy * fps_adjust < 0:
                 self.camera_movement_y = round(-dy)
             elif not self.first_collision:
@@ -1152,10 +1159,14 @@ class Player:
             self.dead_counter = 0
 
         # returns ------------------------------------------------------------------------------------------------------
+        if self.speed_dash or self.mid_air_jump:
+            card_active = True
+        else:
+            card_active = False
         return level_count, self.sack_rect, self.direction, self.health,\
                self.camera_movement_x, self.camera_movement_y,\
                self.restart_level, self.player_moved, shockwave_mush_list,\
-               gem_equipped, screen_shake, self.sounds, border_col, freeze_tiles
+               gem_equipped, screen_shake, self.sounds, border_col, freeze_tiles, card_active
 
 # BLITTING PLAYER SPRITE ONTO THE SCREEN ===============================================================================
     def blit_player(self, screen, draw_hitbox, fps_adjust):
@@ -1287,6 +1298,10 @@ class Player:
 # inter-level transition -----------------------------------------------------------------------------------------------
     def draw_transition(self, fps_adjust, long_trans):
         if self.transition:
+            if self.transition_from_centre:
+                pos = [swidth / 2, sheight / 2]
+            else:
+                pos = [self.sack_rect.x, self.sack_rect.y]
             transition = self.circle_transition.draw_circle_transition(self.sack_rect, fps_adjust, long_trans)
             if not transition:
                 self.transition = False
@@ -1370,9 +1385,21 @@ class Player:
             if joystick_connected:
                 screen.blit(controller_btn, (swidth / 2 - tile_size / 4, sheight / 3 + 16))
             else:
-                key_img = self.jump_keys[str(settings_counters['jumping'])]
+                if self.controls['binding'][2] == 'space':
+                    key_img = self.key_space
+                else:
+                    key_img = self.key_bg.copy()
+                y = 2
+                x = 3
                 if press:
-                    key_img = self.jump_keys[f'{settings_counters["jumping"]}_press']
+                    if self.controls['binding'][2] == 'space':
+                        key_img = self.key_space_press
+                    else:
+                        key_img = self.key_bg_press.copy()
+                        y = 4
+                if self.controls['binding'][2] != 'space':
+                    letter = self.text.make_text([self.controls['binding'][2]])
+                    key_img.blit(letter, (x, y))
                 if self.button_press_counter > 8:
                     screen.blit(key_img, (swidth / 2 - key_img.get_width() / 2, sheight / 3 + 16))
 
@@ -1385,10 +1412,23 @@ class Player:
                 if joystick_connected:
                     screen.blit(controller_btn, (swidth / 2 + 3 * tile_size / 4, sheight / 3 + 16))
                 else:
-                    key_img = self.jump_keys[str(settings_counters['jumping'])]
+                    if self.controls['binding'][2] == 'space':
+                        key_img = self.key_space
+                    else:
+                        key_img = self.key_bg.copy()
+                    y = 2
+                    x = 3
                     if press:
-                        key_img = self.jump_keys[f'{settings_counters["jumping"]}_press']
+                        if self.controls['binding'][2] == 'space':
+                            key_img = self.key_space_press
+                        else:
+                            key_img = self.key_bg_press.copy()
+                            y = 4
+                    if self.controls['binding'][2] != 'space':
+                        letter = self.text.make_text([self.controls['binding'][2]])
+                        key_img.blit(letter, (x, y))
                     screen.blit(key_img, (swidth / 2 + tile_size, sheight / 3 + 16))
+
             if self.freeze_type == 'sd2':
                 offset = math.sin(self.icn_bob_counter / 15) * 2
                 screen.blit(self.right_arrow, (swidth / 2 + tile_size + offset, self.sack_rect.y + 2))
