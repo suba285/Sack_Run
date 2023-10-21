@@ -805,6 +805,8 @@ while run:
             menu_press = False
             lvl_selection_press = False
 
+        game_end_scene = False
+
         if world_completed:
             if [world_count, level_count] == ending_world_level and not speedrun_mode:
                 lvl_selection_press, ending_sounds = main_game.game_completed_cutscene(screen, events, fps_adjust,
