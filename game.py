@@ -1150,6 +1150,12 @@ class Game:
         else:
             self.harm = False
 
+        self.tile_harm = False
+        self.hot_lava_harm = False
+        self.trap_harm = False
+        self.bee_harm = False
+        self.bat_harm = False
+
         # preventing movement when calibrating joystick
         if joystick_calibration:
             self.move = False

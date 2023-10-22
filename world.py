@@ -615,7 +615,7 @@ class World:
 
         # bean popup
         self.beans_popup = popup_bg_generator((60, 15))
-        bean_text = Text().make_text([f'{self.collected_beans[0] + 1} of 7'])
+        bean_text = Text().make_text([f'{self.collected_beans[0] + 1} of 9'])
         self.beans_popup.blit(bean_text, (30, 7))
         self.beans_popup_counter = 400
 

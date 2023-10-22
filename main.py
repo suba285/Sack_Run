@@ -238,6 +238,8 @@ last_mouse_pos = pygame.mouse.get_pos()
 mouse_still_count = 0
 mouse_vis = True
 show_cursor = True
+mouse_img = img_loader('data/images/cursor.PNG', 6, 6)
+mouse_img.set_alpha(180)
 
 # music
 play_music = False
@@ -617,7 +619,6 @@ while run:
         if event.type == pygame.VIDEORESIZE:
             events['videoresize'] = event
 
-    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
     if joystick_connected:
         events['joyconnected'] = True
     else:
@@ -892,6 +893,7 @@ while run:
                     beans_collected = False
                     if bean_data[0] == bean_num:
                         beans_collected = True
+                    level_select.bean_count = bean_data[0]
             except FileNotFoundError:
                 beans_collected = False
 
@@ -1000,6 +1002,7 @@ while run:
                     beans_collected = False
                     if bean_data[0] == bean_num:
                         beans_collected = True
+                    level_select.bean_count = bean_data[0]
             except FileNotFoundError:
                 beans_collected = False
 
@@ -1345,7 +1348,7 @@ while run:
 
     if events['joydeviceadded']:
         event = events['joydeviceadded']
-        pygame.mouse.set_visible(False)
+        mouse_vis = False
         joystick = pygame.joystick.Joystick(event.device_index)
         joysticks[0] = joystick
         joysticks[0].rumble(1, 1, 100)
@@ -1405,7 +1408,7 @@ while run:
         joystick_connected = False
         joystick_name = ''
         joystick_configured = False
-        pygame.mouse.set_visible(True)
+        mouse_vis = True
 
     if events['joyaxismotion_x']:
         event = events['joyaxismotion_x']
@@ -1668,12 +1671,15 @@ while run:
     else:
         show_cursor = True
 
+    mouse_pos = pygame.mouse.get_pos()
+    mouse_pos = (mouse_pos[0] / mouse_adjustment[0] - mouse_adjustment[2],
+                 mouse_pos[1] / mouse_adjustment[0] - mouse_adjustment[1])
     if joystick_configured:
         pygame.mouse.set_visible(False)
         mouse_vis = False
     else:
         if pygame.mouse.get_focused():
-            mouse_pos = pygame.mouse.get_pos()
+
             if mouse_pos == last_mouse_pos and not show_cursor and not run_level_selection and not paused:
                 mouse_still_count += 1
             else:
@@ -1681,10 +1687,8 @@ while run:
                 mouse_still_count = 0
 
             if not mouse_still_count >= 70:
-                pygame.mouse.set_visible(True)
                 mouse_vis = True
             else:
-                pygame.mouse.set_visible(False)
                 mouse_vis = False
 
     # updating the display ---------------------------------------------------------------------------------------------
@@ -1719,6 +1723,9 @@ while run:
 
     else:
         main_screen = menu_screen.copy()
+
+    if mouse_vis:
+        main_screen.blit(mouse_img, (mouse_pos[0] - 3, mouse_pos[1] - 3))
 
     # controller errors and messages -----------------------------------------------------------------------------------
     if game_duration_counter > 20:

@@ -19,6 +19,8 @@ class LevelSelection:
 
         button_size = tile_size * 0.75
 
+        self.bean_count = 0
+
         try:
             with open('data/unlocked_worlds.json', 'r') as json_file:
                 self.world_status = json.load(json_file)
@@ -31,6 +33,7 @@ class LevelSelection:
                 beans_collected = False
                 if bean_data[0] == bean_num:
                     beans_collected = True
+                self.bean_count = bean_data[0]
         except FileNotFoundError:
             beans_collected = False
 
@@ -40,6 +43,9 @@ class LevelSelection:
             self.world_count_cap = 5
 
         self.menu_background = img_loader('data/images/menu_background.PNG', swidth, sheight)
+
+        self.beans = img_loader('data/images/beans.PNG', 13, 20)
+        self.beans_bob_counter = 0
 
         self.left_button = img_loader('data/images/button_left.PNG', button_size, button_size)
         self.left_button_press = img_loader('data/images/button_left_press.PNG', button_size, button_size)
@@ -169,6 +175,8 @@ class LevelSelection:
         if self.world_count > self.world_count_cap:
             self.world_count = self.world_count_cap
 
+        self.beans_bob_counter += 1 * fps_adjust
+
         update_value = 0
 
         use_btn = joystick_controls[5]
@@ -210,6 +218,7 @@ class LevelSelection:
                     beans_collected = False
                     if bean_data[0] == bean_num:
                         beans_collected = True
+                    self.bean_count = bean_data[0]
             except FileNotFoundError:
                 beans_collected = False
 
@@ -386,6 +395,17 @@ class LevelSelection:
         if self.world_status[self.world_count - 1] or (self.world_count == 5 and self.world_status[5]):
             play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
                                                           joystick_over_1, use_btn)
+
+        if self.bean_count > 0:
+            y_bean_offset = math.sin(1/17 * self.beans_bob_counter) * 3
+            bean_text = self.text.make_text([f'{self.bean_count} out of {bean_num} beans collected'])
+            gap = 7
+            width = 13 + gap + bean_text.get_width()
+            x_b = swidth / 2 - width / 2
+            x_t = x_b + 13 + gap
+            y = 20
+            level_screen.blit(self.beans, (x_b, y - 5 + y_bean_offset))
+            level_screen.blit(bean_text, (x_t, y))
 
         if left_press or left_bumper_press:
             update_value = -1
