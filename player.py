@@ -1018,7 +1018,8 @@ class Player:
         col_y_tile_list = []
         append = col_y_tile_list.append
         for tile in tile_list:
-            if tile[1].colliderect(temp_x, self.sack_rect.y, self.sack_width, self.sack_height):
+            if tile[1].colliderect(temp_x, self.sack_rect.y, self.sack_width, self.sack_height) and \
+                    tile[-1] != 'platform':
                 self.vel_x = 0
                 if self.speed_dash_activated:
                     self.speed_dash = False
@@ -1050,7 +1051,7 @@ class Player:
         col_counter = 0
         for tile in col_y_tile_list:
             if tile[1].colliderect(self.sack_rect.x + x_adjustment, self.sack_rect.y + dy, self.sack_width, self.sack_height):
-                if dy > 0:
+                if dy > 0 and (tile[-1] != 'platform' or self.sack_rect.bottom <= tile[1].top):
                     self.sack_rect.bottom = tile[1].top
                     self.surface_type = tile[2]
                     if (self.airborn or dy > 10) and self.player_moved and self.squash_counter_y > 4:
@@ -1071,7 +1072,7 @@ class Player:
                     self.speed_dash_landed = True
                     package = [tile[1].copy(), 'bottom']
                     self.highlight_rects.append(package)
-                if dy < 0:
+                if dy < 0 and tile[-1] != 'platform':
                     self.sack_rect.top = tile[1].bottom
                     dy = 0
                     self.vel_y = 0

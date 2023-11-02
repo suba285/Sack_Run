@@ -4,6 +4,7 @@ import random
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
+from slider import Slider
 from popup_bg_generator import popup_bg_generator
 from screen_info import swidth, sheight
 
@@ -489,6 +490,8 @@ class SettingsMenu:
         self.volume_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap,
                                        self.right_button, self.right_button_press, self.right_button_down)
 
+        self.volume_slider = Slider(self.center + 22, self.vis_sound_button_start_y + gap + 10)
+
         self.sounds_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap * 2,
                                       self.left_button, self.left_button_press, self.left_button_down)
         self.sounds_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap * 2,
@@ -600,9 +603,9 @@ class SettingsMenu:
         self.controller_conf_cal1 = text.make_text(['press the LB button (left bumper)'])
         self.controller_conf_cal2 = text.make_text(['press the RB button (right bumper)'])
         self.controller_conf_cal3 = text.make_text(['press the options button (pause)'])
-        self.controller_conf_cal4 = text.make_text(['press the left face button'])
+        self.controller_conf_cal4 = text.make_text(['press the right face button'])
         self.controller_conf_cal5 = text.make_text(['press the bottom face button'])
-        self.controller_conf_cal6 = text.make_text(['press the right face button'])
+        self.controller_conf_cal6 = text.make_text(['press the left face button'])
         self.controller_conf_cal7 = text.make_text(['choose your button naming'])
         button_rb = img_loader('data/images/buttons/button_rb.PNG', tile_size / 2, tile_size / 2)
         button_lb = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
@@ -1291,16 +1294,20 @@ class SettingsMenu:
             self.arrow_button_outline_alpha += 1
             self.arrow_button_outline_surf.set_alpha(self.arrow_button_outline_alpha * 40)
 
+        if self.binding:
+            control_screen_mouse_adjustment = [1, 0, 0]
+        else:
+            control_screen_mouse_adjustment = mouse_adjustment
+
         # drawing and updating the menu/back button --------------------------------------------------------------------
-        menu_press, over = self.menu_btn.draw_button(settings_screen, False, mouse_adjustment, events, joystick_over0,
+        menu_press, over = self.menu_btn.draw_button(settings_screen, False, control_screen_mouse_adjustment,
+                                                     events, joystick_over0,
                                                      use_btn)
 
         button_text_center = self.center + 65
 
         # CONTROL SETTINGS SCREEN ======================================================================================
-
         if not self.draw_control_screen:
-
             if self.insta_card_counter == 1:
                 insta_card_text = self.insta_card_conf1
             else:
@@ -1386,39 +1393,41 @@ class SettingsMenu:
 
             if self.binding:
                 joystick_over4 = False
-            bind_press, over2 = self.binding_btn.draw_button(self.control_screen, False, mouse_adjustment, events,
+            bind_press, over2 = self.binding_btn.draw_button(self.control_screen, False,
+                                                             control_screen_mouse_adjustment, events,
                                                              joystick_over4, use_btn)
 
             if self.insta_card_counter > 1:
                 jumping_left_press, over3 = self.jumping_btn_left.draw_button(self.control_screen,
-                                                                              False, mouse_adjustment, events,
-                                                                              False, use_btn)
+                                                                              False, control_screen_mouse_adjustment,
+                                                                              events, False, use_btn)
             else:
                 self.control_screen.blit(self.left_button_gray, (self.left_btn_x, self.control_row2_y))
 
             if self.insta_card_counter < 2:
                 jumping_right_press, over4 = self.jumping_btn_right.draw_button(self.control_screen,
-                                                                                False, mouse_adjustment, events,
-                                                                                False, use_btn)
+                                                                                False, control_screen_mouse_adjustment,
+                                                                                events, False, use_btn)
             else:
                 self.control_screen.blit(self.right_button_gray, (self.right_btn_x, self.control_row2_y))
 
             if self.cards_counter > 1:
                 cards_left_press, over5 = self.rumble_btn_left.draw_button(self.control_screen,
-                                                                           False, mouse_adjustment, events,
-                                                                           False, use_btn)
+                                                                           False, control_screen_mouse_adjustment,
+                                                                           events, False, use_btn)
             else:
                 self.control_screen.blit(self.left_button_gray, (self.left_btn_x, self.control_row3_y))
 
             if self.cards_counter < 2:
                 cards_right_press, over6 = self.rumble_btn_right.draw_button(self.control_screen,
-                                                                             False, mouse_adjustment, events,
-                                                                             False, use_btn)
+                                                                             False, control_screen_mouse_adjustment,
+                                                                             events, False, use_btn)
             else:
                 self.control_screen.blit(self.right_button_gray, (self.right_btn_x, self.control_row3_y))
 
             if not self.controller_calibration:
-                calib_press, over5 = self.calibration_btn.draw_button(self.control_screen, False, mouse_adjustment,
+                calib_press, over5 = self.calibration_btn.draw_button(self.control_screen, False,
+                                                                      control_screen_mouse_adjustment,
                                                                       events, joystick_over1, use_btn)
             else:
                 calib_press = False
@@ -1705,25 +1714,12 @@ class SettingsMenu:
         change_volume = False
         real_volume = False
 
+        volume_knob_held = False
+
         if not self.draw_sound_screen:
-            if self.volume_counter > 1:
-                vol_left_press, over1 = self.volume_btn_left.draw_button(self.sound_screen,
-                                                                         False, mouse_adjustment, events,
-                                                                         False, use_btn)
-            else:
-                self.sound_screen.blit(self.left_button_gray,
-                                       (self.left_btn_x, self.vis_sound_button_start_y + self.gap))
-
-            if self.volume_counter < volume_cap:
-                vol_right_press, over2 = self.volume_btn_right.draw_button(self.sound_screen,
-                                                                           False, mouse_adjustment, events,
-                                                                           False, use_btn)
-            else:
-                self.sound_screen.blit(self.right_button_gray,
-                                       (self.right_btn_x, self.vis_sound_button_start_y + self.gap))
-
-            self.sound_screen.blit(vol_text, (button_text_center - vol_text.get_width() / 2 + button_size / 2,
-                                              self.vis_sound_button_start_y + self.gap + 7))
+            self.volume_counter, volume_knob_held = self.volume_slider.draw_slider(self.sound_screen, mouse_adjustment,
+                                                                                   events, joystick_left,
+                                                                                   joystick_right)
 
             if self.sounds_counter > 1:
                 sound_left_press, over3 = self.sounds_btn_left.draw_button(self.sound_screen,
@@ -1744,32 +1740,13 @@ class SettingsMenu:
             self.sound_screen.blit(sound_text, (button_text_center - sound_text.get_width() / 2 + button_size / 2,
                                               self.vis_sound_button_start_y + self.gap * 2 + 7))
 
-            if joystick_over2:
-                if joystick_left:
-                    vol_left_press = True
-                if joystick_right:
-                    vol_right_press = True
             if joystick_over1:
                 if joystick_left:
                     sound_left_press = True
                 if joystick_right:
                     sound_right_press = True
 
-            if vol_left_press and self.volume_counter > 1:
-                self.volume_counter -= 1
-                if self.volume_counter == 2 and self.speedrun_counter == 1:
-                    change_volume = True
-            if vol_right_press and self.volume_counter < volume_cap:
-                self.volume_counter += 1
-                if self.volume_counter == 3 and self.speedrun_counter == 1:
-                    change_volume = True
-            if vol_right_press or vol_left_press:
-                if self.volume_counter == 1:
-                    fadeout_music = True
-                if self.volume_counter == 2 and not change_volume:
-                    play_music = True
-
-        if (joystick_over2 or joystick_over_2 or volume_over) and not self.draw_sound_screen:
+        if (joystick_over2 or joystick_over_2 or volume_over or volume_knob_held) and not self.draw_sound_screen:
             real_volume = True
 
         # adjusts background music
@@ -1807,14 +1784,16 @@ class SettingsMenu:
         button_width = 0
         if self.draw_control_screen:
             control_btn_trigger, not_over = self.control_btn.draw_button(settings_screen,
-                                                                         False, mouse_adjustment, events, False, use_btn)
+                                                                         False, control_screen_mouse_adjustment,
+                                                                         events, False, use_btn)
         else:
             settings_screen.blit(self.control_button_select,
                                  (0, 0))
             button_width = self.control_button_select.get_width()
             x = 0
         if self.draw_visual_screen:
-            visual_btn_trigger, not_over = self.visual_btn.draw_button(settings_screen, False, mouse_adjustment,
+            visual_btn_trigger, not_over = self.visual_btn.draw_button(settings_screen, False,
+                                                                       control_screen_mouse_adjustment,
                                                                        events, False, use_btn)
         else:
             settings_screen.blit(self.visual_button_select,
@@ -1822,7 +1801,8 @@ class SettingsMenu:
             button_width = self.visual_button_select.get_width()
             x = self.visual_button_select.get_width()
         if self.draw_sound_screen:
-            sound_btn_trigger, not_over = self.sound_btn.draw_button(settings_screen, False, mouse_adjustment,
+            sound_btn_trigger, not_over = self.sound_btn.draw_button(settings_screen, False,
+                                                                     control_screen_mouse_adjustment,
                                                                      events, False, use_btn)
         else:
             settings_screen.blit(self.sound_button_select,
@@ -1834,31 +1814,32 @@ class SettingsMenu:
             settings_screen.blit(self.button_lb, (x + 10, 3))
             settings_screen.blit(self.button_rb, (x + button_width - 26, 3))
 
-        if control_btn_trigger:
-            self.section_counter = 0
-            self.screen_alpha_counter = 0
-        if visual_btn_trigger:
-            self.section_counter = 1
-            self.screen_alpha_counter = 0
-        if sound_btn_trigger:
-            self.section_counter = 2
-            self.screen_alpha_counter = 0
-
-        if joystick_tab_left:
-            self.screen_alpha_counter = 0
-            self.section_counter -= 1
-            if self.section_counter < 0:
-                self.section_counter = 2
-        if joystick_tab_right:
-            self.screen_alpha_counter = 0
-            self.section_counter += 1
-            if self.section_counter > 2:
+        if not self.binding and not self.controller_calibration:
+            if control_btn_trigger:
                 self.section_counter = 0
+                self.screen_alpha_counter = 0
+            if visual_btn_trigger:
+                self.section_counter = 1
+                self.screen_alpha_counter = 0
+            if sound_btn_trigger:
+                self.section_counter = 2
+                self.screen_alpha_counter = 0
 
-        if control_btn_trigger or visual_btn_trigger or sound_btn_trigger or joystick_tab_left or joystick_tab_right:
-            page_flip_sound_trigger = True
-        else:
-            page_flip_sound_trigger = False
+            if joystick_tab_left:
+                self.screen_alpha_counter = 0
+                self.section_counter -= 1
+                if self.section_counter < 0:
+                    self.section_counter = 2
+            if joystick_tab_right:
+                self.screen_alpha_counter = 0
+                self.section_counter += 1
+                if self.section_counter > 2:
+                    self.section_counter = 0
+
+            if control_btn_trigger or visual_btn_trigger or sound_btn_trigger or joystick_tab_left or joystick_tab_right:
+                page_flip_sound_trigger = True
+            else:
+                page_flip_sound_trigger = False
 
         if self.section_counter == 0:
             self.draw_control_screen = False

@@ -516,15 +516,15 @@ class eqManager:
 
         for button in self.eq_button_list:
             self.eq_button_counter += 1
-            local_over = False
             if button[1] == 'mid-air_jump':
                 if self.card_info_type != 'mid-air_jump':
-                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events,
-                                                              joystick_over0, use_btn1,
-                                                              use_key1)
+                    press, mid_air_jump_over = button[0].draw_button(screen, True, mouse_adjustment, events,
+                                                                     joystick_over0, use_btn1,
+                                                                     use_key1)
+                    if mid_air_jump_over:
+                        local_over = True
                 else:
                     press = False
-                    local_over = False
                 if press and not self.card_info_press and gem_equipped:
                     self.mid_air_jump_trigger = True
                     self.joystick_over_counter = 0
@@ -541,12 +541,13 @@ class eqManager:
 
             if button[1] == 'speed_dash':
                 if self.card_info_type != 'speed_dash':
-                    press, local_over = button[0].draw_button(screen, True, mouse_adjustment, events,
-                                                              joystick_over1, use_btn2,
-                                                              use_key2)
+                    press, speed_dash_over = button[0].draw_button(screen, True, mouse_adjustment, events,
+                                                                   joystick_over1, use_btn2,
+                                                                   use_key2)
+                    if speed_dash_over:
+                        local_over = True
                 else:
                     press = False
-                    local_over = False
                 if press and not self.card_info_press and gem_equipped:
                     self.speed_dash_trigger = True
                     self.joystick_over_counter = 0
@@ -602,7 +603,7 @@ class eqManager:
 
         if self.animate_card_jump:
             eqManager.card_jump_animation(self, fps_adjust, screen)
-        elif gem_equipped and self.joystick_over_counter <= 0:
+        elif gem_equipped and self.joystick_over_counter <= 0 and not local_over:
             eqManager.card_gem_animation(self, fps_adjust, screen)
 
         if gem_equipped and not self.card_info:

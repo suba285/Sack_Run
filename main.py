@@ -1029,7 +1029,7 @@ while run:
                 if speedrun_mode:
                     pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
                 else:
-                    pygame.mixer.Channel(current_channel).set_volume(music_volumes[str(settings_counters['music_volume'])])
+                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
             main_game.update_controller_type(controls['configuration'], settings_counters)
             if restart_level:
                 level_restart_procedure = True
@@ -1188,28 +1188,20 @@ while run:
         else:
             slow_computer = True
 
-        if settings_music_control['play']:
-            play_music = True
-            play_background_music = True
-        if settings_music_control['fadeout']:
-            fadeout_music = True
-            play_background_music = False
         if settings_music_control['real_volume']:
-            if speedrun_mode:
-                settings_volume = speedrun_volume
-            else:
-                settings_volume = music_volumes[str(settings_counters['music_volume'])]
-            if play_background_music:
+            if not pygame.mixer.Channel(current_channel).get_busy():
+                play_music = True
+            settings_volume = settings_counters['music_volume']
+            if settings_volume > 0:
                 if game_paused and not opening_scene:
                     channel = current_channel
                 else:
                     channel = 2
                 pygame.mixer.Channel(channel).set_volume(settings_volume)
-            if (not game_paused or opening_scene) and not adjust_settings_music_volume:
-                play_music = True
+
             adjust_settings_music_volume = True
         elif adjust_settings_music_volume:
-            if game_paused and not opening_scene:
+            if game_paused and not opening_scene and settings_counters['music_volume'] > 0:
                 if play_background_music:
                     pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
             else:
@@ -1269,11 +1261,11 @@ while run:
             else:
                 speedrun_mode = True
 
-            if settings_counters['music_volume'] > 1:
+            if settings_counters['music_volume'] > 0:
                 play_background_music = True
                 if not game_paused:
                     play_music = False
-            if settings_counters['music_volume'] == 1:
+            if settings_counters['music_volume'] == 0:
                 play_background_music = False
                 play_music = False
 
@@ -1440,8 +1432,7 @@ while run:
                     if speedrun_mode:
                         pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
                     else:
-                        pygame.mixer.Channel(current_channel).set_volume(
-                            music_volumes[str(settings_counters['music_volume'])])
+                        pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
                 main_game.update_controller_type(controls['configuration'], settings_counters)
             elif run_game:
                 run_menu = False
@@ -1461,8 +1452,7 @@ while run:
                 if speedrun_mode:
                     pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
                 else:
-                    pygame.mixer.Channel(current_channel).set_volume(
-                        music_volumes[str(settings_counters['music_volume'])])
+                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
             main_game.update_controller_type(controls['configuration'], settings_counters)
         # go back to menu from level selection screen (controller)
         if event.button == controls['configuration'][4] and run_level_selection:
@@ -1610,9 +1600,7 @@ while run:
                 world_completed_sound_played = True
 
     if play_music:
-        volume = music_volumes[str(settings_counters['music_volume'])]
-        if speedrun_mode:
-            volume = speedrun_volume
+        volume = settings_counters['music_volume']
         if not play_background_music and not run_settings:
             volume = 0
         if game_paused or not run_settings:
@@ -1637,24 +1625,24 @@ while run:
         if not music_changed_levels[level_count] and current_channel <= world_phase_limit[world_count]:
             current_channel += 1
             music_changed_levels[level_count] = True
-            pygame.mixer.Channel(current_channel).set_volume(music_volumes[str(settings_counters['music_volume'])])
+            pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
             pygame.mixer.Channel(current_channel - 1).set_volume(0)
             if [world_count, level_count] == [3, 8]:
-                pygame.mixer.Channel(6).set_volume(music_volumes[str(settings_counters['music_volume'])] + 0.1)
+                pygame.mixer.Channel(6).set_volume(settings_counters['music_volume'] + 0.1)
                 pygame.mixer.Channel(6).play(music['3-4-transition'], 1)
                 pygame.mixer.Channel(6).fadeout(1200)
         change_music = False
 
     if slow_music and not pygame.mixer.Channel(6).get_busy() and [world_count, level_count] == [3, 4] \
             and not game_paused:
-        pygame.mixer.Channel(6).set_volume(music_volumes[str(settings_counters['music_volume'])])
+        pygame.mixer.Channel(6).set_volume(settings_counters['music_volume'])
         pygame.mixer.Channel(current_channel).set_volume(0)
         pygame.mixer.Channel(6).play(music['3-3-slow'], 1)
     elif pygame.mixer.Channel(6).get_busy() and \
             (([world_count, level_count] == [3, 4] and not slow_music) or game_paused):
         pygame.mixer.Channel(6).fadeout(100)
         if not game_paused:
-            pygame.mixer.Channel(current_channel).set_volume(music_volumes[str(settings_counters['music_volume'])])
+            pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
 
     if fadeout_music:
         if not game_paused:

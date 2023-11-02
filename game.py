@@ -90,11 +90,11 @@ level_pos_dictionary = {
     "level2_1": (5, -2),
     "level3_1": (5, -2),
     "level1_2": (2, -4),
-    "level2_2": (2, -1),
+    "level2_2": (2, 0),
     "level3_2": (5, -5),
     "level4_2": (2, -4),
-    "level5_2": (4, 0),
-    "level6_2": (5, -7),
+    "level5_2": (4, 1),
+    "level6_2": (5, -6),
     "level7_2": (-2, -7),
     "level8_2": (5, -19),
     "level9_2": (0, 4),
@@ -489,12 +489,12 @@ class Game:
 
         # world completed screen variables -----------------------------------------------------------------------------
         self.world_completed_texts = {
-            0: 'emptiness',
+            0: 'mio mao mio mao la la la la la',
             1: 'Seems like you got the hang of it!',
             2: 'The farm is now behind you, further challenges lay ahead',
             3: 'Fresh air, finally... No more damp caves',
             4: "Thanks for playing! Now you can try speedrun mode [settings]",
-            5: "I like beans"
+            5: "Beans on toast, that's the stuff"
         }
 
         self.world_completed_text = text.make_text([self.world_completed_texts[world_count]])
@@ -981,6 +981,7 @@ class Game:
                 self.button_surf_alpha += 10 * fps_adjust
                 if self.button_surf_alpha <= 255:
                     self.button_surf.set_alpha(self.button_surf_alpha)
+                self.button_surf.fill((0, 0, 0))
                 self.button_surf.blit(btn_img, (16 - btn_img.get_width() / 2, 16 - btn_img.get_height() / 2))
                 screen.blit(self.button_surf, (swidth / 2 - 16, sheight / 2 + 45))
 

@@ -63,7 +63,6 @@ class Button:
             cursor_over = False
 
         if cursor_over or self.joystick_over_button:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             self.image = self.image2
             self.cursor_over = True
             if events['mousebuttondown'] and not joystick_over:
@@ -111,7 +110,7 @@ class Button:
             self.image = self.image3
 
         screen.blit(self.image, self.image_rect)
-        if self.joystick_over_button and not self.button_down and not card:
+        if (self.joystick_over_button or cursor_over) and not self.button_down and not card:
             if 255 >= self.joystick_over_counter * 40 > 0:
                 self.outline1_surf.set_alpha(self.joystick_over_counter * 40)
             screen.blit(self.outline1_surf, self.image_rect)

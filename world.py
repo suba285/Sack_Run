@@ -872,7 +872,7 @@ class World:
                     img_rectangle = dimension_img.get_rect()
                     img_rectangle.x = column_count * tile_size - pov_offset
                     img_rectangle.y = row_count * tile_size
-                    tile = [img, img_rectangle, 'wood', [tile_column * tile_size, tile_row * tile_size]]
+                    tile = [img, img_rectangle, 'wood', [tile_column * tile_size, tile_row * tile_size], 'platform']
                     self.tile_list.append(tile)
                 if tile == 25:
                     # wobbly mushrooms
