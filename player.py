@@ -613,17 +613,18 @@ class Player:
                 self.block_control = False
 
         # special power cards effects ----------------------------------------------------------------------------------
-        if mid_air_jump_trigger and not self.mid_air_jump:
-            self.mid_air_jump = True
-            self.power_indicator_list.append('jump_boost')
-            self.mid_air_jump_counter = 0
-        if speed_dash_trigger and not self.speed_dash:
-            self.speed_dash = True
-            if [world_count, level_count] == [3, 2]:
-                self.speed_dash_tutorial1 = True
-                self.speed_dash_tutorial1_pos = [swidth / 2 + tile_size, self.sack_rect.y + 2]
-            self.speed_dash_sine_counter = 0
-            self.speed_dash_sine_offset_counter = 9
+        if not (self.mid_air_jump or self.speed_dash) and not self.freeze and not self.block_control:
+            if mid_air_jump_trigger and not (self.mid_air_jump or self.speed_dash):
+                self.mid_air_jump = True
+                self.power_indicator_list.append('jump_boost')
+                self.mid_air_jump_counter = 0
+            if speed_dash_trigger and not (self.speed_dash or self.mid_air_jump):
+                self.speed_dash = True
+                if [world_count, level_count] == [3, 2]:
+                    self.speed_dash_tutorial1 = True
+                    self.speed_dash_tutorial1_pos = [swidth / 2 + tile_size, self.sack_rect.y + 2]
+                self.speed_dash_sine_counter = 0
+                self.speed_dash_sine_offset_counter = 9
 
         # updating special power cards counters ------------------------------------------------------------------------
         append = self.power_particle_list.append
@@ -1008,6 +1009,7 @@ class Player:
                 self.freeze_type = tile[1]
                 if self.freeze_type != 'sd0':
                     self.freeze = True
+                    self.block_control = True
                     self.sounds['bubbles'] = -1
                 removal_list.append(tile[1])
         for tile in freeze_tiles:

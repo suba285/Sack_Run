@@ -220,7 +220,7 @@ class eqManager:
 
         self.no_gem_text = text.make_text(['Collect gems to use cards'])
         self.no_gem_card_active_text = text.make_text(['You already have an active card'])
-        self.no_gem_counter = 0
+        self.card_message_counter = 0
         self.default_no_gem_counter = 100
 
         # creating buttons of elements in the equipped cards list ------------------------------------------------------
@@ -368,7 +368,7 @@ class eqManager:
         joystick_over0 = False
         joystick_over1 = False
 
-        self.no_gem_counter -= 1 * fps_adjust
+        self.card_message_counter -= 1 * fps_adjust
 
         bumper_key_pressed = False
         joystick_info_press = False
@@ -525,11 +525,11 @@ class eqManager:
                         local_over = True
                 else:
                     press = False
-                if press and not self.card_info_press and gem_equipped:
+                if press and not self.card_info_press and gem_equipped and not card_active:
                     self.mid_air_jump_trigger = True
                     self.joystick_over_counter = 0
-                if press and not gem_equipped:
-                    self.no_gem_counter = self.default_no_gem_counter
+                if press and (not gem_equipped or card_active):
+                    self.card_message_counter = self.default_no_gem_counter
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
@@ -548,11 +548,11 @@ class eqManager:
                         local_over = True
                 else:
                     press = False
-                if press and not self.card_info_press and gem_equipped:
+                if press and not self.card_info_press and gem_equipped and not card_active:
                     self.speed_dash_trigger = True
                     self.joystick_over_counter = 0
-                if press and not gem_equipped:
-                    self.no_gem_counter = self.default_no_gem_counter
+                if press and (not gem_equipped or card_active):
+                    self.card_message_counter = self.default_no_gem_counter
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
@@ -585,10 +585,10 @@ class eqManager:
             self.card_checked = False
 
         if over and joystick_use_press and not gem_equipped:
-            self.no_gem_counter = self.default_no_gem_counter
+            self.card_message_counter = self.default_no_gem_counter
 
-        if self.no_gem_counter > 0:
-            if self.no_gem_counter > 97:
+        if self.card_message_counter > 0:
+            if self.card_message_counter > 97:
                 offset_x = random.choice([2, 0, -2])
                 offset_y = random.choice([2, 0, -2])
             else:
@@ -599,7 +599,7 @@ class eqManager:
             else:
                 txt = self.no_gem_text
             screen.blit(txt, (swidth / 2 - txt.get_width() / 2 + offset_x,
-                                           sheight / 2 - txt.get_height() / 2 - 60 + offset_y))
+                                           sheight / 2 - txt.get_height() / 2 - 70 + offset_y))
 
         if self.animate_card_jump:
             eqManager.card_jump_animation(self, fps_adjust, screen)
