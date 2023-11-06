@@ -1053,7 +1053,7 @@ class Player:
         col_counter = 0
         for tile in col_y_tile_list:
             if tile[1].colliderect(self.sack_rect.x + x_adjustment, self.sack_rect.y + dy, self.sack_width, self.sack_height):
-                if dy > 0 and (tile[-1] != 'platform' or self.sack_rect.bottom <= tile[1].top):
+                if dy > 0 and (tile[-1] != 'platform' or self.sack_rect.bottom <= tile[1].top + 3):
                     self.sack_rect.bottom = tile[1].top
                     self.surface_type = tile[2]
                     if (self.airborn or dy > 10) and self.player_moved and self.squash_counter_y > 4:

@@ -14,9 +14,9 @@ button_size = tile_size * 0.75
 # this file is a total mess, you have been warned
 
 
-def colour_inversion(surface):
+def colour_inversion(surface, colour=(0, 0, 0)):
     mask = pygame.mask.from_surface(surface)
-    output = pygame.mask.Mask.to_surface(mask, setcolor=(0, 0, 0), unsetcolor=(255, 255, 255))
+    output = pygame.mask.Mask.to_surface(mask, setcolor=colour, unsetcolor=(255, 255, 255))
     return output
 
 
@@ -106,7 +106,7 @@ class SettingsMenu:
 
         self.calibrate_btn = img_loader('data/images/button_calibrate.PNG', tile_size * 2, tile_size * 0.75)
         self.calibrate_btn_press = img_loader('data/images/button_calibrate_press.PNG', tile_size * 2, tile_size * 0.75)
-        self.calibrate_btn_down= img_loader('data/images/button_calibrate_down.PNG', tile_size * 2, tile_size * 0.75)
+        self.calibrate_btn_down = img_loader('data/images/button_calibrate_down.PNG', tile_size * 2, tile_size * 0.75)
 
         self.bind_btn = img_loader('data/images/button_bind.PNG', 48, 24)
         self.bind_btn_press = img_loader('data/images/button_bind_press.PNG', 48, 24)
@@ -477,9 +477,9 @@ class SettingsMenu:
         self.performance_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap * 2,
                                             self.right_button, self.right_button_press, self.right_button_down)
         self.hitbox_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap * 3,
-                                           self.left_button, self.left_button_press, self.left_button_down)
+                                      self.left_button, self.left_button_press, self.left_button_down)
         self.hitbox_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap * 3,
-                                            self.right_button, self.right_button_press, self.right_button_down)
+                                       self.right_button, self.right_button_press, self.right_button_down)
         self.speedrun_btn_left = Button(self.center + 10, self.vis_sound_button_start_y + gap * 4,
                                         self.left_button, self.left_button_press, self.left_button_down)
         self.speedrun_btn_right = Button(self.center + interbutton_space, self.vis_sound_button_start_y + gap * 4,
@@ -552,7 +552,6 @@ class SettingsMenu:
         for pixel in letter_bg_outline:
             self.letter_bg_outline.set_at(pixel, (255, 255, 255))
             self.letter_bg_outline_red.set_at(pixel, (255, 0, 0))
-        space_text_width = 33
         self.space_bg = img_loader('data/images/space_bg.PNG', 33, 11)
         self.space_bg_outline = pygame.Surface((33, 11))
         self.space_bg_outline.fill((0, 0, 0,))
@@ -564,7 +563,7 @@ class SettingsMenu:
         space_bg_outline = pygame.mask.Mask.outline(space_bg_mask)
         for pixel in space_bg_outline:
             self.space_bg_outline.set_at(pixel, (255, 255, 255))
-            self.space_bg_outline_red.set_at(pixel ,(255, 0, 0))
+            self.space_bg_outline_red.set_at(pixel, (255, 0, 0))
 
         self.left_txt = text.make_text(['Left:'])
         self.right_txt = text.make_text(['Right:'])
@@ -674,7 +673,8 @@ class SettingsMenu:
 
         or_text = text.make_text(['or'])
         cancel_text = text.make_text(['cancel'])
-        self.cancel_surface = pygame.Surface((tile_size + or_text.get_width() + cancel_text.get_width() + 4, tile_size / 2))
+        self.cancel_surface = pygame.Surface((tile_size + or_text.get_width() + cancel_text.get_width() + 4,
+                                              tile_size / 2))
         self.cancel_surface.set_colorkey((0, 0, 0))
         x = 0
         self.cancel_surface.blit(button_a, (x, 0))
@@ -1738,7 +1738,7 @@ class SettingsMenu:
                                        (self.right_btn_x, self.vis_sound_button_start_y + self.gap * 2))
 
             self.sound_screen.blit(sound_text, (button_text_center - sound_text.get_width() / 2 + button_size / 2,
-                                              self.vis_sound_button_start_y + self.gap * 2 + 7))
+                                                self.vis_sound_button_start_y + self.gap * 2 + 7))
 
             if joystick_over1:
                 if joystick_left:
@@ -1836,10 +1836,10 @@ class SettingsMenu:
                 if self.section_counter > 2:
                     self.section_counter = 0
 
-            if control_btn_trigger or visual_btn_trigger or sound_btn_trigger or joystick_tab_left or joystick_tab_right:
-                page_flip_sound_trigger = True
-            else:
-                page_flip_sound_trigger = False
+        if control_btn_trigger or visual_btn_trigger or sound_btn_trigger or joystick_tab_left or joystick_tab_right:
+            page_flip_sound_trigger = True
+        else:
+            page_flip_sound_trigger = False
 
         if self.section_counter == 0:
             self.draw_control_screen = False
@@ -1871,7 +1871,8 @@ class SettingsMenu:
                     joy_over_bind_ok = True
                 else:
                     joy_over_bind_ok = False
-                bind_ok_press, bind_over = self.bind_ok_btn.draw_button(settings_screen, False, mouse_adjustment, events,
+                bind_ok_press, bind_over = self.bind_ok_btn.draw_button(settings_screen, False, mouse_adjustment,
+                                                                        events,
                                                                         joy_over_bind_ok, use_btn)
                 if bind_ok_press:
                     self.binding = False

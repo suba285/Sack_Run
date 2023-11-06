@@ -863,7 +863,7 @@ while run:
             esc_press = True
             run_level_selection = False
             if play_background_music and not opening_scene:
-                pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
+                pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 2)
             pause_menu.joystick_counter = 0
 
         # changing the displayed screens
@@ -1026,10 +1026,7 @@ while run:
                 esc_press = True
             run_level_selection = False
             if play_background_music and not opening_scene:
-                if speedrun_mode:
-                    pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
-                else:
-                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
+                pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 2)
             main_game.update_controller_type(controls['configuration'], settings_counters)
             if restart_level:
                 level_restart_procedure = True
@@ -1083,7 +1080,7 @@ while run:
             new_world_unlocked,\
             level_selection_sounds = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
                                                                        lvl_selection_events,
-                                                                       controls['configuration'], joysticks, fps_adjust,
+                                                                       controls, joysticks, fps_adjust,
                                                                        world_count, new_world_unlocked)
         sound_triggers.update(level_selection_sounds)
 
@@ -1203,7 +1200,7 @@ while run:
         elif adjust_settings_music_volume:
             if game_paused and not opening_scene and settings_counters['music_volume'] > 0:
                 if play_background_music:
-                    pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
+                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 2)
             else:
                 fadeout_music = True
             adjust_settings_music_volume = False
@@ -1429,10 +1426,7 @@ while run:
                 paused = False
                 run_level_selection = False
                 if play_background_music and not opening_scene:
-                    if speedrun_mode:
-                        pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
-                    else:
-                        pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
+                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
                 main_game.update_controller_type(controls['configuration'], settings_counters)
             elif run_game:
                 run_menu = False
@@ -1440,7 +1434,7 @@ while run:
                 paused = True
                 run_level_selection = False
                 if play_background_music and not opening_scene:
-                    pygame.mixer.Channel(current_channel).set_volume(paused_music_volume)
+                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 2)
                 pause_menu.joystick_counter = 0
         # resume with b (controller)
         if event.button == controls['configuration'][4] and paused:

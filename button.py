@@ -31,7 +31,8 @@ class Button:
         self.joystick_over_counter = 0
         self.joystick_connected = False
 
-    def draw_button(self, screen, card, mouse_adjustment, events, joystick_over, use_btn, use_key=False):
+    def draw_button(self, screen, card, mouse_adjustment, events, joystick_over, use_btn, use_key=False,
+                    shortcut_key=False):
         action = False
         self.cursor_over = False
         self.image = self.image1
@@ -90,6 +91,15 @@ class Button:
                     if self.fast_action:
                         action = True
 
+        if events['keydown']:
+            if events['keydown'].key == shortcut_key:
+                self.image = self.image1
+                self.image_rect.x = self.x
+                self.image_rect.y = self.y
+                self.button_down = True
+                if self.fast_action:
+                    action = True
+
         if events['mousebuttonup']:
            if events['mousebuttonup'].button == 1:
                if self.button_down and not self.fast_action:
@@ -102,6 +112,11 @@ class Button:
                 self.button_down = False
         if events['keyup'] and card:
             if events['keyup'].key == use_key:
+                if self.button_down and not self.fast_action:
+                    action = True
+                self.button_down = False
+        if events['keyup']:
+            if events['keyup'].key == shortcut_key:
                 if self.button_down and not self.fast_action:
                     action = True
                 self.button_down = False

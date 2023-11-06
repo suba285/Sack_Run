@@ -3,6 +3,7 @@ from button import *
 from image_loader import img_loader
 from font_manager import Text
 from screen_info import swidth, sheight
+from settings import colour_inversion
 import random
 import math
 import json
@@ -32,6 +33,10 @@ class mainMenu:
         self.logo_rect = self.logo.get_rect()
         self.logo_rect.x = swidth / 2 - self.logo.get_width() / 2
         self.logo_rect.y = round(sheight * 0.26)
+
+        self.enter_symbol = img_loader('data/images/enter_symbol.PNG', 7, 9)
+        self.btn_key_bg_left = img_loader('data/images/button_key_bg.PNG', 24, 27)
+        self.btn_key_bg_right = pygame.transform.flip(self.btn_key_bg_left, True, False)
 
         self.quit_txt = self.text.make_text([' Quit (ctrl + Q)'])
         self.quit_txt_y = round(sheight * 0.85)
@@ -265,10 +270,20 @@ class mainMenu:
                 self.best_time_txt_alpha += 5 * fps_adjust
                 self.best_time_txt.set_alpha(self.best_time_txt_alpha)
 
+        if not joysticks:
+            play_key_bg = self.btn_key_bg_right.copy()
+            enter_symbol = self.enter_symbol.copy()
+            if not key[pygame.K_RETURN]:
+                enter_symbol = colour_inversion(enter_symbol, (43, 31, 47))
+                enter_symbol.set_colorkey((255, 255, 255))
+            play_key_bg.blit(enter_symbol, (12, 9))
+            self.button_surface.blit(play_key_bg, (self.play_x + 20, self.play_y))
+
         if self.opening_animation_counter > 230:
             # play button
             play, over1 = self.p_button.draw_button(self.button_surface, False,
-                                                    mouse_adjustement, events, joystick_over0, use_btn)
+                                                    mouse_adjustement, events, joystick_over0, use_btn,
+                                                    shortcut_key=pygame.K_RETURN)
 
             # settings button
             settings, over2 = self.s_button.draw_button(self.button_surface, False,

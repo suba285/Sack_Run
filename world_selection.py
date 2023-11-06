@@ -6,6 +6,7 @@ from image_loader import img_loader
 from font_manager import Text
 from button import Button
 from screen_info import swidth, sheight
+from settings import colour_inversion, letter_to_key
 
 tile_size = 32
 
@@ -78,6 +79,10 @@ class LevelSelection:
         self.lb_button = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
         self.lb_button_press = img_loader('data/images/buttons/button_lb_press.PNG', tile_size / 2, tile_size / 2)
 
+        self.enter_symbol = img_loader('data/images/enter_symbol.PNG', 7, 9)
+        self.btn_key_bg_left = img_loader('data/images/button_key_bg.PNG', 24, 27)
+        self.btn_key_bg_right = pygame.transform.flip(self.btn_key_bg_left, True, False)
+
         self.lock_animation = {}
         for file in range(1, 12):
             self.lock_animation[file - 1] = img_loader(f'data/images/lock_animation/lock{file}.PNG',
@@ -120,7 +125,7 @@ class LevelSelection:
         }
 
         spacing = 20
-        self.button_y = sheight / 3
+        self.upper_btn_deck_y = sheight / 3
 
         self.left_x = swidth / 2 - world1_txt.get_width() / 2 - spacing - button_size
         self.right_x = swidth / 2 + world1_txt.get_width() / 2 + spacing
@@ -128,14 +133,16 @@ class LevelSelection:
         menu_w = self.menu_button.get_width()
         play_w = self.play_button.get_width()
 
-        self.left_btn = Button(self.left_x, self.button_y,
+        self.left_btn = Button(self.left_x, self.upper_btn_deck_y,
                                self.left_button, self.left_button_press, self.left_button_down, True)
-        self.right_btn = Button(self.right_x, self.button_y,
+        self.right_btn = Button(self.right_x, self.upper_btn_deck_y,
                                 self.right_button, self.right_button_press, self.right_button_down, True)
-        self.menu_btn = Button(swidth * (1/3) - menu_w / 2 + 10, sheight * (2/3),
+        self.menu_btn_x = swidth * (1/3) - menu_w / 2 + 10
+        self.lower_btn_deck_y = sheight * (2/3)
+        self.menu_btn = Button(self.menu_btn_x, self.lower_btn_deck_y,
                                self.menu_button, self.menu_button_press, self.menu_button_down)
-
-        self.play_btn = Button(swidth * (2/3) - play_w / 2 - 8, sheight * (2/3),
+        self.play_btn_x = swidth * (2/3) - play_w / 2 - 8
+        self.play_btn = Button(swidth * (2/3) - play_w / 2 - 8, self.lower_btn_deck_y,
                                self.play_button, self.play_button_press, self.play_button_down)
 
         self.new_world_animation_counter = 0
@@ -165,7 +172,7 @@ class LevelSelection:
 
         self.lock_sound_played = False
  
-    def draw_level_selection(self, level_screen, mouse_adjustment, events, joystick_controls, joysticks, fps_adjust,
+    def draw_level_selection(self, level_screen, mouse_adjustment, events, controls, joysticks, fps_adjust,
                              world_count, new_world_unlocked):
 
         level_screen.blit(self.menu_background, (0, 0))
@@ -179,6 +186,7 @@ class LevelSelection:
 
         update_value = 0
 
+        joystick_controls = controls['configuration']
         use_btn = joystick_controls[5]
 
         hat_value = [0, 0]
@@ -252,6 +260,8 @@ class LevelSelection:
         over3 = False
         over4 = False
 
+        key = pygame.key.get_pressed()
+
         if events['joyaxismotion_x']:
             event = events['joyaxismotion_x']
             # right and left
@@ -303,10 +313,10 @@ class LevelSelection:
         else:
             object_wobble = 0
 
-        level_screen.blit(title, (swidth / 2 - title.get_width() / 2 + object_wobble, self.button_y + 6))
+        level_screen.blit(title, (swidth / 2 - title.get_width() / 2 + object_wobble, self.upper_btn_deck_y + 6))
         if (self.world_status[self.world_count - 1] or (self.world_count == 5 and self.world_status[5])) and \
                 self.new_world_animation_counter > 0:
-            level_screen.blit(description, (swidth / 2 - description.get_width() / 2, self.button_y + 40))
+            level_screen.blit(description, (swidth / 2 - description.get_width() / 2, self.upper_btn_deck_y + 40))
 
         if self.new_world_animation_stage3 < self.new_world_animation_counter < 0:
             if self.new_world_circle_radius == 0:
@@ -366,20 +376,58 @@ class LevelSelection:
                 joystick_over_1 = True
 
         if not joysticks:
+            # drawing keyboard shortcuts next to buttons
+            play_key_bg = self.btn_key_bg_right.copy()
+            enter_symbol = self.enter_symbol.copy()
+            if not key[pygame.K_RETURN]:
+                enter_symbol = colour_inversion(enter_symbol, (43, 31, 47))
+                enter_symbol.set_colorkey((255, 255, 255))
+            play_key_bg.blit(enter_symbol, (12, 9))
+            level_screen.blit(play_key_bg, (self.play_btn_x + 20, self.lower_btn_deck_y))
+
+            menu_key_bg = self.btn_key_bg_left.copy()
+            menu_key_txt = self.text.make_text(['esc'])
+            if not key[pygame.K_ESCAPE]:
+                menu_key_txt = colour_inversion(menu_key_txt.copy(), (43, 31, 47))
+                menu_key_txt.set_colorkey((255, 255, 255))
+            menu_key_bg.blit(menu_key_txt, (3, 9))
+            level_screen.blit(menu_key_bg, (self.menu_btn_x - 13, self.lower_btn_deck_y))
+
+            left_key_bg = self.btn_key_bg_left.copy()
+            right_key_bg = self.btn_key_bg_right.copy()
+            left_key_txt = self.text.make_text([controls['binding'][3]])
+            right_key_txt = self.text.make_text([controls['binding'][4]])
+            if not key[letter_to_key[controls['binding'][3]]] or self.world_count == 1:
+                left_key_txt = colour_inversion(left_key_txt.copy(), (43, 31, 47))
+                left_key_txt.set_colorkey((255, 255, 255))
+            if not key[letter_to_key[controls['binding'][4]]] or self.world_count == self.world_count_cap:
+                right_key_txt = colour_inversion(right_key_txt.copy(), (43, 31, 47))
+                right_key_txt.set_colorkey((255, 255, 255))
+            left_key_bg.blit(left_key_txt, (3, 9))
+            right_key_bg.blit(right_key_txt, (16, 9))
+            level_screen.blit(left_key_bg, (self.left_x - 8, self.upper_btn_deck_y))
+            level_screen.blit(right_key_bg, (self.right_x + 8, self.upper_btn_deck_y))
+
+            left_key = letter_to_key[controls['binding'][3]]
+            right_key = letter_to_key[controls['binding'][4]]
+
+            # drawing and operation buttons for switching worlds
             if self.world_count > 1:
                 left_press, over1 = self.left_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
-                                                              joystick_over2, use_btn)
+                                                              joystick_over2, use_btn, shortcut_key=left_key)
             else:
-                level_screen.blit(self.left_button_grey, (self.left_x, self.button_y))
+                level_screen.blit(self.left_button_grey, (self.left_x, self.upper_btn_deck_y))
                 if joystick_over2:
-                    level_screen.blit(self.arrow_button_outline_surf, (self.left_x, self.button_y))
+                    level_screen.blit(self.arrow_button_outline_surf, (self.left_x, self.upper_btn_deck_y))
+                self.left_btn.button_down = False
             if self.world_count < self.world_count_cap:
                 right_press, over2 = self.right_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
-                                                                joystick_over_2, use_btn)
+                                                                joystick_over_2, use_btn, shortcut_key=right_key)
             else:
-                level_screen.blit(self.right_button_grey, (self.right_x, self.button_y))
+                level_screen.blit(self.right_button_grey, (self.right_x, self.upper_btn_deck_y))
                 if joystick_over_2:
-                    level_screen.blit(self.arrow_button_outline_surf, (self.right_x, self.button_y))
+                    level_screen.blit(self.arrow_button_outline_surf, (self.right_x, self.upper_btn_deck_y))
+                self.right_btn.button_down = False
         else:
             bumper1 = self.lb_button
             bumper2 = self.rb_button
@@ -387,14 +435,14 @@ class LevelSelection:
                 bumper1 = self.lb_button_press
             if self.right_bumper_press:
                 bumper2 = self.rb_button_press
-            level_screen.blit(bumper1, (self.left_x + 4, self.button_y + 2))
-            level_screen.blit(bumper2, (self.right_x + 4, self.button_y + 2))
+            level_screen.blit(bumper1, (self.left_x + 4, self.upper_btn_deck_y + 2))
+            level_screen.blit(bumper2, (self.right_x + 4, self.upper_btn_deck_y + 2))
 
         menu_press, over3 = self.menu_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
-                                                      joystick_over1, use_btn)
+                                                      joystick_over1, use_btn, shortcut_key=pygame.K_ESCAPE)
         if self.world_status[self.world_count - 1] or (self.world_count == 5 and self.world_status[5]):
             play_press, over4 = self.play_btn.draw_button(level_screen, False, mouse_adjustment, local_events,
-                                                          joystick_over_1, use_btn)
+                                                          joystick_over_1, use_btn, shortcut_key=pygame.K_RETURN)
 
         if self.bean_count > 0:
             y_bean_offset = math.sin(1/17 * self.beans_bob_counter) * 3

@@ -1,8 +1,9 @@
-
+import pygame._sdl2
 from image_loader import img_loader
 from font_manager import Text
 from button import Button
 from screen_info import swidth, sheight
+from settings import colour_inversion
 
 tile_size = 32
 
@@ -46,9 +47,19 @@ class PauseScreen:
 
         self.paused_txt = text.make_text(['paused'])
 
+        self.enter_symbol = img_loader('data/images/enter_symbol.PNG', 7, 9)
+        self.esc_txt = text.make_text(['esc'])
+        self.tab_txt = text.make_text(['tab'])
+        self.btn_key_bg_left = img_loader('data/images/button_key_bg.PNG', 24, 27)
+        self.btn_key_bg_right = pygame.transform.flip(self.btn_key_bg_left, True, False)
+
         self.restart_lvl_txt = text.make_text(['restart level'])
         self.restart_lvl_txt_alpha = 0
         self.restart_lvl_txt.set_alpha(0)
+
+        self.resume_btn_pos = (swidth / 2 - self.resume_button.get_width() / 2, 64 / 270 * sheight)
+        self.menu_btn_pos = (swidth / 2 - self.menu_button.get_width() / 2, 98 / 270 * sheight)
+        self.restart_btn_pos = (swidth / 2 - self.restart_button_img.get_width() / 2, 166 / 270 * sheight)
 
         self.resume_btn = Button(swidth / 2 - self.resume_button.get_width() / 2, 64 / 270 * sheight,
                                  self.resume_button, self.resume_button_press, self.resume_button_down)
@@ -72,6 +83,8 @@ class PauseScreen:
         hat_value = [0, 0]
 
         use_btn = joystick_controls[5]
+
+        key = pygame.key.get_pressed()
 
         joystick_over0 = False
         joystick_over1 = False
@@ -148,15 +161,39 @@ class PauseScreen:
             self.restart_lvl_txt_alpha = 0
             self.restart_over_counter = 0
 
+        if not joysticks:
+            resume_key_bg = self.btn_key_bg_right.copy()
+            resume_key_txt = colour_inversion(self.esc_txt.copy(), (43, 31, 47))
+            resume_key_txt.set_colorkey((255, 255, 255))
+            resume_key_bg.blit(resume_key_txt, (4, 9))
+            self.pause_screen.blit(resume_key_bg, (self.resume_btn_pos[0] + 43, self.resume_btn_pos[1]))
+
+            menu_key_bg = self.btn_key_bg_right.copy()
+            menu_key_txt = self.tab_txt
+            if not key[pygame.K_TAB]:
+                menu_key_txt = colour_inversion(self.tab_txt.copy(), (43, 31, 47))
+                menu_key_txt.set_colorkey((255, 255, 255))
+            menu_key_bg.blit(menu_key_txt, (6, 9))
+            self.pause_screen.blit(menu_key_bg, (self.menu_btn_pos[0] + 37, self.menu_btn_pos[1]))
+
+            restart_key_bg = self.btn_key_bg_right.copy()
+            restart_key_txt = self.enter_symbol
+            if not key[pygame.K_RETURN]:
+                restart_key_txt = colour_inversion(self.enter_symbol.copy(), (43, 31, 47))
+                restart_key_txt.set_colorkey((255, 255, 255))
+            restart_key_bg.blit(restart_key_txt, (12, 9))
+            self.pause_screen.blit(restart_key_bg, (self.restart_btn_pos[0] + 33, self.restart_btn_pos[1]))
+
         resume, over1 = self.resume_btn.draw_button(self.pause_screen, False, mouse_adjustment, events,
                                                     joystick_over0, use_btn)
         menu, over2 = self.menu_btn.draw_button(self.pause_screen, False, mouse_adjustment, events,
-                                                joystick_over1, use_btn)
+                                                joystick_over1, use_btn, shortcut_key=pygame.K_TAB)
         settings, over3 = self.s_button.draw_button(self.pause_screen, False, mouse_adjustment, events,
                                                     joystick_over2, use_btn)
         if not no_restart:
             restart, self.restart_over = self.restart_button.draw_button(self.pause_screen, False, mouse_adjustment,
-                                                                         events, joystick_over3, use_btn)
+                                                                         events, joystick_over3, use_btn,
+                                                                         shortcut_key=pygame.K_RETURN)
         else:
             restart, self.restart_over = False, False
 
