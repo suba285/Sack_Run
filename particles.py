@@ -1,5 +1,5 @@
 import pygame._sdl2
-import random
+from random import randrange
 
 pygame.init()
 
@@ -27,13 +27,13 @@ class Particles():
 
         # setting up particles -----------------------------------------------------------------------------------------
         for part in range(particle_num):
-            x = random.randrange(0, 360)
-            y = random.randrange(0, 264)
+            x = randrange(0, 360)
+            y = randrange(0, 264)
             position = [x, y]
             self.front_particle_list.append(position)
         for part in range(particle_num):
-            x = random.randrange(0, 360)
-            y = random.randrange(0, 264)
+            x = randrange(0, 360)
+            y = randrange(0, 264)
             position = [x, y]
             self.bg_particle_list.append(position)
 
@@ -43,12 +43,12 @@ class Particles():
             particle[0] += self.front_x_speed * fps_adjust + camera_move_x
             particle[1] += self.front_y_speed * fps_adjust + camera_move_y
             if particle[0] < -100 or particle[1] > 480:
-                direction = random.randrange(0, 2)
+                direction = randrange(0, 2)
                 if direction == 1:
                     particle[0] = 480
-                    particle[1] = random.randrange(0, 270)
+                    particle[1] = randrange(0, 270)
                 elif direction == 0:
-                    particle[0] = random.randrange(0, 480)
+                    particle[0] = randrange(0, 480)
                     particle[1] = 0
 
             screen.blit(self.front_particle, particle)
@@ -59,12 +59,12 @@ class Particles():
             particle[0] += self.bg_x_speed * fps_adjust + camera_move_x
             particle[1] += self.bg_y_speed * fps_adjust + camera_move_y
             if particle[0] < -100 or particle[1] > 480:
-                direction = random.randrange(0, 2)
+                direction = randrange(0, 2)
                 if direction == 1:
                     particle[0] = 480
-                    particle[1] = random.randrange(0, 270)
+                    particle[1] = randrange(0, 270)
                 elif direction == 0:
-                    particle[0] = random.randrange(0, 480)
+                    particle[0] = randrange(0, 480)
                     particle[1] = 0
 
             screen.blit(self.bg_particle, (particle[0], particle[1]))

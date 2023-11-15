@@ -1888,9 +1888,9 @@ class SettingsMenu:
 
                     if self.settings_binding[index] == 'space':
                         self.bind_surface.blit(self.space_bg, rect)
-                        self.bind_col_rects[2][0].width = 33
+                        self.bind_col_rects[index][0].width = 33
                     else:
-                        self.bind_col_rects[2][0].width = 11
+                        self.bind_col_rects[index][0].width = 11
 
                     if rect.collidepoint((mouse_pos[0] - (swidth / 2 - self.bind_surface.get_width() / 2),
                                           mouse_pos[1] - (sheight / 2 - self.bind_surface.get_height() / 2))):

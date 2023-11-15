@@ -8,9 +8,9 @@ from image_loader import img_loader
 from font_manager import Text
 from popup_bg_generator import popup_bg_generator
 from screen_info import swidth, sheight
-import json
+from json import load, dump
 import random
-import math
+from math import sin, cos
 
 
 particle_num = 12
@@ -224,47 +224,52 @@ class SpeedRunClock:
         else:
             minutes2 = self.number_imgs[int(str(minutes)[0])]
             minutes1 = self.number_imgs[0]
+            minutes = '0' + str(minutes)
         if seconds > 9:
             seconds1 = self.number_imgs[int(str(seconds)[0])]
             seconds2 = self.number_imgs[int(str(seconds)[1])]
         else:
             seconds2 = self.number_imgs[int(str(seconds)[0])]
             seconds1 = self.number_imgs[0]
+            seconds = '0' + str(seconds)
         if miliseconds > 9:
             miliseconds1 = self.number_imgs[int(str(miliseconds)[0])]
             miliseconds2 = self.number_imgs[int(str(miliseconds)[1])]
         else:
             miliseconds2 = self.number_imgs[int(str(miliseconds)[0])]
             miliseconds1 = self.number_imgs[0]
+            miliseconds = '0' + str(miliseconds)
 
         self.time_string = f'{minutes}:{seconds}:{miliseconds}'
 
         x = self.x
 
-        screen.blit(self.box, (swidth - self.box_width - 7, self.y - 7))
+        blit = screen.blit
 
-        screen.blit(minutes1, (x, self.y))
+        blit(self.box, (swidth - self.box_width - 7, self.y - 7))
+
+        blit(minutes1, (x, self.y))
         x += self.gap + self.char_width
-        screen.blit(minutes2, (x, self.y))
+        blit(minutes2, (x, self.y))
         x += self.gap + self.char_width
-        screen.blit(self.colon, (x, self.y))
+        blit(self.colon, (x, self.y))
         x += self.char_width
-        screen.blit(seconds1, (x, self.y))
+        blit(seconds1, (x, self.y))
         x += self.gap + self.char_width
-        screen.blit(seconds2, (x, self.y))
+        blit(seconds2, (x, self.y))
         x += self.gap + self.char_width
-        screen.blit(self.colon, (x, self.y))
+        blit(self.colon, (x, self.y))
         x += self.char_width
-        screen.blit(miliseconds1, (x, self.y))
+        blit(miliseconds1, (x, self.y))
         x += self.gap + self.char_width
-        screen.blit(miliseconds2, (x, self.y))
+        blit(miliseconds2, (x, self.y))
 
         return self.time_string
 
     def save(self):
         try:
             with open('data/times.json', 'r') as json_file:
-                times_data = json.load(json_file)
+                times_data = load(json_file)
             if times_data['time'] != 'no data':
                 prev_time = time_unpacker(times_data['time'])
                 current_time = time_unpacker(self.time_string)
@@ -274,7 +279,7 @@ class SpeedRunClock:
             if current_time < prev_time:
                 with open('data/times.json', 'w') as json_file:
                     times_data['time'] = self.time_string
-                    json.dump(times_data, json_file)
+                    dump(times_data, json_file)
         except FileNotFoundError:
             pass
             # cheeky pass :)
@@ -321,7 +326,7 @@ class Dialogue:
                 dialogue_surf.blit(img, (x, 10))
                 x += img.get_width()
         if self.done:
-            arrow_y = dialogue_surf.get_height() - 5 + math.sin((1 / 10) * self.arrow_bob_counter) * 2
+            arrow_y = dialogue_surf.get_height() - 5 + sin((1 / 10) * self.arrow_bob_counter) * 2
             dialogue_surf.blit(self.down_arrow, (swidth / 2 - 3, arrow_y))
 
         if self.done:
@@ -335,12 +340,13 @@ leaf_green_img = img_loader('data/images/leaf_green.PNG', 6, 6)
 
 
 def update_leaves(leaf_list, screen, camera_move_x, camera_move_y, fps_adjust, cave_transition):
+    blit = screen.blit
     for leaf in leaf_list:
         leaf[0][0] += (-leaf[2] / 10 + camera_move_x) * fps_adjust
         leaf[0][1] += (leaf[2] / 30 + camera_move_y) * fps_adjust
         leaf[4] += 3 * fps_adjust
         leaf[1] += 1 * fps_adjust
-        offset = math.sin(leaf[1]/(leaf[3] * 10)) * (8 + leaf[3])
+        offset = sin(leaf[1]/(leaf[3] * 10)) * (8 + leaf[3])
         # infinite particles
         if leaf[0][0] < -6 and not cave_transition:
             leaf[0][0] = swidth - 2
@@ -358,7 +364,7 @@ def update_leaves(leaf_list, screen, camera_move_x, camera_move_y, fps_adjust, c
             img = pygame.transform.rotate(leaf_brown_img, leaf[4])
         else:
             img = pygame.transform.rotate(leaf_green_img, leaf[4])
-        screen.blit(img, (leaf[0][0], leaf[0][1] + offset))
+        blit(img, (leaf[0][0], leaf[0][1] + offset))
 
 
 class Game:
@@ -478,7 +484,7 @@ class Game:
 
         try:
             with open('data/collected_cards.json', 'r') as json_file:
-                self.eq_power_list = json.load(json_file)
+                self.eq_power_list = load(json_file)
 
         except FileNotFoundError:
             self.eq_power_list = []
@@ -772,7 +778,7 @@ class Game:
         if self.world_completed_text_anim_count == 0:
             try:
                 with open('data/times.json', 'r') as json_file:
-                    times_data = json.load(json_file)
+                    times_data = load(json_file)
                 if times_data['time'] != 'no data':
                     prev_time = time_unpacker(times_data['time'])
                     current_time = time_unpacker(self.speedrun_time)
@@ -786,6 +792,7 @@ class Game:
                 addon = 'New best time!: '
             else:
                 addon = ''
+            print(self.speedrun_time)
             self.speedrun_time_surf = self.text.make_text([f'{addon} {self.speedrun_time}'])
 
         if joystick_calibration:
@@ -926,8 +933,8 @@ class Game:
             for dot in range(tile_size):
                 x1 = 5
                 x2 = 27
-                offset1 = round(math.sin(1 / 8 * (self.smoke_counter + dot)) * 2)
-                offset2 = round(math.cos(1 / 8 * (self.smoke_counter + dot)) * 2)
+                offset1 = round(sin(1 / 8 * (self.smoke_counter + dot)) * 2)
+                offset2 = round(cos(1 / 8 * (self.smoke_counter + dot)) * 2)
                 self.smoke_surf.set_at([x1 + offset1, dot], (255, 255, 255))
                 self.smoke_surf.set_at([x2 + offset2, dot], (255, 255, 255))
             screen.blit(self.smoke_surf, (swidth / 2 - 16, sheight / 2 - 55))
@@ -1076,16 +1083,17 @@ class Game:
         self.bg_cloud2_pos[0] += self.camera_move_x / 3
         self.bg_cloud1_pos[1] += self.camera_move_y / 4
         self.bg_cloud2_pos[1] += self.camera_move_y / 3
-        self.game_screen.blit(self.bg_cloud1, self.bg_cloud1_pos)
-        self.game_screen.blit(self.bg_cloud2, self.bg_cloud2_pos)
+        blit = self.game_screen.blit
+        blit(self.bg_cloud1, self.bg_cloud1_pos)
+        blit(self.bg_cloud2, self.bg_cloud2_pos)
         if self.bg_cloud1_pos[0] > 0:
-            self.game_screen.blit(self.bg_cloud1, (self.bg_cloud1_pos[0] - 500, self.bg_cloud1_pos[1]))
+            blit(self.bg_cloud1, (self.bg_cloud1_pos[0] - 500, self.bg_cloud1_pos[1]))
         if self.bg_cloud2_pos[0] > 0:
-            self.game_screen.blit(self.bg_cloud2, (self.bg_cloud2_pos[0] - 500, self.bg_cloud2_pos[1]))
+            blit(self.bg_cloud2, (self.bg_cloud2_pos[0] - 500, self.bg_cloud2_pos[1]))
         if self.bg_cloud1_pos[0] < 500 - swidth:
-            self.game_screen.blit(self.bg_cloud1, (self.bg_cloud1_pos[0] + 500, self.bg_cloud1_pos[1]))
+            blit(self.bg_cloud1, (self.bg_cloud1_pos[0] + 500, self.bg_cloud1_pos[1]))
         if self.bg_cloud2_pos[0] < 500 - swidth:
-            self.game_screen.blit(self.bg_cloud2, (self.bg_cloud2_pos[0] + 500, self.bg_cloud2_pos[1]))
+            blit(self.bg_cloud2, (self.bg_cloud2_pos[0] + 500, self.bg_cloud2_pos[1]))
 
 # THE GAME =============================================================================================================
     def game(self, screen, level_count, fps_adjust, draw_hitbox, mouse_adjustment, events,
@@ -1284,6 +1292,7 @@ class Game:
                 self.level_duration_counter = 0
             # resetting leaves
             self.particle_leaves = []
+            append = self.particle_leaves.append
             for num in range(6):
                 counter = random.randrange(0, 10)
                 pos = [random.randrange(0, swidth), random.randrange(0, sheight)]
@@ -1292,7 +1301,7 @@ class Game:
                 rotation = random.randrange(0, 360)
                 colour = random.randint(1, 2)
                 part = [pos, counter, speed, sin_speed, rotation, colour]
-                self.particle_leaves.append(part)
+                append(part)
             # resetting clouds
             self.bg_cloud1_pos = [0, 100]
             self.bg_cloud2_pos = [0, 130]
@@ -1426,7 +1435,7 @@ class Game:
                         self.reinit_eq = True
                         try:
                             with open('data/collected_cards.json', 'w') as json_file:
-                                json.dump(self.eq_power_list, json_file)
+                                dump(self.eq_power_list, json_file)
                         except FileNotFoundError:
                             power_list_not_saved_error = True
 

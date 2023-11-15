@@ -1,5 +1,5 @@
-import time
-import threading
+from time import time
+from threading import Thread
 from screen_info import *
 import pygame._sdl2
 
@@ -151,8 +151,7 @@ from game import level_dictionary, level_bg_dictionary
 from settings import SettingsMenu, letter_to_key
 from image_loader import img_loader
 from popup import draw_popup
-import random
-
+from random import choice
 # ----------------------------------------------------------------------------------------------------------------------
 
 world_data = level1_1
@@ -521,7 +520,7 @@ controller_calibration = False
 calibration_start_counter = 0
 
 # fps variables --------------------------------------------------------------------------------------------------------
-last_time = time.time()
+last_time = time()
 last_fps = 1
 last_fps_adjust = 1
 
@@ -642,12 +641,12 @@ while run:
                         (swidth / wiwidth) * ((width_window_space - wiwidth) / 2)]
 
     # fps adjustment ---------------------------------------------------------------------------------------------------
-    fps_adjust = time.time() - last_time
+    fps_adjust = time() - last_time
     fps_adjust = fps_adjust * 60
     real_fps = clock.get_fps()
     if fps_adjust > 3:
         fps_adjust = 3
-    last_time = time.time()
+    last_time = time()
     last_fps_adjust = fps_adjust
     fps_int = int(real_fps)
 
@@ -704,10 +703,10 @@ while run:
             if speedrun_mode:
                 world_data = level_dictionary[f'level1_1']
                 bg_data = level_bg_dictionary[f'level1_1_bg']
-                world_count = 1
-                level_count = 1
-                threading.Thread(target=load_game,
-                                 args=[world_data, bg_data, world_count, level_count, joystick_connected]).start()
+                world_count = 4
+                level_count = 7
+                Thread(target=load_game,
+                       args=[world_data, bg_data, world_count, level_count, joystick_connected]).start()
                 loading = True
                 proceed_with_transition = False
                 if level_count > 1:
@@ -1026,7 +1025,7 @@ while run:
                 esc_press = True
             run_level_selection = False
             if play_background_music and not opening_scene:
-                pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 2)
+                pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
             main_game.update_controller_type(controls['configuration'], settings_counters)
             if restart_level:
                 level_restart_procedure = True
@@ -1092,8 +1091,8 @@ while run:
             opening_scene = True
             world_data = level_dictionary[f'level{level_count}_{world_count}']
             bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
-            threading.Thread(target=load_game,
-                             args=[world_data, bg_data, world_count, level_count, joystick_connected]).start()
+            Thread(target=load_game,
+                   args=[world_data, bg_data, world_count, level_count, joystick_connected]).start()
             loading = True
             proceed_with_transition = False
             if level_count > 1:
@@ -1471,10 +1470,10 @@ while run:
             one_time_play_lock = True
 
         if sound_triggers['step_grass']:
-            sounds[f'step_grass{random.choice([1, 2, 2, 2])}'].play()
+            sounds[f'step_grass{choice([1, 2, 2, 2])}'].play()
 
         if sound_triggers['step_rock']:
-            sounds[f'step_rock{random.choice([1, 2, 2])}'].play()
+            sounds[f'step_rock{choice([1, 2, 2])}'].play()
 
         if sound_triggers['step_wood']:
             sounds['step_wood'].play()
@@ -1587,9 +1586,10 @@ while run:
         sounds['page_flip'].play()
 
     # music
-    if play_background_music:
+    if settings_counters['music_volume'] > 0:
         if not world_completed_sound_played:
             if world_ending_levels[world_count] == level_count and run_game and not speedrun_mode:
+                sounds['world_completed'].set_volume(settings_counters['music_volume'])
                 sounds['world_completed'].play()
                 world_completed_sound_played = True
 
@@ -1737,7 +1737,6 @@ while run:
                 settings_not_saved_error = True
 
     # DISPLAYING EVERYTHING ON THE MAIN WINDOW
-    window.fill((0, 0, 0))
     window.blit(pygame.transform.scale(main_screen, (wiwidth, wiheight)),
                 (width_window_space / 2 - wiwidth / 2, height_window_space / 2 - wiheight / 2))
     pygame.display.update()

@@ -315,7 +315,7 @@ class eqManager:
         counter_offset = 0
         for card in self.eq_button_list:
             counter = self.card_sin_counter + counter_offset
-            card_back_y += math.sin(1/13 * counter) * 3
+            card_back_y += math.sin(1/13 * counter) * 3 * fps_adjust
             screen.blit(self.card_back_img, (card_back_x, card_back_y))
             card_back_x += tile_size * 2.5
             counter_offset = 30

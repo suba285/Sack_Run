@@ -1,6 +1,5 @@
 import pygame._sdl2
-import random
-
+from random import randint
 tile_size = 32
 
 
@@ -69,9 +68,9 @@ class PlantSpit:
 
         # spit flying particles ----------------------------------------------------------------------------------------
         self.spit_particles.append([[self.rect.x + 6 - (4*self.direction_niller*self.direction_adjust_x*-1 - 2*self.direction_adjust_y),
-                                    self.rect.y + 4], [(random.randint(0, 10) / 10)*self.direction_adjust_x,
-                                    (random.randint(0, 10) / 10)*self.direction_adjust_y],
-                                    random.randint(1, 4)])
+                                    self.rect.y + 4], [(randint(0, 10) / 10)*self.direction_adjust_x,
+                                    (randint(0, 10) / 10)*self.direction_adjust_y],
+                                    randint(1, 4)])
 
         # moving spit --------------------------------------------------------------------------------------------------
         self.dx = 0
@@ -90,9 +89,9 @@ class PlantSpit:
                 # loading spit explosion if player hit
                 for i in range(25):
                     self.spit_particles_hit.append([[self.rect.x + 4, self.rect.y + 4],
-                                                    [(random.randint(0, 40) / 10) - 2,
-                                                    (random.randint(0, 20) / 10) - 1],
-                                                    random.randint(2, 3)])
+                                                    [(randint(0, 40) / 10) - 2,
+                                                    (randint(0, 20) / 10) - 1],
+                                                    randint(2, 3)])
                     self.harm = True
                     self.load_explosion = False
         for tile in tile_list:
@@ -103,9 +102,9 @@ class PlantSpit:
                 if self.load_explosion:
                     for i in range(25):
                         self.spit_particles_hit.append([[self.rect.x + 4, self.rect.y + 4],
-                                                        [(random.randint(0, 40) / 10) - 2,
-                                                         (random.randint(0, 20) / 10) - 1],
-                                                        random.randint(2, 4)])
+                                                        [(randint(0, 40) / 10) - 2,
+                                                         (randint(0, 20) / 10) - 1],
+                                                        randint(2, 4)])
                     self.load_explosion = False
 
         # updating and drawing spit particles --------------------------------------------------------------------------
