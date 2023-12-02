@@ -25,6 +25,9 @@ class mainMenu:
                                                 tile_size * 0.75)
         self.settings_button_down = img_loader('data/images/button_settings2_down.PNG', tile_size * 1.5,
                                                tile_size * 0.75)
+        self.quit_button = img_loader('data/images/button_quit.PNG', tile_size, 24)
+        self.quit_button_press = img_loader('data/images/button_quit_press.PNG', tile_size, 24)
+        self.quit_button_down = img_loader('data/images/button_quit_down.PNG', tile_size, 24)
 
         self.menu_background_raw = pygame.image.load('data/images/menu_background.PNG').convert()
         self.menu_background = pygame.transform.scale(self.menu_background_raw, (swidth, sheight))
@@ -54,6 +57,9 @@ class mainMenu:
 
         self.settings_x = swidth / 2 - self.settings_button.get_width() / 2
         self.settings_y = round(sheight * 0.7)
+
+        self.quit_x = swidth / 2 - self.quit_button.get_width() / 2
+        self.quit_y = round(sheight * 0.83)
 
         self.settings = False
         self.settings_cooldown = 0
@@ -108,6 +114,8 @@ class mainMenu:
                                self.play_button_down)
         self.s_button = Button(self.settings_x, self.settings_y, self.settings_button, self.settings_button_press,
                                self.settings_button_down)
+        self.q_button = Button(self.quit_x, self.quit_y, self.quit_button, self.quit_button_press,
+                               self.quit_button_down)
 
     def update_time(self):
         try:
@@ -136,6 +144,7 @@ class mainMenu:
         joystick_sound = False
         joystick_over1 = False
         joystick_over0 = False
+        joystick_over2 = False
 
         self.screen_alpha += 6 * fps_adjust
         if self.screen_alpha <= 255:
@@ -184,7 +193,7 @@ class mainMenu:
         if hat_value[1] == -1 and not self.hat_y_pressed:
             self.hat_y_pressed = True
             self.joystick_counter += 1
-            if self.joystick_counter > 1:
+            if self.joystick_counter > 2:
                 self.joystick_counter = 0
         if hat_value[1] == 1 and not self.hat_y_pressed:
             self.hat_y_pressed = True
@@ -195,6 +204,8 @@ class mainMenu:
             self.hat_y_pressed = False
 
         if joysticks:
+            if self.joystick_counter == 2:
+                joystick_over2 = True
             if self.joystick_counter == 1:
                 joystick_over1 = True
             if self.joystick_counter == 0:
@@ -223,22 +234,6 @@ class mainMenu:
         if self.author_txt_alpha > 0:
             menu_screen.blit(self.author_txt, (swidth / 2 - self.author_txt.get_width() / 2,
                                                sheight/2 + round(270 / 40 * sheight)))
-
-        if self.opening_animation_counter > 280:
-            if self.quit_txt_alpha < 180:
-                self.quit_txt_alpha += 15 * fps_adjust
-            if self.quit_txt_alpha <= 180:
-                self.quit_txt.set_alpha(self.quit_txt_alpha)
-
-            if key[pygame.K_q] or key[pygame.K_LCTRL]:
-                self.quit_txt.set_alpha(255)
-                self.quit_txt_bright = True
-            else:
-                if self.quit_txt_bright:
-                    self.quit_txt_bright = False
-                    self.quit_txt.set_alpha(180)
-
-            menu_screen.blit(self.quit_txt, (swidth / 2 - self.quit_txt.get_width() / 2, self.quit_txt_y))
 
         if self.opening_animation_counter > 230:
             self.surface_alpha += 8 * fps_adjust
@@ -288,9 +283,14 @@ class mainMenu:
             # settings button
             settings, over2 = self.s_button.draw_button(self.button_surface, False,
                                                         mouse_adjustement, events, joystick_over1, use_btn)
+
+            # quit button
+            quit_press, over3 = self.q_button.draw_button(self.button_surface, False, mouse_adjustement, events,
+                                                          joystick_over2, use_btn)
         else:
             settings = False
             play = False
+            quit_press = False
 
         menu_screen.blit(self.button_surface, (0, 0))
 
@@ -301,4 +301,4 @@ class mainMenu:
         if (over1 or over2 or over4) and self.opening_animation_counter > 250:
             end_over1 = True
 
-        return play, end_over1, settings
+        return play, end_over1, settings, quit_press

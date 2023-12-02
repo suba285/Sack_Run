@@ -167,6 +167,12 @@ class eqManager:
         self.key_bg_press = img_loader('data/images/key_bg_press.PNG', 11, 14)
         self.key_space = img_loader('data/images/key_space.PNG', 22, 14)
         self.key_space_press = img_loader('data/images/key_space_press.PNG', 22, 14)
+        self.arrows = {
+            'up': img_loader('data/images/arrows/arrow_up.PNG', 5, 9),
+            'down': img_loader('data/images/arrows/arrow_down.PNG', 5, 9),
+            'right': img_loader('data/images/arrows/arrow_right.PNG', 5, 9),
+            'left': img_loader('data/images/arrows/arrow_left.PNG', 5, 9),
+        }
         self.use_text_caps = text.make_text(['USE'])
         self.use_text = text.make_text(['use'])
         self.info_text_caps = text.make_text(['INFO'])
@@ -653,10 +659,16 @@ class eqManager:
                     img_y = center_height
                 else:
                     if self.eq_controls['binding'][6] != 'space':
-                        letter1 = self.text.make_text([self.eq_controls['binding'][6]])
+                        if self.eq_controls['binding'][6] in ['up', 'down', 'right', 'left']:
+                            letter1 = self.arrows[self.eq_controls['binding'][6]]
+                        else:
+                            letter1 = self.text.make_text([self.eq_controls['binding'][6]])
                         key1_img.blit(letter1, (3, y))
                     if self.eq_controls['binding'][5] != 'space':
-                        letter2 = self.text.make_text([self.eq_controls['binding'][5]])
+                        if self.eq_controls['binding'][5] in ['up', 'down', 'right', 'left']:
+                            letter2 = self.arrows[self.eq_controls['binding'][5]]
+                        else:
+                            letter2 = self.text.make_text([self.eq_controls['binding'][5]])
                         key2_img.blit(letter2, (3, y))
                     if self.eq_controls['cards'] == 'keyboard':
                         img_y = center_height
@@ -712,7 +724,10 @@ class eqManager:
                         if self.eq_controls['binding'][3] != 'space':
                             btn1 = self.key_bg.copy()
                             btn_press1 = self.key_bg_press.copy()
-                            letter = self.text.make_text([self.eq_controls['binding'][3]])
+                            if self.eq_controls['binding'][3] in ['up', 'down', 'right', 'left']:
+                                letter = self.arrows[self.eq_controls['binding'][3]]
+                            else:
+                                letter = self.text.make_text([self.eq_controls['binding'][3]])
                             btn1.blit(letter, (3, 2))
                             btn_press1.blit(letter, (3, 4))
                         else:
@@ -721,7 +736,10 @@ class eqManager:
                         if self.eq_controls['binding'][4] != 'space':
                             btn2 = self.key_bg.copy()
                             btn_press2 = self.key_bg_press.copy()
-                            letter = self.text.make_text([self.eq_controls['binding'][4]])
+                            if self.eq_controls['binding'][4] in ['up', 'down', 'right', 'left']:
+                                letter = self.arrows[self.eq_controls['binding'][4]]
+                            else:
+                                letter = self.text.make_text([self.eq_controls['binding'][4]])
                             btn2.blit(letter, (3, 2))
                             btn_press2.blit(letter, (3, 4))
                         else:

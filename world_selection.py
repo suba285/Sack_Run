@@ -79,6 +79,13 @@ class LevelSelection:
         self.lb_button = img_loader('data/images/buttons/button_lb.PNG', tile_size / 2, tile_size / 2)
         self.lb_button_press = img_loader('data/images/buttons/button_lb_press.PNG', tile_size / 2, tile_size / 2)
 
+        self.arrows = {
+            'up': img_loader('data/images/arrows/arrow_up.PNG', 5, 9),
+            'down': img_loader('data/images/arrows/arrow_down.PNG', 5, 9),
+            'right': img_loader('data/images/arrows/arrow_right.PNG', 5, 9),
+            'left': img_loader('data/images/arrows/arrow_left.PNG', 5, 9),
+        }
+
         self.enter_symbol = img_loader('data/images/enter_symbol.PNG', 7, 9)
         self.btn_key_bg_left = img_loader('data/images/button_key_bg.PNG', 24, 27)
         self.btn_key_bg_right = pygame.transform.flip(self.btn_key_bg_left, True, False)
@@ -395,8 +402,14 @@ class LevelSelection:
 
             left_key_bg = self.btn_key_bg_left.copy()
             right_key_bg = self.btn_key_bg_right.copy()
-            left_key_txt = self.text.make_text([controls['binding'][3]])
-            right_key_txt = self.text.make_text([controls['binding'][4]])
+            if controls['binding'][3] in ['up', 'down', 'right', 'left']:
+                left_key_txt = self.arrows[controls['binding'][3]]
+            else:
+                left_key_txt = self.text.make_text([controls['binding'][3]])
+            if controls['binding'][4] in ['up', 'down', 'right', 'left']:
+                right_key_txt = self.arrows[controls['binding'][4]]
+            else:
+                right_key_txt = self.text.make_text([controls['binding'][4]])
             if not key[letter_to_key[controls['binding'][3]]] or self.world_count == 1:
                 left_key_txt = colour_inversion(left_key_txt.copy(), (43, 31, 47))
                 left_key_txt.set_colorkey((255, 255, 255))

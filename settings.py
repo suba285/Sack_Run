@@ -48,6 +48,10 @@ key_to_letter = {
     pygame.K_n: 'N',
     pygame.K_m: 'M',
     pygame.K_SPACE: 'space',
+    pygame.K_UP: 'up',
+    pygame.K_DOWN: 'down',
+    pygame.K_LEFT: 'left',
+    pygame.K_RIGHT: 'right',
 }
 
 letter_to_key = {v: k for k, v in key_to_letter.items()}
@@ -564,6 +568,12 @@ class SettingsMenu:
         for pixel in space_bg_outline:
             self.space_bg_outline.set_at(pixel, (255, 255, 255))
             self.space_bg_outline_red.set_at(pixel, (255, 0, 0))
+        self.arrows = {
+            'up': img_loader('data/images/arrows/arrow_up.PNG', 5, 9),
+            'down': img_loader('data/images/arrows/arrow_down.PNG', 5, 9),
+            'right': img_loader('data/images/arrows/arrow_right.PNG', 5, 9),
+            'left': img_loader('data/images/arrows/arrow_left.PNG', 5, 9),
+        }
 
         self.left_txt = text.make_text(['Left:'])
         self.right_txt = text.make_text(['Right:'])
@@ -1915,8 +1925,13 @@ class SettingsMenu:
                             else:
                                 outline = self.letter_bg_outline
                             self.bind_surface.blit(outline, (rect.x + offset, rect.y))
-                    letter = self.text.make_text([self.settings_binding[index]])
-                    self.bind_surface.blit(letter, (rect.x + 2, rect.y + 2))
+                    if self.settings_binding[index] in self.arrows:
+                        letter = self.arrows[self.settings_binding[index]]
+                        offset = 1
+                    else:
+                        letter = self.text.make_text([self.settings_binding[index]])
+                        offset = 0
+                    self.bind_surface.blit(letter, (rect.x + 2 + offset, rect.y + 2 - offset))
 
             settings_screen.blit(self.bind_surface, (swidth / 2 - self.bind_surface.get_width() / 2,
                                                      sheight / 2 - self.bind_surface.get_height() / 2))

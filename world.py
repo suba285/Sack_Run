@@ -1510,7 +1510,7 @@ class World:
             if (tile[1].width == self.set_lava_rect.width and tile[1].height == self.set_lava_rect.height) or \
                     tile[-1] == 'set_lava':
                 if -tile_size < tile[1][0] < swidth:
-                    if collision_sack(tile[1]):
+                    if collision_sack((tile[1].x, tile[1].y + 3, tile[1].width, tile[1].height - 3)):
                         harm = True
 
             # gem ------------------------------------------------------------------------------------------------------
@@ -1782,7 +1782,7 @@ class World:
             spit[2] -= 1 * fps_adjust
             if spit[2] <= 0:
                 append(spit)
-            if collision_sack(spit[0]):
+            if collision_sack(spit[0]) and health != 0:
                 harm = True
                 append(spit)
             for tile in self.tile_list:

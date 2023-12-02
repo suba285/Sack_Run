@@ -195,6 +195,7 @@ game_counter = default_game_counter
 # variables ------------------------------------------------------------------------------------------------------------
 text = Text()
 
+quit_press = False
 slow_computer = False
 run = True
 run_game = False
@@ -687,9 +688,9 @@ while run:
                 'videoresize': False
             }
         controller_not_configured_counter -= 1 * fps_adjust
-        level_selection, sound_triggers['button'], settings = main_menu.menu(menu_screen, mouse_adjustment, menu_events,
-                                                                             fps_adjust, joysticks, speedrun_mode,
-                                                                             controls['configuration'])
+        level_selection, sound_triggers['button'], settings, quit_press = \
+            main_menu.menu(menu_screen, mouse_adjustment, menu_events, fps_adjust, joysticks, speedrun_mode,
+                           controls['configuration'])
 
         # settings not saved error
         if settings_not_saved_error:
@@ -703,8 +704,8 @@ while run:
             if speedrun_mode:
                 world_data = level_dictionary[f'level1_1']
                 bg_data = level_bg_dictionary[f'level1_1_bg']
-                world_count = 4
-                level_count = 7
+                world_count = 1
+                level_count = 1
                 Thread(target=load_game,
                        args=[world_data, bg_data, world_count, level_count, joystick_connected]).start()
                 loading = True
@@ -808,11 +809,11 @@ while run:
         game_end_scene = False
 
         if world_completed:
+            world_completed_fadeout = False
             if [world_count, level_count] == ending_world_level and not speedrun_mode:
                 lvl_selection_press, ending_sounds = main_game.game_completed_cutscene(screen, events, fps_adjust,
                                                                                        joysticks,
                                                                                        controller_calibration)
-                world_completed_fadeout = False
                 game_end_scene = True
                 sound_triggers.update(ending_sounds)
             else:
@@ -1454,7 +1455,7 @@ while run:
             paused = False
             run_level_selection = False
 
-    if user_quit1 and user_quit2:
+    if (user_quit1 and user_quit2) or quit_press:
         run = False
 
     # PLAYING SOUNDS ---------------------------------------------------------------------------------------------------

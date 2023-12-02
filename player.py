@@ -282,6 +282,13 @@ class Player:
         self.respawn_text.append([text.make_text(['W']), -10])
         self.respawn_text.append([text.make_text(['N']), -12])
 
+        self.arrows = {
+            'up': img_loader('data/images/arrows/arrow_up.PNG', 5, 9),
+            'down': img_loader('data/images/arrows/arrow_down.PNG', 5, 9),
+            'right': img_loader('data/images/arrows/arrow_right.PNG', 5, 9),
+            'left': img_loader('data/images/arrows/arrow_left.PNG', 5, 9),
+        }
+
         self.a_button = img_loader('data/images/buttons/button_a.PNG', tile_size / 2, tile_size / 2)
         self.cross_button = img_loader('data/images/buttons/button_cross.PNG', tile_size / 2, tile_size / 2)
         self.key_bg = img_loader('data/images/key_bg.PNG', 11, 14)
@@ -1388,7 +1395,10 @@ class Player:
                         key_img = self.key_bg_press.copy()
                         y = 4
                 if self.controls['binding'][2] != 'space':
-                    letter = self.text.make_text([self.controls['binding'][2]])
+                    if self.controls['binding'][2] in ['up', 'down', 'right', 'left']:
+                        letter = self.arrows[self.controls['binding'][2]]
+                    else:
+                        letter = self.text.make_text([self.controls['binding'][2]])
                     key_img.blit(letter, (x, y))
                 if self.button_press_counter > 8:
                     blit(key_img, (swidth / 2 - key_img.get_width() / 2, sheight / 3 + 16))
@@ -1415,7 +1425,10 @@ class Player:
                             key_img = self.key_bg_press.copy()
                             y = 4
                     if self.controls['binding'][2] != 'space':
-                        letter = self.text.make_text([self.controls['binding'][2]])
+                        if self.controls['binding'][2] in ['up', 'down', 'right', 'left']:
+                            letter = self.arrows[self.controls['binding'][2]]
+                        else:
+                            letter = self.text.make_text([self.controls['binding'][2]])
                         key_img.blit(letter, (x, y))
                     blit(key_img, (swidth / 2 + tile_size, sheight / 3 + 16))
 
