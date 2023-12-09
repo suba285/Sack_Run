@@ -163,7 +163,7 @@ class mainMenu:
             if event.value > 0.3 and not self.joystick_moved:
                 self.joystick_counter += 1
                 self.joystick_moved = True
-                if self.joystick_counter > 1:
+                if self.joystick_counter > 2:
                     self.joystick_counter = 0
             # up
             elif event.value < -0.3 and not self.joystick_moved:

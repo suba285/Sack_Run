@@ -486,7 +486,7 @@ class Player:
             top_border = 100 / 270 * sheight
         if [level_count, world_count] == [1, 5]:
             top_border = 130 / 270 * sheight
-        if [level_count, world_count] in [[6, 3], [6, 4], [5, 4], [7, 4]]:
+        if [level_count, world_count] in [[6, 3], [6, 4], [5, 4], [7, 4], [3, 4]]:
             bottom_border = 140 / 270 * sheight
         if [level_count, world_count] == [8, 4]:
             bottom_border = sheight

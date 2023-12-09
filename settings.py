@@ -1727,9 +1727,17 @@ class SettingsMenu:
         volume_knob_held = False
 
         if not self.draw_sound_screen:
+            joystick_slider_left = False
+            joystick_slider_right = False
+            if joystick_over2:
+                if joystick_left:
+                    joystick_slider_left = True
+                if joystick_right:
+                    joystick_slider_right = True
+
             self.volume_counter, volume_knob_held = self.volume_slider.draw_slider(self.sound_screen, mouse_adjustment,
-                                                                                   events, joystick_left,
-                                                                                   joystick_right)
+                                                                                   events, joystick_slider_left,
+                                                                                   joystick_slider_right)
 
             if self.sounds_counter > 1:
                 sound_left_press, over3 = self.sounds_btn_left.draw_button(self.sound_screen,
