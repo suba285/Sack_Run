@@ -6,7 +6,7 @@ import pygame._sdl2
 pygame.init()
 pygame.joystick.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
-pygame.mixer.set_num_channels(10)
+pygame.mixer.set_num_channels(11)
 joysticks = {}
 controller = False
 
@@ -307,6 +307,9 @@ sounds = {
         'bubbles': pygame.mixer.Sound('data/sounds/bubbles.wav'),
         'buzz_left': pygame.mixer.Sound('data/sounds/buzzing_left.wav'),
         'buzz_right': pygame.mixer.Sound('data/sounds/buzzing_right.wav'),
+        'laser-aim': pygame.mixer.Sound('data/sounds/Laser-aim.wav'),
+        'laser-shot': pygame.mixer.Sound('data/sounds/Laser-shot.wav'),
+        'nuh-uh': pygame.mixer.Sound('data/sounds/Nuh-uh.wav'),
 }
 
 # wheat channel
@@ -320,6 +323,7 @@ pygame.mixer.Channel(8)  # left
 pygame.mixer.Channel(9)  # right
 pygame.mixer.Channel(8).set_volume(0)
 pygame.mixer.Channel(9).set_volume(0)
+pygame.mixer.Channel(10).set_volume(0)
 
 walk_sound_switch = False
 step_sound_volume = 0.7
@@ -349,6 +353,8 @@ sounds['mushroom'].set_volume(1.2)
 sounds['rumble'].set_volume(0.5)
 sounds['bubbles'].set_volume(0.4)
 sounds['page_flip'].set_volume(0.2)
+sounds['laser-shot'].set_volume(0.5)
+sounds['nuh-uh'].set_volume(0.1)
 
 music_data = {
     '1': 'game_song1',
@@ -553,6 +559,9 @@ while run:
         'rumble': False,
         'page_flip': False,
         'buzz': [],
+        'laser-aim': False,
+        'laser-shot': False,
+        'nuh-uh': False,
     }
     # events
     try:
@@ -1175,10 +1184,11 @@ while run:
             calibrated_press,\
             settings_music_control,\
             sound_triggers['button'],\
-            sound_triggers['page_flip'],\
+            settings_sounds,\
             window_open = settings_menu.draw_settings_menu(settings_screen, mouse_adjustment,
                                                            settings_events, fps_adjust,
                                                            joystick_connected, joysticks, game_paused)
+        sound_triggers.update(settings_sounds)
 
         if performance_counter == 1:
             slow_computer = False
@@ -1189,12 +1199,11 @@ while run:
             if not pygame.mixer.Channel(current_channel).get_busy():
                 play_music = True
             settings_volume = settings_counters['music_volume']
-            if settings_volume > 0:
-                if game_paused and not opening_scene:
-                    channel = current_channel
-                else:
-                    channel = 2
-                pygame.mixer.Channel(channel).set_volume(settings_volume)
+            if game_paused and not opening_scene:
+                channel = current_channel
+            else:
+                channel = 2
+            pygame.mixer.Channel(channel).set_volume(settings_volume)
 
             adjust_settings_music_volume = True
         elif adjust_settings_music_volume:
@@ -1503,6 +1512,12 @@ while run:
         if sound_triggers['gem']:
             sounds['gem'].play()
 
+        if sound_triggers['laser-shot']:
+            sounds['laser-shot'].play()
+
+        if sound_triggers['nuh-uh']:
+            sounds['nuh-uh'].play()
+
         if sound_triggers['wheat'] == 1:
             pygame.mixer.Channel(1).set_volume(0.7)
             pygame.mixer.Channel(1).play(sounds['wheat'], -1)
@@ -1510,14 +1525,24 @@ while run:
             pygame.mixer.Channel(1).fadeout(400)
 
         if sound_triggers['bubbles'] == 1:
-            pygame.mixer.Channel(7).set_volume(0.3)
+            pygame.mixer.Channel(7).set_volume(0.9)
             pygame.mixer.Channel(7).play(sounds['bubbles'], -1)
         if sound_triggers['bubbles'] == -1:
             pygame.mixer.Channel(7).fadeout(100)
         if game_paused:
             pygame.mixer.Channel(7).set_volume(0)
         if not game_paused and pygame.mixer.Channel(7).get_busy():
-            pygame.mixer.Channel(7).set_volume(0.3)
+            pygame.mixer.Channel(7).set_volume(0.9)
+
+        if sound_triggers['laser-aim'] and not pygame.mixer.Channel(10).get_busy():
+            pygame.mixer.Channel(10).set_volume(0.3)
+            pygame.mixer.Channel(10).play(sounds['laser-aim'], -1)
+        if not sound_triggers['laser-aim'] and pygame.mixer.Channel(10).get_busy():
+            pygame.mixer.Channel(10).fadeout(100)
+        if game_paused:
+            pygame.mixer.Channel(10).set_volume(0)
+        if not game_paused and pygame.mixer.Channel(10).get_busy():
+            pygame.mixer.Channel(10).set_volume(0.3)
 
         if [world_count, level_count] in [[2, 9], [2, 10]] and run_game:
             if not pygame.mixer.Channel(8).get_busy():
@@ -1724,8 +1749,10 @@ while run:
 
     # controller calibration
     if controller_calibration and calibration_start_counter > 60 and joystick_connected:
-        configuration, done, calibrated = settings_menu.controller_calibration_func(main_screen, events, fps_adjust,
-                                                                                    False, joysticks)
+        configuration, done, calibrated, nuh_uh_sound_trigger = \
+            settings_menu.controller_calibration_func(main_screen, events, fps_adjust, False, joysticks)
+        if nuh_uh_sound_trigger:
+            sound_triggers['nuh-uh'] = True
         if done:
             controllers[joystick_name] = configuration
             controls['configuration'] = configuration

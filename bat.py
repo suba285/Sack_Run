@@ -33,6 +33,7 @@ class Bat:
         self.dash_direction = 1
         self.dash_speed = 5
         self.flash_duration = 2
+        self.have_shot = False
 
         self.silhouette_counter = 0
 
@@ -42,9 +43,8 @@ class Bat:
 
     def update_bat_laser(self, sack_rect, fps_adjust, screen, camera_move_x, camera_move_y, moved, dead):
         harm = False
-
-        dx = 0
-        dy = 0
+        shot_sound_trigger = False
+        aim_sound = False
 
         # checking if the bat is far away enough from the sack
         current_radius = math.sqrt((sack_rect.x - self.x) ** 2 + (sack_rect.y - self.y) ** 2)
@@ -69,11 +69,15 @@ class Bat:
                 flash = True
         if self.laser_counter >= 180 and not dead:
             shoot = True
+            if not self.have_shot:
+                shot_sound_trigger = True
+                self.have_shot = True
             colour = (255, 255, 255)
             girth = 2
         if self.laser_counter >= 186:
             self.laser_counter = 0
             self.target_set = False
+            self.have_shot = False
 
         if flash or shoot:
             dx = 0
@@ -128,7 +132,10 @@ class Bat:
         if (y - 14 < sack_rect.y + 9 < y + 14 or x - 14 < sack_rect.x + 8 < x + 14) and shoot and not dead:
             harm = True
 
-        return harm, shoot
+        if aim:
+            aim_sound = True
+
+        return harm, shoot, shot_sound_trigger, aim_sound
 
     def update_bat_charge(self, sack_rect, fps_adjust, screen, camera_move_x, camera_move_y, moved, dead,
                           draw_hitbox):

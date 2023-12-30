@@ -1972,12 +1972,16 @@ class World:
         screen_shake = False
         dead = False
         change_music = False
+        sounds = {
+            'laser-aim': False,
+            'laser-shot': False
+        }
         if health == 0:
             dead = True
         for bat in self.bat_list:
             if bat[1] == 17:
-                harm, screen_shake = bat[0].update_bat_laser(sack_rect, fps_adjust, screen, camera_move_x,
-                                                             camera_move_y, moved, dead)
+                harm, screen_shake, sounds['laser-shot'], sounds['laser-aim'] = \
+                    bat[0].update_bat_laser(sack_rect, fps_adjust, screen, camera_move_x, camera_move_y, moved, dead)
                 if screen_shake:
                     change_music = True
 
@@ -1987,7 +1991,7 @@ class World:
             if harm:
                 bat_harm = True
 
-        return bat_harm, screen_shake, change_music
+        return bat_harm, screen_shake, change_music, sounds
 
     # ------------------------------------------------------------------------------------------------------------------
 

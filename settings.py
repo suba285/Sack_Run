@@ -819,6 +819,7 @@ class SettingsMenu:
         calibration_done = False
         configuration = []
         calibrated = False
+        nuh_uh_sound_trigger = False
         self.controller_calibration_counter += 0.04 * fps_adjust
         self.controller_calibration_button_counter += 1 * fps_adjust
         if self.choose_different_btn_counter > 0:
@@ -858,6 +859,7 @@ class SettingsMenu:
                     self.controller_calibration_step_counter += 1
                 else:
                     self.choose_different_btn_counter = 60
+                    nuh_uh_sound_trigger = True
 
             if (event.button == self.controller_configuration[5] or event.button == self.controls['configuration'][5])\
                     and in_settings and self.controller_calibration_step_counter == 0:
@@ -1016,7 +1018,7 @@ class SettingsMenu:
             self.calibrated_hat_btns = []
             self.controller_calibration_step_counter += 1
 
-        return configuration, calibration_done, calibrated
+        return configuration, calibration_done, calibrated, nuh_uh_sound_trigger
 
         # --------------------------------------------------------------------------------------------------------------
     def draw_settings_menu(self, settings_screen, mouse_adjustment, events, fps_adjust, joystick_connected, joysticks,
@@ -1047,6 +1049,11 @@ class SettingsMenu:
         use_btn = self.controls['configuration'][5]
 
         joystick_moved = 0
+
+        sounds = {
+            'nuh-uh': False,
+            'page_flip': False,
+        }
 
         if events['keydown']:
             event = events['keydown']
@@ -1855,9 +1862,7 @@ class SettingsMenu:
                     self.section_counter = 0
 
         if control_btn_trigger or visual_btn_trigger or sound_btn_trigger or joystick_tab_left or joystick_tab_right:
-            page_flip_sound_trigger = True
-        else:
-            page_flip_sound_trigger = False
+            sounds['page_flip'] = True
 
         if self.section_counter == 0:
             self.draw_control_screen = False
@@ -1874,7 +1879,7 @@ class SettingsMenu:
 
         # calibration window -------------------------------------------------------------------------------------------
         if self.controller_calibration:
-            configuration, done, configured = SettingsMenu.controller_calibration_func(self,
+            configuration, done, configured, sounds['nuh-uh'] = SettingsMenu.controller_calibration_func(self,
                                                                                        settings_screen, events,
                                                                                        fps_adjust, True, joysticks)
             if done and configured:
@@ -1917,6 +1922,7 @@ class SettingsMenu:
                                 self.settings_binding[index] = key_press
                             else:
                                 package[1] = 15
+                                sounds['nuh-uh'] = True
                         if package[1] > 0:
                             offset = random.choice([1, 0, -1])
                         else:
@@ -1990,4 +1996,4 @@ class SettingsMenu:
 
         return menu_press, self.controls, self.pov_counter, resolution, \
                adjust_resolution, self.settings_counters, calibrated, settings_music, final_over,\
-               page_flip_sound_trigger, window_open
+               sounds, window_open

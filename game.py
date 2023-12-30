@@ -1120,6 +1120,9 @@ class Game:
             'rumble': False,
             'bubbles': 0,
             'buzz': [],
+            'laser-aim': False,
+            'laser-shot': False,
+            'nuh-uh': False
         }
         fadeout = False
         change_music = False
@@ -1345,15 +1348,14 @@ class Game:
 
         # drawing the bat ----------------------------------------------------------------------------------------------
         if world_count == 3:
-            self.bat_harm, bat_screen_shake, bat_change_music = self.world.draw_bat(sack_rect, self.game_screen,
-                                                                                    fps_adjust, self.camera_move_x,
-                                                                                    self.camera_move_y,
-                                                                                    self.player_moved, self.health,
-                                                                                    draw_hitbox)
+            self.bat_harm, bat_screen_shake, bat_change_music, bat_sounds = \
+                self.world.draw_bat(sack_rect, self.game_screen, fps_adjust, self.camera_move_x, self.camera_move_y,
+                                    self.player_moved, self.health, draw_hitbox)
             if bat_screen_shake:
                 screen_shake = True
             if bat_change_music:
                 change_music = True
+            sounds.update(bat_sounds)
 
         # drawing bean popup -------------------------------------------------------------------------------------------
         self.world.draw_bean_popup(self.game_screen)
@@ -1398,12 +1400,12 @@ class Game:
             self.eq_power_list,\
                 self.mid_air_jump_trigger,\
                 self.speed_dash_trigger,\
-                sounds['card'] = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment, events,
-                                                         tutorial, fps_adjust, level_count,
-                                                         self.health, self.move, self.player_moved,
-                                                         self.gem_equipped, self.controls,
-                                                         joysticks, self.controller_type,
-                                                         joystick_calibration, card_active)
+                sounds['card'], sounds['nuh-uh'] = self.eq_manager.draw_eq(screen, self.eq_power_list, mouse_adjustment,
+                                                                           events, tutorial, fps_adjust, level_count,
+                                                                           self.health, self.move, self.player_moved,
+                                                                           self.gem_equipped, self.controls,
+                                                                           joysticks, self.controller_type,
+                                                                           joystick_calibration, card_active)
 
         if self.mid_air_jump_trigger or self.speed_dash_trigger:
             self.gem_equipped = False

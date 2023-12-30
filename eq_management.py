@@ -390,6 +390,8 @@ class eqManager:
         over3 = False
         over4 = False
 
+        nuh_uh_sound_trigger = False
+
         if self.eq_controls['insta_card'] == 2:
             use_btn1 = self.eq_controls['configuration'][6]
             use_btn2 = self.eq_controls['configuration'][6]
@@ -535,7 +537,9 @@ class eqManager:
                     self.mid_air_jump_trigger = True
                     self.joystick_over_counter = 0
                 if press and (not gem_equipped or card_active):
-                    self.card_message_counter = self.default_no_gem_counter
+                    if self.card_message_counter < 70:
+                        self.card_message_counter = self.default_no_gem_counter
+                        nuh_uh_sound_trigger = True
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
@@ -558,7 +562,9 @@ class eqManager:
                     self.speed_dash_trigger = True
                     self.joystick_over_counter = 0
                 if press and (not gem_equipped or card_active):
-                    self.card_message_counter = self.default_no_gem_counter
+                    if self.card_message_counter < 70:
+                        self.card_message_counter = self.default_no_gem_counter
+                        nuh_uh_sound_trigger = True
                 if local_over and not self.card_info:
                     if mousebuttondown_right:
                         self.card_info_press = True
@@ -591,10 +597,12 @@ class eqManager:
             self.card_checked = False
 
         if over and joystick_use_press and not gem_equipped:
-            self.card_message_counter = self.default_no_gem_counter
+            if self.card_message_counter < 70:
+                self.card_message_counter = self.default_no_gem_counter
+                nuh_uh_sound_trigger = True
 
         if self.card_message_counter > 0:
-            if self.card_message_counter > 97:
+            if self.card_message_counter > 90:
                 offset_x = random.choice([2, 0, -2])
                 offset_y = random.choice([2, 0, -2])
             else:
@@ -822,4 +830,4 @@ class eqManager:
             self.card_info_type = 'blank'
             self.one_time_type_set = False
 
-        return eq_list, self.mid_air_jump_trigger, self.speed_dash_trigger, over
+        return eq_list, self.mid_air_jump_trigger, self.speed_dash_trigger, over, nuh_uh_sound_trigger
