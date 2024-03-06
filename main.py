@@ -523,6 +523,8 @@ progress_saved_popup = popup_bg_generator((progress_saved_txt.get_width() + 10, 
 progress_saved_popup.blit(progress_saved_txt, (7, 7))
 progress_saved_counter = 400
 
+# are u sure popup
+
 controller_calibration = False
 calibration_start_counter = 0
 
@@ -1518,6 +1520,12 @@ while run:
         if sound_triggers['nuh-uh']:
             sounds['nuh-uh'].play()
 
+        if sound_triggers['lock']:
+            sounds['lock'].play()
+
+        if sound_triggers['swoosh']:
+            sounds['jump'].play()
+
         if sound_triggers['wheat'] == 1:
             pygame.mixer.Channel(1).set_volume(0.7)
             pygame.mixer.Channel(1).play(sounds['wheat'], -1)
@@ -1525,14 +1533,14 @@ while run:
             pygame.mixer.Channel(1).fadeout(400)
 
         if sound_triggers['bubbles'] == 1:
-            pygame.mixer.Channel(7).set_volume(0.9)
+            pygame.mixer.Channel(7).set_volume(0.5)
             pygame.mixer.Channel(7).play(sounds['bubbles'], -1)
         if sound_triggers['bubbles'] == -1:
             pygame.mixer.Channel(7).fadeout(100)
         if game_paused:
             pygame.mixer.Channel(7).set_volume(0)
         if not game_paused and pygame.mixer.Channel(7).get_busy():
-            pygame.mixer.Channel(7).set_volume(0.9)
+            pygame.mixer.Channel(7).set_volume(0.5)
 
         if sound_triggers['laser-aim'] and not pygame.mixer.Channel(10).get_busy():
             pygame.mixer.Channel(10).set_volume(0.3)
@@ -1582,11 +1590,8 @@ while run:
         if sound_triggers['click']:
             sounds['click'].play()
 
-    # lock sound
-    if sound_triggers['lock']:
-        sounds['lock'].play()
-    if sound_triggers['swoosh']:
-        sounds['jump'].play()
+        if sound_triggers['page_flip']:
+            sounds['page_flip'].play()
 
     # button sounds
     hat_press = False
@@ -1607,9 +1612,6 @@ while run:
         one_time_play_button2 = False
     if joystick_idle_x and joystick_idle_y and not events['joyhatdown'] and not hat_press:
         one_time_play_button2 = True
-    # settings page flip
-    if sound_triggers['page_flip']:
-        sounds['page_flip'].play()
 
     # music
     if settings_counters['music_volume'] > 0:

@@ -534,19 +534,21 @@ class SettingsMenu:
 
         # key binding popup window
         self.binding = False
-        self.bind_popup_bg = popup_bg_generator((200, 160))
+        self.bind_popup_bg_1 = popup_bg_generator((200, 160))
         self.bind_surface = pygame.Surface((200, 160))
         self.bind_surface.fill((0, 0, 0))
         self.bind_surface.set_colorkey((0, 0, 0))
         self.bind_ok_btn = Button(swidth / 2 - 20 + 4, sheight / 2 + 80 - 24, self.ok_button, self.ok_button_press,
                                   self.ok_button_down)
-        self.bind_popup_bg.blit(self.ok_button_down, (100 - 16 + 4, 160 - 20))
+        self.bind_popup_bg_1.blit(self.ok_button_down, (100 - 16 + 4, 160 - 20))
         self.bind_popup_center = 110
         self.bind_popup_start_y = 25
         self.bind_popup_gap = 5
         self.binding_counter = 0
+        self.bind_popup_num = 1
 
-        self.bind_instructions = text.make_text(['Use mouse and keyboard to bind'])
+        self.bind_instructions_1 = text.make_text(['Hover over slots with mouse'])
+        self.bind_instructions_2 = text.make_text(['Press desired key'])
 
         self.letter_bg = img_loader('data/images/letter_bg.PNG', 11, 11)
         self.letter_bg_outline = pygame.Surface((11, 11))
@@ -591,12 +593,14 @@ class SettingsMenu:
             x = self.bind_popup_center - desc.get_width()
             letter_bg_x = self.bind_popup_center + 10
             y = self.bind_popup_start_y + self.text_height * num + self.bind_popup_gap * num
-            self.bind_popup_bg.blit(desc, (x, y))
-            self.bind_popup_bg.blit(self.letter_bg, (letter_bg_x, y - 2))
+            self.bind_popup_bg_1.blit(desc, (x, y))
+            self.bind_popup_bg_1.blit(self.letter_bg, (letter_bg_x, y - 2))
             rect = pygame.Rect(letter_bg_x - 4, y - 6, 11, 11)
             package = [rect, 0]
             self.bind_col_rects.append(package)
-        self.bind_popup_bg.blit(self.bind_instructions, (100 - self.bind_instructions.get_width() / 2 + 2, 5))
+        self.bind_popup_bg_2 = self.bind_popup_bg_1.copy()
+        self.bind_popup_bg_1.blit(self.bind_instructions_1, (100 - self.bind_instructions_1.get_width() / 2 + 2, 5))
+        self.bind_popup_bg_2.blit(self.bind_instructions_2, (100 - self.bind_instructions_2.get_width() / 2 + 2, 5))
 
         # controller configuration popup window
         self.controller_conf_popup0 = popup_bg_generator((200, 100))
@@ -792,7 +796,7 @@ class SettingsMenu:
         }
         self.nums_to_btns['configuration'] = controls['configuration']
 
-    def key_binding_func(self, local_screen, events, fps_adjust):
+    def key_binding_func(self, local_screen, events, fps_adjust, popup_num):
         if self.dim_surf_alpha <= self.dim_surf_target_alpha:
             self.dim_surf_alpha += 20 * fps_adjust
         if self.dim_surf_alpha < self.dim_surf_target_alpha:
@@ -800,7 +804,10 @@ class SettingsMenu:
         if self.dim_surf_alpha > self.dim_surf_target_alpha:
             self.dim_surf.set_alpha(self.dim_surf_target_alpha)
 
-        raw_popup = self.bind_popup_bg
+        if popup_num == 1:
+            raw_popup = self.bind_popup_bg_1
+        else:
+            raw_popup = self.bind_popup_bg_2
 
         self.binding_counter += 0.04 * fps_adjust
 
@@ -1888,7 +1895,7 @@ class SettingsMenu:
 
         # binding window -----------------------------------------------------------------------------------------------
         if self.binding:
-            SettingsMenu.key_binding_func(self, settings_screen, events, fps_adjust)
+            SettingsMenu.key_binding_func(self, settings_screen, events, fps_adjust, self.bind_popup_num)
             if self.binding_counter > 0.25:
                 if joystick_connected:
                     joy_over_bind_ok = True
@@ -1904,6 +1911,7 @@ class SettingsMenu:
             self.bind_surface.fill((0, 0, 0))
 
             if self.binding_counter > 0.25:
+                self.bind_popup_num = 1
                 for package in self.bind_col_rects:
                     rect = package[0]
                     package[1] -= 1 * fps_adjust
@@ -1917,6 +1925,7 @@ class SettingsMenu:
 
                     if rect.collidepoint((mouse_pos[0] - (swidth / 2 - self.bind_surface.get_width() / 2),
                                           mouse_pos[1] - (sheight / 2 - self.bind_surface.get_height() / 2))):
+                        self.bind_popup_num = 2
                         if key_press:
                             if key_press not in self.settings_binding:
                                 self.settings_binding[index] = key_press

@@ -4,6 +4,7 @@ from font_manager import Text
 from button import Button
 from screen_info import swidth, sheight
 from settings import colour_inversion
+from popup_bg_generator import popup_bg_generator
 
 tile_size = 32
 

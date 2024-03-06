@@ -933,6 +933,7 @@ class Player:
             self.joystick_right = False
             self.joystick_left = False
             self.single_restart = False
+            self.sounds['bubbles'] = -1
 
         if self.restart_counter > 80:
             self.restart_trigger = False
