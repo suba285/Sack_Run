@@ -10,7 +10,7 @@ from settings import colour_inversion, letter_to_key
 
 tile_size = 32
 
-bean_num = 9
+bean_num = 10
 
 
 class LevelSelection:
@@ -390,7 +390,8 @@ class LevelSelection:
                 enter_symbol = colour_inversion(enter_symbol, (43, 31, 47))
                 enter_symbol.set_colorkey((255, 255, 255))
             play_key_bg.blit(enter_symbol, (12, 9))
-            level_screen.blit(play_key_bg, (self.play_btn_x + 20, self.lower_btn_deck_y))
+            if self.world_status[self.world_count - 1] or (self.world_count == 5 and self.world_status[5]):
+                level_screen.blit(play_key_bg, (self.play_btn_x + 20, self.lower_btn_deck_y))
 
             menu_key_bg = self.btn_key_bg_left.copy()
             menu_key_txt = self.text.make_text(['esc'])

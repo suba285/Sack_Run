@@ -1578,6 +1578,14 @@ while run:
                 prev_distance_l = -max_buzz_distance
             buzz_volume_right = (max_buzz_distance - prev_distance_r) / max_buzz_distance
             buzz_volume_left = (max_buzz_distance + prev_distance_l) / max_buzz_distance
+            buzz_left_volume_adjust = buzz_volume_right**2
+            buzz_right_volume_adjust = buzz_volume_left**2
+            if buzz_left_volume_adjust > buzz_volume_left:
+                buzz_volume_left = buzz_left_volume_adjust
+                print('adjustint left')
+            if buzz_right_volume_adjust > buzz_volume_right:
+                buzz_volume_right = buzz_right_volume_adjust
+                print('adjustin right m')
             pygame.mixer.Channel(8).set_volume(buzz_volume_left)
             pygame.mixer.Channel(9).set_volume(buzz_volume_right)
         else:
