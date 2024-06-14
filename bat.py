@@ -34,6 +34,7 @@ class Bat:
         self.dash_speed = 5
         self.flash_duration = 2
         self.have_shot = False
+        self.dash_sound_played = False
 
         self.silhouette_counter = 0
 
@@ -141,6 +142,8 @@ class Bat:
                           draw_hitbox):
         harm = False
 
+        dash_sound_trigger = False
+
         dx = 0
         dy = 0
 
@@ -165,7 +168,7 @@ class Bat:
                 dy -= 1 * fps_adjust
             if self.y < sack_y:
                 dy += 1 * fps_adjust
-        if sack_y - 2 < self.y < sack_y + 2 and moved and self.dash < - 40 and not dead:
+        if sack_y - 2 < self.y < sack_y + 2 and moved and self.dash < -40 and not dead:
             self.dash = 55
             if sack_rect.x > self.x:
                 self.dash_direction = 1
@@ -176,13 +179,16 @@ class Bat:
         if self.dash > 0:
             if self.dash < 50:
                 self.x += self.dash_speed * self.dash_direction * fps_adjust + camera_move_x
+                if not self.dash_sound_played:
+                    self.dash_sound_played = True
+                    dash_sound_trigger = True
             else:
                 self.x += camera_move_x
             self.y += camera_move_y
-
         else:
             self.x += dx + camera_move_x
             self.y += dy + camera_move_y
+            self.dash_sound_played = False
 
         if self.dash > 0:
             self.charge_flash_count -= 1 * fps_adjust
@@ -255,5 +261,5 @@ class Bat:
         else:
             screen_shake = False
 
-        return harm, screen_shake
+        return harm, screen_shake, dash_sound_trigger
 

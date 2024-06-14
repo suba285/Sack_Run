@@ -309,6 +309,7 @@ sounds = {
         'buzz_right': pygame.mixer.Sound('data/sounds/buzzing_right.wav'),
         'laser-aim': pygame.mixer.Sound('data/sounds/Laser-aim.wav'),
         'laser-shot': pygame.mixer.Sound('data/sounds/Laser-shot.wav'),
+        'bat-charge': pygame.mixer.Sound('data/sounds/bat-charge.wav'),
         'nuh-uh': pygame.mixer.Sound('data/sounds/Nuh-uh.wav'),
 }
 
@@ -354,6 +355,7 @@ sounds['rumble'].set_volume(0.5)
 sounds['bubbles'].set_volume(0.4)
 sounds['page_flip'].set_volume(0.2)
 sounds['laser-shot'].set_volume(0.5)
+sounds['bat-charge'].set_volume(0.1)
 sounds['nuh-uh'].set_volume(0.1)
 
 music_data = {
@@ -478,7 +480,7 @@ main_game = Game(slow_computer, world_data, bg_data, controls, world_count, leve
                  joystick_connected)
 main_menu = mainMenu()
 pause_menu = PauseScreen(pause_screen)
-level_select = LevelSelection(world_count)
+level_select = LevelSelection(world_count, level_counters)
 settings_menu = SettingsMenu(controls, settings_counters, resolutions, recommended_res_counter)
 
 fps_display = FpsDisplay()
@@ -563,6 +565,7 @@ while run:
         'buzz': [],
         'laser-aim': False,
         'laser-shot': False,
+        'bat-charge': False,
         'nuh-uh': False,
     }
     # events
@@ -732,6 +735,7 @@ while run:
             else:
                 run_game = False
                 run_level_selection = True
+                level_select.level_count = level_counters[world_count - 1]
                 game_counter = default_game_counter
                 run_menu = False
                 menu_y = 0
@@ -927,6 +931,7 @@ while run:
             else:
                 run_menu = False
                 run_level_selection = True
+                level_select.level_count = level_counters[world_count - 1]
                 fadeout_music = True
             run_game = False
             run_settings = False
@@ -983,6 +988,7 @@ while run:
             else:
                 run_game = False
                 run_level_selection = True
+                level_select.level_count = level_counters[world_count - 1]
                 run_settings = False
                 run_menu = False
                 paused = False
@@ -991,11 +997,8 @@ while run:
                 main_game.update_controller_type(controls['configuration'], settings_counters)
                 try:
                     with open('data/level_count.json', 'w') as json_file:
-                        if level_count == world_ending_levels[world_count]:
-                            level_count = 1
-                        else:
-                            pass
-                        level_counters[world_count - 1] = level_count
+                        if level_count > level_counters[world_count - 1]:
+                            level_counters[world_count - 1] = level_count
                         json.dump(level_counters, json_file)
 
                 except FileNotFoundError:
@@ -1085,14 +1088,16 @@ while run:
                 'mousewheel': False,
                 'videoresize': False
             }
+
         play_press,\
             menu,\
             world_count,\
             new_world_unlocked,\
-            level_selection_sounds = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
-                                                                       lvl_selection_events,
-                                                                       controls, joysticks, fps_adjust,
-                                                                       world_count, new_world_unlocked)
+            level_selection_sounds,\
+            level_count_override = level_select.draw_level_selection(level_selection_screen, mouse_adjustment,
+                                                                     lvl_selection_events,
+                                                                     controls, joysticks, fps_adjust,
+                                                                     world_count, new_world_unlocked, level_counters)
         sound_triggers.update(level_selection_sounds)
 
         if play_press and (joystick_configured or not joystick_connected):
@@ -1100,6 +1105,7 @@ while run:
                 level_count = level_counters[world_count - 1]
             else:
                 level_count = 1
+            level_count = level_count_override
             opening_scene = True
             world_data = level_dictionary[f'level{level_count}_{world_count}']
             bg_data = level_bg_dictionary[f'level{level_count}_{world_count}_bg']
@@ -1412,17 +1418,17 @@ while run:
 
     if events['joyaxismotion_x']:
         event = events['joyaxismotion_x']
-        if joystick_idle_x and abs(event.value) > 0.3:
+        if joystick_idle_x and abs(event.value) > 0.7:
             joystick_moved = True
             joystick_idle_x = False
-        if abs(event.value) < 0.2:
+        if abs(event.value) < 0.02:
             joystick_idle_x = True
     if events['joyaxismotion_y']:
         event = events['joyaxismotion_y']
-        if joystick_idle_y and abs(event.value) > 0.3:
+        if joystick_idle_y and abs(event.value) > 0.7:
             joystick_moved = True
             joystick_idle_y = False
-        if abs(event.value) < 0.2:
+        if abs(event.value) < 0.02:
             joystick_idle_y = True
 
     if events['joybuttondown'] and not controller_calibration:
@@ -1517,6 +1523,9 @@ while run:
         if sound_triggers['laser-shot']:
             sounds['laser-shot'].play()
 
+        if sound_triggers['bat-charge']:
+            sounds['bat-charge'].play()
+
         if sound_triggers['nuh-uh']:
             sounds['nuh-uh'].play()
 
@@ -1582,10 +1591,8 @@ while run:
             buzz_right_volume_adjust = buzz_volume_left**2
             if buzz_left_volume_adjust > buzz_volume_left:
                 buzz_volume_left = buzz_left_volume_adjust
-                print('adjustint left')
             if buzz_right_volume_adjust > buzz_volume_right:
                 buzz_volume_right = buzz_right_volume_adjust
-                print('adjustin right m')
             pygame.mixer.Channel(8).set_volume(buzz_volume_left)
             pygame.mixer.Channel(9).set_volume(buzz_volume_right)
         else:

@@ -14,7 +14,7 @@ bean_num = 10
 
 
 class LevelSelection:
-    def __init__(self, world_count):
+    def __init__(self, world_count, level_counters):
         text = Text()
         self.text = Text()
 
@@ -131,6 +131,14 @@ class LevelSelection:
             4: world4_txt
         }
 
+        self.world_level_nums = {
+            0: 2,
+            1: 10,
+            2: 9,
+            3: 8,
+            4: 3
+        }
+
         spacing = 20
         self.upper_btn_deck_y = sheight / 3
 
@@ -168,8 +176,10 @@ class LevelSelection:
         self.new_world_animation_stage3 = -0.3 * 60
 
         self.joystick_counter = -1
-        self.joystick_moved = False
+        self.joystick_moved_x = False
+        self.joystick_moved_y = False
         self.hat_x_pressed = False
+        self.hat_y_pressed = False
 
         self.left_bumper_press = False
         self.right_bumper_press = False
@@ -178,9 +188,20 @@ class LevelSelection:
         self.text_wobble_default_value = 10
 
         self.lock_sound_played = False
+
+        self.level_count = level_counters[world_count - 1]
+
+        self.joystick_orb_level = False
+
+        self.level_orb_radius = 4
+        self.inorb_gap = 8
+        self.joystick_orb_count = self.level_count
+        self.inorb_distance = self.inorb_gap + self.level_orb_radius * 2
+        self.orb_pulse_counter = 0
  
     def draw_level_selection(self, level_screen, mouse_adjustment, events, controls, joysticks, fps_adjust,
-                             world_count, new_world_unlocked):
+                             world_count, new_world_unlocked, level_counters):
+        self.orb_pulse_counter += 1 * fps_adjust
 
         level_screen.blit(self.menu_background, (0, 0))
         self.new_world_dim_surf.fill((0, 0, 0))
@@ -192,6 +213,11 @@ class LevelSelection:
         self.beans_bob_counter += 1 * fps_adjust
 
         update_value = 0
+
+        level_count = level_counters[world_count - 1]
+        orb_selection_limit = level_counters[self.world_count - 1]
+        if self.world_status[self.world_count]:
+            orb_selection_limit = self.world_level_nums[self.world_count - 1]
 
         joystick_controls = controls['configuration']
         use_btn = joystick_controls[5]
@@ -268,15 +294,38 @@ class LevelSelection:
         over4 = False
 
         key = pygame.key.get_pressed()
+        mouse = pygame.mouse.get_pos()
+        mouse = [mouse[0] / mouse_adjustment[0] - mouse_adjustment[2],
+                 mouse[1] / mouse_adjustment[0] - mouse_adjustment[1]]
 
         if events['joyaxismotion_x']:
             event = events['joyaxismotion_x']
-            # right and left
-            if abs(event.value) > 0.3 and not self.joystick_moved:
-                self.joystick_counter *= -1
-                self.joystick_moved = True
-            if abs(event.value) < 0.05:
-                self.joystick_moved = False
+            if self.joystick_orb_level:
+                # right
+                if event.value > 0.7 and not self.joystick_moved_x:
+                    self.level_count += 1
+                    if self.level_count > orb_selection_limit:
+                        self.level_count = 1
+                    self.joystick_moved_x = True
+                # left
+                if event.value < -0.7 and not self.joystick_moved_x:
+                    self.level_count -= 1
+                    if self.level_count < 1:
+                        self.level_count = orb_selection_limit
+                    self.joystick_moved_x = True
+            else:
+                if abs(event.value) > 0.7 and not self.joystick_moved_x:
+                    self.joystick_counter *= -1
+                    self.joystick_moved_x = True
+            if abs(event.value) < 0.02:
+                self.joystick_moved_x = False
+        if events['joyaxismotion_y']:
+            event = events['joyaxismotion_y']
+            if abs(event.value) > 0.7 and not self.joystick_moved_y:
+                self.joystick_orb_level = not self.joystick_orb_level
+                self.joystick_moved_y = True
+            if abs(event.value) < 0.02:
+                self.joystick_moved_y = False
         if events['joybuttondown']:
             event = events['joybuttondown']
             if event.button == joystick_controls[1]:
@@ -291,6 +340,10 @@ class LevelSelection:
                 hat_value[0] = 1
             if event.button == joystick_controls[0][2]:  # left
                 hat_value[0] = -1
+            if event.button == joystick_controls[0][1]: # top
+                hat_value[1] = -1
+            if event.button == joystick_controls[0][3]: # bottom
+                hat_value[1] = 1
         if events['joybuttonup']:
             self.left_bumper_press = False
             self.right_bumper_press = False
@@ -301,11 +354,30 @@ class LevelSelection:
 
         if not self.hat_x_pressed:
             # left and right
-            if abs(hat_value[0]) == 1:
+            if abs(hat_value[0]) == 1 and not self.joystick_orb_level:
                 self.joystick_counter *= -1
                 self.hat_x_pressed = True
+            if self.joystick_orb_level:
+                if hat_value[0] == 1:
+                    self.hat_x_pressed = True
+                    self.level_count += 1
+                    if self.level_count > orb_selection_limit:
+                        self.level_count = 1
+                if hat_value[0] == -1:
+                    self.hat_x_pressed = True
+                    self.level_count -= 1
+                    if self.level_count < 1:
+                        self.level_count = orb_selection_limit
+
+        if not self.hat_y_pressed:
+            if abs(hat_value[1]) == 1:
+                self.joystick_orb_level = not self.joystick_orb_level
+                self.hat_y_pressed = True
+
         if hat_value[0] == 0:
             self.hat_x_pressed = False
+        if hat_value[1] == 0:
+            self.hat_y_pressed = False
 
         joystick_over1 = False
         joystick_over2 = False
@@ -320,10 +392,42 @@ class LevelSelection:
         else:
             object_wobble = 0
 
+        over5 = False
+
         level_screen.blit(title, (swidth / 2 - title.get_width() / 2 + object_wobble, self.upper_btn_deck_y + 6))
         if (self.world_status[self.world_count - 1] or (self.world_count == 5 and self.world_status[5])) and \
                 self.new_world_animation_counter > 0:
-            level_screen.blit(description, (swidth / 2 - description.get_width() / 2, self.upper_btn_deck_y + 40))
+            total_orb_num = self.world_level_nums[self.world_count - 1]
+            chain_length = self.level_orb_radius * 2 * total_orb_num + self.inorb_gap * (total_orb_num - 1)
+            x_start = swidth / 2 - chain_length / 2
+            line_colour = (64, 51, 66)
+            center = (x_start + self.level_orb_radius, self.upper_btn_deck_y + 50)
+            pygame.draw.line(level_screen, line_colour, [center[0], center[1] - 1],
+                             [center[0] + self.inorb_distance * (total_orb_num - 1), center[1] - 1], 2)
+            for orbx in range(total_orb_num):
+                center = (x_start + self.level_orb_radius, self.upper_btn_deck_y + 50)
+                orb_radius = self.level_orb_radius
+                if level_count >= orbx + 1 or self.world_status[self.world_count]:
+                    rect_orb_radius = self.level_orb_radius + 2
+                    rect = pygame.Rect(center[0] - rect_orb_radius, center[1] - rect_orb_radius,
+                                       rect_orb_radius * 2, rect_orb_radius * 2)
+                    if rect.collidepoint(mouse[0], mouse[1]):
+                        orb_radius = self.level_orb_radius + 1
+                        over5 = True
+                        if events['mousebuttondown']:
+                            self.level_count = orbx + 1
+                if level_count < orbx + 1 and not self.world_status[self.world_count]:
+                    colour = (64, 51, 66)
+                else:
+                    colour = (255, 255, 255)
+                if self.level_count == orbx + 1:
+                    colour = (5, 5, 5)
+                    if joysticks and self.joystick_orb_level:
+                        orb_radius = int(self.level_orb_radius + 3 + math.sin(self.orb_pulse_counter/8) * 2)
+                pygame.draw.circle(level_screen, colour, center, orb_radius, orb_radius)
+                if joysticks and self.joystick_orb_level and self.level_count == orbx + 1:
+                    pygame.draw.circle(level_screen, (255, 255, 255), center, orb_radius, 1)
+                x_start += self.inorb_distance
 
         if self.new_world_animation_stage3 < self.new_world_animation_counter < 0:
             if self.new_world_circle_radius == 0:
@@ -375,7 +479,7 @@ class LevelSelection:
                                   (swidth / 2 - tile_size / 2 + lock_vibration[0],
                                    sheight / 2 - tile_size / 2 + lock_vibration[1]))
 
-        if joysticks:
+        if joysticks and not self.joystick_orb_level:
             if self.joystick_counter == 1 or ((self.world_count < 5 and not self.world_status[self.world_count - 1])
                                               or (not self.world_status[5] and self.world_count == 5)):
                 joystick_over1 = True
@@ -482,10 +586,13 @@ class LevelSelection:
         if self.world_count > self.world_count_cap:
             self.world_count = self.world_count_cap
 
-        if over1 or over2 or over3 or over4:
+        if left_press or right_press or left_bumper_press or right_bumper_press:
+            self.level_count = level_counters[self.world_count - 1]
+
+        if over1 or over2 or over3 or over4 or over5:
             sounds['button'] = True
 
-        return play_press, menu_press, self.world_count, new_world_unlocked, sounds
+        return play_press, menu_press, self.world_count, new_world_unlocked, sounds, self.level_count
 
 
 

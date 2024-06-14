@@ -608,8 +608,8 @@ class World:
         self.world_count = world_count
 
         # bean popup
-        self.beans_popup = popup_bg_generator((60, 15))
-        bean_text = Text().make_text([f'{self.collected_beans[0] + 1} of 9'])
+        self.beans_popup = popup_bg_generator((70, 15))
+        bean_text = Text().make_text([f'{self.collected_beans[0] + 1} of 10'])
         self.beans_popup.blit(bean_text, (30, 7))
         self.beans_popup_counter = 400
 
@@ -1974,7 +1974,8 @@ class World:
         change_music = False
         sounds = {
             'laser-aim': False,
-            'laser-shot': False
+            'laser-shot': False,
+            'bat-charge': False,
         }
         if health == 0:
             dead = True
@@ -1986,8 +1987,9 @@ class World:
                     change_music = True
 
             else:
-                harm, screen_shake = bat[0].update_bat_charge(sack_rect, fps_adjust, screen, camera_move_x,
-                                                              camera_move_y, moved, dead, draw_hitbox)
+                harm, screen_shake, sounds['bat-charge'] = bat[0].update_bat_charge(sack_rect, fps_adjust, screen,
+                                                                                    camera_move_x, camera_move_y,
+                                                                                    moved, dead, draw_hitbox)
             if harm:
                 bat_harm = True
 
