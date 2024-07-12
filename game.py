@@ -118,7 +118,7 @@ level_pos_dictionary = {
     "level8_4": (4, 1),
     "level1_5": (2, -20),
     "level2_5": (-1, -7),
-    "level3_5": (-32, -1),
+    "level3_5": (-24, 0),
 }
 
 level_card_dictionary = {

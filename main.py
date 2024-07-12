@@ -6,7 +6,7 @@ import pygame._sdl2
 pygame.init()
 pygame.joystick.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
-pygame.mixer.set_num_channels(11)
+pygame.mixer.set_num_channels(12)
 joysticks = {}
 controller = False
 
@@ -322,9 +322,11 @@ pygame.mixer.Channel(7)
 # buzz channels
 pygame.mixer.Channel(8)  # left
 pygame.mixer.Channel(9)  # right
+
 pygame.mixer.Channel(8).set_volume(0)
 pygame.mixer.Channel(9).set_volume(0)
 pygame.mixer.Channel(10).set_volume(0)
+pygame.mixer.Channel(11).set_volume(0)
 
 walk_sound_switch = False
 step_sound_volume = 0.7
@@ -394,6 +396,9 @@ pygame.mixer.Channel(3).set_volume(0)  # phase 2 music channel
 pygame.mixer.Channel(4).set_volume(0)  # phase 3 music channel
 pygame.mixer.Channel(5).set_volume(0)  # phase 4 music channel
 pygame.mixer.Channel(6).set_volume(0)  # transitions
+
+pygame.mixer.Channel(11).play(music['2-1'], -1)  # settings volume preview channel
+volume_preview_volume = 0
 
 current_channel = 2
 if level_count > 1:
@@ -878,7 +883,7 @@ while run:
             esc_press = True
             run_level_selection = False
             if play_background_music and not opening_scene:
-                pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 2)
+                pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 3)
             pause_menu.joystick_counter = 0
 
         # changing the displayed screens
@@ -1204,23 +1209,38 @@ while run:
             slow_computer = True
 
         if settings_music_control['real_volume']:
-            if not pygame.mixer.Channel(current_channel).get_busy():
-                play_music = True
             settings_volume = settings_counters['music_volume']
+            if volume_preview_volume < settings_volume:
+                volume_preview_volume += 0.03
+            if volume_preview_volume > settings_volume:
+                volume_preview_volume -= 0.03
             if game_paused and not opening_scene:
                 channel = current_channel
             else:
-                channel = 2
-            pygame.mixer.Channel(channel).set_volume(settings_volume)
+                channel = 11
+            pygame.mixer.Channel(channel).set_volume(volume_preview_volume)
 
             adjust_settings_music_volume = True
         elif adjust_settings_music_volume:
-            if game_paused and not opening_scene and settings_counters['music_volume'] > 0:
+            if game_paused and not opening_scene:
                 if play_background_music:
-                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 2)
+                    if volume_preview_volume > settings_counters['music_volume'] / 3:
+                        volume_preview_volume -= 0.03
+                        if volume_preview_volume <= settings_counters['music_volume'] / 3:
+                            adjust_settings_music_volume = False
+                            volume_preview_volume = settings_counters['music_volume'] / 3
+                    pygame.mixer.Channel(current_channel).set_volume(volume_preview_volume)
             else:
                 fadeout_music = True
-            adjust_settings_music_volume = False
+                adjust_settings_music_volume = False
+
+        if not settings_music_control['real_volume'] and not adjust_settings_music_volume:
+            if volume_preview_volume > 0:
+                volume_preview_volume -= 0.03
+                if volume_preview_volume < 0:
+                    volume_preview_volume = 0
+            if not game_paused:
+                pygame.mixer.Channel(11).set_volume(volume_preview_volume)
 
         if adjust_resolution:
             wiwidth = current_resolution[0]
@@ -1451,7 +1471,7 @@ while run:
                 paused = True
                 run_level_selection = False
                 if play_background_music and not opening_scene:
-                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 2)
+                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'] / 3)
                 pause_menu.joystick_counter = 0
         # resume with b (controller)
         if event.button == controls['configuration'][4] and paused:
