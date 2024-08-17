@@ -6,7 +6,7 @@ import pygame._sdl2
 pygame.init()
 pygame.joystick.init()
 pygame.mixer.pre_init(40000, -16, 1, 1024)
-pygame.mixer.set_num_channels(12)
+pygame.mixer.set_num_channels(13)
 joysticks = {}
 controller = False
 
@@ -59,7 +59,7 @@ except FileNotFoundError:
         'pov': 1,
         'hitbox': 1,
         'speedrun': 1,
-        'music_volume': 2,
+        'music_volume': 1,
         'sounds': 2
     }
 
@@ -328,6 +328,15 @@ pygame.mixer.Channel(9).set_volume(0)
 pygame.mixer.Channel(10).set_volume(0)
 pygame.mixer.Channel(11).set_volume(0)
 
+# background birds
+bird_bg_volume = 0.7
+pygame.mixer.Channel(12).set_volume(bird_bg_volume)
+if settings_counters['sounds'] == 2:
+    bird_bg_playing = True
+else:
+    bird_bg_playing = False
+
+
 walk_sound_switch = False
 step_sound_volume = 0.7
 max_buzz_volume = 0.7
@@ -382,7 +391,8 @@ music = {
     '5-1': pygame.mixer.Sound('data/sounds/game_song1.wav'),
     '3-4-transition': pygame.mixer.Sound('data/sounds/game_song3-4_transition.wav'),
     '3-3-slow': pygame.mixer.Sound('data/sounds/game_song3-3-slow.wav'),
-    'speedrun': pygame.mixer.Sound('data/sounds/Speedrun-song.wav')
+    'speedrun': pygame.mixer.Sound('data/sounds/Speedrun-song.wav'),
+    'birds': pygame.mixer.Sound('data/sounds/background_birds.wav')
 }
 
 music_volumes = {
@@ -399,6 +409,9 @@ pygame.mixer.Channel(6).set_volume(0)  # transitions
 
 pygame.mixer.Channel(11).play(music['2-1'], -1)  # settings volume preview channel
 volume_preview_volume = 0
+
+if bird_bg_playing:
+    pygame.mixer.Channel(12).play(music['birds'], -1)
 
 current_channel = 2
 if level_count > 1:
@@ -981,6 +994,7 @@ while run:
                                                          fps_adjust, scene)
 
         if lvl_select:
+            pygame.mixer.Channel(12).play(music['birds'], -1)
             if speedrun_mode:
                 run_game = False
                 run_level_selection = False
@@ -1133,6 +1147,7 @@ while run:
             load_music = True
             game_loaded = False
             world_completed = False
+            pygame.mixer.Channel(12).fadeout(300)
 
         if loading:
             loading_counter += 0.4 * fps_adjust
@@ -1207,6 +1222,13 @@ while run:
             slow_computer = False
         else:
             slow_computer = True
+
+        if settings_counters['sounds'] == 1 and bird_bg_playing:
+            bird_bg_playing = False
+            pygame.mixer.Channel(12).fadeout(200)
+        if settings_counters['sounds'] == 2 and not bird_bg_playing:
+            bird_bg_playing = True
+            pygame.mixer.Channel(12).play(music['birds'], -1)
 
         if settings_music_control['real_volume']:
             settings_volume = settings_counters['music_volume']
@@ -1480,10 +1502,7 @@ while run:
             paused = False
             run_level_selection = False
             if play_background_music and not opening_scene:
-                if speedrun_mode:
-                    pygame.mixer.Channel(current_channel).set_volume(speedrun_volume)
-                else:
-                    pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
+                pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
             main_game.update_controller_type(controls['configuration'], settings_counters)
         # go back to menu from level selection screen (controller)
         if event.button == controls['configuration'][4] and run_level_selection:
