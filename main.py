@@ -1,3 +1,4 @@
+import random
 from time import time
 from threading import Thread
 from screen_info import *
@@ -309,7 +310,9 @@ sounds = {
         'buzz_right': pygame.mixer.Sound('data/sounds/buzzing_right.wav'),
         'laser-aim': pygame.mixer.Sound('data/sounds/Laser-aim.wav'),
         'laser-shot': pygame.mixer.Sound('data/sounds/Laser-shot.wav'),
-        'bat-charge': pygame.mixer.Sound('data/sounds/bat-charge.wav'),
+        'bat-charge1': pygame.mixer.Sound('data/sounds/bat-charge1.wav'),
+        'bat-charge2': pygame.mixer.Sound('data/sounds/bat-charge2.wav'),
+        'bat-charge3': pygame.mixer.Sound('data/sounds/bat-charge3.wav'),
         'nuh-uh': pygame.mixer.Sound('data/sounds/Nuh-uh.wav'),
 }
 
@@ -366,7 +369,9 @@ sounds['rumble'].set_volume(0.5)
 sounds['bubbles'].set_volume(0.4)
 sounds['page_flip'].set_volume(0.2)
 sounds['laser-shot'].set_volume(0.5)
-sounds['bat-charge'].set_volume(0.1)
+sounds['bat-charge1'].set_volume(0.2)
+sounds['bat-charge2'].set_volume(0.2)
+sounds['bat-charge3'].set_volume(0.2)
 sounds['nuh-uh'].set_volume(0.1)
 
 music_data = {
@@ -388,17 +393,11 @@ music = {
     '4-2': pygame.mixer.Sound('data/sounds/game_song4-2.wav'),
     '4-3': pygame.mixer.Sound('data/sounds/game_song4-3.wav'),
     '4-4': pygame.mixer.Sound('data/sounds/game_song4-1.wav'),
-    '5-1': pygame.mixer.Sound('data/sounds/game_song1.wav'),
+    '5-1': pygame.mixer.Sound('data/sounds/game_song5.wav'),
     '3-4-transition': pygame.mixer.Sound('data/sounds/game_song3-4_transition.wav'),
     '3-3-slow': pygame.mixer.Sound('data/sounds/game_song3-3-slow.wav'),
     'speedrun': pygame.mixer.Sound('data/sounds/Speedrun-song.wav'),
     'birds': pygame.mixer.Sound('data/sounds/background_birds.wav')
-}
-
-music_volumes = {
-    '1': 0,
-    '2': 0.4,
-    '3': 0.7
 }
 
 pygame.mixer.Channel(2).set_volume(0)  # phase 1 music channel
@@ -889,7 +888,7 @@ while run:
             play_music = True
 
         # pausing (joystick pausing can be found in 'game event handling')
-        if key[pygame.K_ESCAPE] and not esc_press:
+        if key[pygame.K_ESCAPE] and not esc_press and not world_completed:
             run_menu = False
             run_game = False
             paused = True
@@ -1230,7 +1229,11 @@ while run:
             bird_bg_playing = True
             pygame.mixer.Channel(12).play(music['birds'], -1)
 
+        if not settings_music_control['real_volume']:
+            pygame.mixer.Channel(12).set_volume(bird_bg_volume)
+
         if settings_music_control['real_volume']:
+            pygame.mixer.Channel(12).set_volume(0)
             settings_volume = settings_counters['music_volume']
             if volume_preview_volume < settings_volume:
                 volume_preview_volume += 0.03
@@ -1363,7 +1366,7 @@ while run:
             user_quit1 = True
         if event.key == pygame.K_LCTRL:
             user_quit2 = True
-        if event.key == pygame.K_j or event.key == pygame.K_l:
+        if event.key == letter_to_key[controls['binding'][3]] or event.key == letter_to_key[controls['binding'][4]]:
             joystick_over_card = True
 
     if events['keyup']:
@@ -1487,7 +1490,7 @@ while run:
                 if play_background_music and not opening_scene:
                     pygame.mixer.Channel(current_channel).set_volume(settings_counters['music_volume'])
                 main_game.update_controller_type(controls['configuration'], settings_counters)
-            elif run_game:
+            elif run_game and not world_completed:
                 run_menu = False
                 run_game = False
                 paused = True
@@ -1563,7 +1566,7 @@ while run:
             sounds['laser-shot'].play()
 
         if sound_triggers['bat-charge']:
-            sounds['bat-charge'].play()
+            sounds[f'bat-charge{random.choice(["1", "2", "3"])}'].play()
 
         if sound_triggers['nuh-uh']:
             sounds['nuh-uh'].play()

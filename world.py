@@ -2045,75 +2045,79 @@ class World:
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def draw_bridge(self, screen, camera_move_x, camera_move_y, fps_adjust, sack_rect):
+    def draw_bridge(self, screen, camera_move_x, camera_move_y, fps_adjust, sack_rect, show):
         offset_x = 0
         offset_y = 0
         offset_x_bg = 0
         offset_y_bg = 0
 
         screen_shake = False
-
-        if self.bridge_collapsing:
-            self.bridge_collapse_counter -= 1 * fps_adjust
-
-        debris_tile_counter = 0
-
         change_music = False
 
-        blit = screen.blit
-        append = self.bridge_debris_list.append
-        remove = self.tile_list.remove
-
-        for tile in self.bridge_list:
-            if sack_rect.x > tile[1][0] and not self.bridge_collapsing:
-                self.bridge_collapse_cooldown -= 1*fps_adjust
-                if self.bridge_collapse_cooldown < 0:
-                    self.bridge_collapsing = True
-                    self.bridge_collapse_counter = 100
+        if show:
             if self.bridge_collapsing:
-                offset_x = randint(-2, 3)
-                offset_y = randint(-2, 3)
-                offset_x_bg = randint(-2, 3)
-                offset_y_bg = randint(-2, 3)
-            if self.bridge_collapse_counter >= 0:
-                if tile[-1] == 'right':
-                    blit(self.bridge_support_right, (tile[1][0] + offset_x_bg, tile[1][1] + offset_y_bg))
-                elif tile[-1] == 'left':
-                    blit(self.bridge_support_left, (tile[1][0] + offset_x_bg, tile[1][1] + offset_y_bg))
-                blit(tile[0], (tile[1][0] + offset_x, tile[1][1] + offset_y))
-            if self.bridge_collapse_counter < 0 and tile in self.tile_list:
-                remove(tile)
-                # debris = [image, position, velocity, rotation, rotation_speed, alpha, fadeout_counter]
-                debris = self.default_debris_list[debris_tile_counter].copy()
-                debris[1] = [tile[1][0], tile[1][1]]
-                append(debris)
-                self.bridge_collapsed = True
-                change_music = True
-            debris_tile_counter += 1
+                self.bridge_collapse_counter -= 1 * fps_adjust
 
-        # debris management
-        remove = self.bridge_debris_list.remove
-        rotate = pygame.transform.rotate
-        for debris in self.bridge_debris_list:
-            # y velocity
-            debris[1][1] += debris[2] * fps_adjust + camera_move_y
-            debris[1][0] += camera_move_x
-            # rotation
-            debris[3] += debris[4] * fps_adjust
-            # alpha value
-            debris[-2] -= debris[-1] * fps_adjust
-            debris[0].set_alpha(debris[-2])
+            debris_tile_counter = 0
 
-            img = debris[0]
-            if debris[-2] < 0:
-                remove(debris)
-            else:
-                img = rotate(debris[0], debris[3])
-            blit(img, (debris[1][0] - img.get_width() / 2 + tile_size / 2,
-                              debris[1][1] - img.get_height() / 2 + tile_size / 2))
+            blit = screen.blit
+            append = self.bridge_debris_list.append
+            remove = self.tile_list.remove
 
-        if self.bridge_collapsing and self.bridge_collapse_counter > -40:
-            screen_shake = True
+            for tile in self.bridge_list:
+                if sack_rect.x > tile[1][0] and not self.bridge_collapsing:
+                    self.bridge_collapse_cooldown -= 1*fps_adjust
+                    if self.bridge_collapse_cooldown < 0:
+                        self.bridge_collapsing = True
+                        self.bridge_collapse_counter = 100
+                if self.bridge_collapsing:
+                    offset_x = randint(-2, 3)
+                    offset_y = randint(-2, 3)
+                    offset_x_bg = randint(-2, 3)
+                    offset_y_bg = randint(-2, 3)
+                if self.bridge_collapse_counter >= 0:
+                    if tile[-1] == 'right':
+                        blit(self.bridge_support_right, (tile[1][0] + offset_x_bg, tile[1][1] + offset_y_bg))
+                    elif tile[-1] == 'left':
+                        blit(self.bridge_support_left, (tile[1][0] + offset_x_bg, tile[1][1] + offset_y_bg))
+                    blit(tile[0], (tile[1][0] + offset_x, tile[1][1] + offset_y))
+                if self.bridge_collapse_counter < 0 and tile in self.tile_list:
+                    remove(tile)
+                    # debris = [image, position, velocity, rotation, rotation_speed, alpha, fadeout_counter]
+                    debris = self.default_debris_list[debris_tile_counter].copy()
+                    debris[1] = [tile[1][0], tile[1][1]]
+                    append(debris)
+                    self.bridge_collapsed = True
+                    change_music = True
+                debris_tile_counter += 1
+
+            # debris management
+            remove = self.bridge_debris_list.remove
+            rotate = pygame.transform.rotate
+            for debris in self.bridge_debris_list:
+                # y velocity
+                debris[1][1] += debris[2] * fps_adjust + camera_move_y
+                debris[1][0] += camera_move_x
+                # rotation
+                debris[3] += debris[4] * fps_adjust
+                # alpha value
+                debris[-2] -= debris[-1] * fps_adjust
+                debris[0].set_alpha(debris[-2])
+
+                img = debris[0]
+                if debris[-2] < 0:
+                    remove(debris)
+                else:
+                    img = rotate(debris[0], debris[3])
+                blit(img, (debris[1][0] - img.get_width() / 2 + tile_size / 2,
+                                  debris[1][1] - img.get_height() / 2 + tile_size / 2))
+
+            if self.bridge_collapsing and self.bridge_collapse_counter > -40:
+                screen_shake = True
+        else:
+            for tile in self.bridge_list:
+                self.tile_list.remove(tile)
+                self.bridge_list.remove(tile)
 
         return screen_shake, change_music
 

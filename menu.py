@@ -298,7 +298,7 @@ class mainMenu:
             menu_screen.blit(self.best_time_txt, (swidth / 2 - self.best_time_width / 2,
                                                   sheight / 2 - 10 - math.sin(self.logo_pos_counter / 16 - 0.9) * 2))
 
-        if (over1 or over2 or over4) and self.opening_animation_counter > 250:
+        if (over1 or over2 or over3 or over4) and self.opening_animation_counter > 250:
             end_over1 = True
 
         return play, end_over1, settings, quit_press

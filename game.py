@@ -137,7 +137,7 @@ world_ending_levels = {
 ending_world_level = [4, 9]
 
 music_change_list = [[2, 9], [3, 4], [4, 8]]
-music_level_phases = [[2, 1, 1], [2, 9, 2], [3, 1, 1], [3, 2, 2], [3, 4, 3], [3, 9, 4], [4, 1, 1], [4, 2, 2], [4, 4, 3], [4, 8, 4]]
+music_level_phases = [[2, 1, 1], [2, 9, 2], [3, 1, 1], [3, 2, 2], [3, 4, 3], [3, 9, 4], [4, 1, 1], [4, 2, 2], [4, 4, 2], [4, 8, 4]]
 
 bee_popup = [2, 7]
 dash_popup = [3, 5]
@@ -546,8 +546,8 @@ class Game:
                 3: Dialogue('so the large chunks are separated from the fine powder', text),
                 4: Dialogue('That fine powder is the finished product - flour', text),
                 5: Dialogue('The flour is used to make bread', text),
-                6: Dialogue('The bread is used to make toast', text),
-                7: Dialogue('The toast is then consumed...', text),
+                6: Dialogue('The bread is used to make toast...', text),
+                7: Dialogue(':3', text),
             }
 
         self.toaster_animation_frames = []
@@ -653,6 +653,8 @@ class Game:
         self.change_music_counter = 0
 
         self.bridge_collapsing = False
+        self.bridge_collapsed = False
+        self.draw_bridge = True
 
         # initiating classes -------------------------------------------------------------------------------------------
         self.world = World(world_data, self.game_screen, slow_computer, bg_data,
@@ -1255,11 +1257,13 @@ class Game:
                                                                                       self.camera_move_y, sack_rect,
                                                                                       self.gem_equipped, self.health)
         bridge_screen_shake, bridge_change_music = self.world.draw_bridge(self.game_screen, self.camera_move_x,
-                                                                          self.camera_move_y, fps_adjust, sack_rect)
+                                                                          self.camera_move_y, fps_adjust, sack_rect,
+                                                                          self.draw_bridge)
         if bridge_change_music:
             change_music = True
         if bridge_screen_shake:
             screen_shake = True
+            self.bridge_collapsed = True
             if not self.bridge_rumbled:
                 self.bridge_rumbled = True
                 sounds['rumble'] = True
@@ -1293,6 +1297,9 @@ class Game:
                 self.level_check = level_count
                 self.player_moved = False
                 self.level_duration_counter = 0
+            # bridge not being drawn after collapsing once comes into effect here
+            if self.bridge_collapsed:
+                self.draw_bridge = False
             # resetting leaves
             self.particle_leaves = []
             append = self.particle_leaves.append

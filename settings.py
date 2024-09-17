@@ -1450,7 +1450,7 @@ class SettingsMenu:
                 self.control_screen.blit(self.right_button_gray, (self.right_btn_x, self.control_row3_y))
 
             if not self.controller_calibration:
-                calib_press, over5 = self.calibration_btn.draw_button(self.control_screen, False,
+                calib_press, over7 = self.calibration_btn.draw_button(self.control_screen, False,
                                                                       control_screen_mouse_adjustment,
                                                                       events, joystick_over1, use_btn)
             else:
