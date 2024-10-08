@@ -428,6 +428,9 @@ class Game:
 
         self.bg_cloud1 = img_loader('data/images/clouds/cloud_background1.PNG', 500, 190)
         self.bg_cloud2 = img_loader('data/images/clouds/cloud_background2.PNG', 500, 190)
+        self.bg_cloud2_extension = img_loader('data/images/clouds/cloud_background2_extension.PNG', 500, 190)
+        self.bg_cloud_width = 500
+        self.bg_cloud_height = 190
 
         self.button_surf = pygame.Surface((tile_size, tile_size))
         self.button_surf_alpha = 0
@@ -1081,21 +1084,27 @@ class Game:
 
     def update_cloud_bg(self):
         self.game_screen.fill(self.sky_background_colour)
+        # test this (cloud cannot move up further than screen edge)
         self.bg_cloud1_pos[0] += self.camera_move_x / 4
         self.bg_cloud2_pos[0] += self.camera_move_x / 3
         self.bg_cloud1_pos[1] += self.camera_move_y / 4
         self.bg_cloud2_pos[1] += self.camera_move_y / 3
+
+        # -------------------------------------------------------
         blit = self.game_screen.blit
         blit(self.bg_cloud1, self.bg_cloud1_pos)
         blit(self.bg_cloud2, self.bg_cloud2_pos)
         if self.bg_cloud1_pos[0] > 0:
-            blit(self.bg_cloud1, (self.bg_cloud1_pos[0] - 500, self.bg_cloud1_pos[1]))
+            blit(self.bg_cloud1, (self.bg_cloud1_pos[0] - self.bg_cloud_width, self.bg_cloud1_pos[1]))
         if self.bg_cloud2_pos[0] > 0:
-            blit(self.bg_cloud2, (self.bg_cloud2_pos[0] - 500, self.bg_cloud2_pos[1]))
+            blit(self.bg_cloud2, (self.bg_cloud2_pos[0] - self.bg_cloud_width, self.bg_cloud2_pos[1]))
         if self.bg_cloud1_pos[0] < 500 - swidth:
-            blit(self.bg_cloud1, (self.bg_cloud1_pos[0] + 500, self.bg_cloud1_pos[1]))
+            blit(self.bg_cloud1, (self.bg_cloud1_pos[0] + self.bg_cloud_width, self.bg_cloud1_pos[1]))
         if self.bg_cloud2_pos[0] < 500 - swidth:
-            blit(self.bg_cloud2, (self.bg_cloud2_pos[0] + 500, self.bg_cloud2_pos[1]))
+            blit(self.bg_cloud2, (self.bg_cloud2_pos[0] + self.bg_cloud_width, self.bg_cloud2_pos[1]))
+        # cloud overrun
+        if self.bg_cloud2_pos[1] + self.camera_move_y / 3 + self.bg_cloud_height < sheight:
+            blit(self.bg_cloud2_extension, (0, self.bg_cloud2_pos[1] + self.bg_cloud_height))
 
 # THE GAME =============================================================================================================
     def game(self, screen, level_count, fps_adjust, draw_hitbox, mouse_adjustment, events,
