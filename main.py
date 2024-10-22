@@ -858,6 +858,7 @@ while run:
                 fadeout_music = True
             world_completed_transition_counter = 255
             if lvl_selection_press:
+                pygame.mixer.Channel(12).play(music['birds'], -1)
                 main_menu.update_time()
                 events = {
                     'quit': False,
